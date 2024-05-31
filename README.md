@@ -14,3 +14,9 @@ Add this to .zshrc
 export CONFIG_DIR=<replace_by_path>
 source "${CONFIG_DIR}/config.zsh"
 ```
+
+## Utilities
+
+```bash
+brew install thefuck
+```

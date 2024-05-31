@@ -1,3 +1,7 @@
+# default vim
+export VISUAL=vim
+export EDITOR="$VISUAL"
+
 # direnv
 eval "$(direnv hook zsh)"
 

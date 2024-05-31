@@ -1,5 +1,5 @@
 # Initialisation d'Antigen
-source /opt/homebrew/opt/antigen/share/antigen/antigen.zsh
+source "${CONFIG_DIR}/antigen.zsh"
 
 antigen use oh-my-zsh
 

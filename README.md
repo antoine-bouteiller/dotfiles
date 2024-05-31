@@ -3,7 +3,8 @@
 ## Antigen installation
 
 ```bash
-curl -L git.io/antigen > antigen.zsh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install antigen
 ```
 
 ## Zsh installation

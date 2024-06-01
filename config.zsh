@@ -5,9 +5,6 @@ source "${CONFIG_DIR}/zsh/antigen.zsh"
 
 antigen use oh-my-zsh
 
-export NVM_COMPLETION=true
-antigen bundle lukechilds/zsh-nvm
-
 antigen bundle git
 antigen bundle zsh-users/zsh-autosuggestions
 antigen bundle brew

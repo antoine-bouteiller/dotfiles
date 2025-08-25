@@ -9,7 +9,7 @@ ZDOTDIR=~/.config/zsh
 git clone git@github.com:antoine-bouteiller/config.git $ZDOTDIR
 
 # source the .zshenv from ZDOTDIR
-ln -s ~/.config/zsh/.zshenv ~/.zshenv
+echo ". $ZDOTDIR/.zshenv" > ~/.zshenv
 
 # start a new zsh session
 zsh

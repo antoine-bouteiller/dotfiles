@@ -5,8 +5,14 @@
 Add this to .zshrc
 
 ```bash
-export CONFIG_DIR=<replace_by_path>
-source "${CONFIG_DIR}/config.zsh"
+ZDOTDIR=~/.config/zsh
+git clone git@github.com:antoine-bouteiller/config.git $ZDOTDIR
+
+# source the .zshenv from ZDOTDIR
+ln -s ~/.config/zsh/.zshenv ~/.zshenv
+
+# start a new zsh session
+zsh
 ```
 
 ## Utilities

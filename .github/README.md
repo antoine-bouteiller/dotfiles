@@ -14,11 +14,3 @@ echo ". $ZDOTDIR/.zshenv" > ~/.zshenv
 # start a new zsh session
 zsh
 ```
-
-## Utilities
-
-```bash
-curl https://get.volta.sh | bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install thefuck
-```

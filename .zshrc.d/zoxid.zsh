@@ -1,2 +1,2 @@
-(( $+commands[zoxide] )) || return 1
-eval "$(zoxide init zsh)"
+(( $+commands[zoxide] )) || curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+eval "$(zoxide init zsh --cmd cd)"

@@ -5,11 +5,11 @@
 Add this to .zshrc
 
 ```bash
-ZDOTDIR=~/.config/zsh
-git clone git@github.com:antoine-bouteiller/config.git $ZDOTDIR
+DOTDIR=~/.config/dotfiles
+git clone git@github.com:antoine-bouteiller/config.git $DOTDIR
 
-# source the .zshenv from ZDOTDIR
-echo ". $ZDOTDIR/.zshenv" > ~/.zshenv
+# source the .zshenv from DOTDIR
+echo ". $DOTDIR/zsh/.zshenv" > ~/.zshenv
 
 # start a new zsh session
 zsh

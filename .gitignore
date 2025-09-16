@@ -10,3 +10,5 @@
 *.zwc
 *.zwc.old
 ~*
+
+.zprofile

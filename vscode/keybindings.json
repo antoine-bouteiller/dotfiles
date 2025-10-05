@@ -13,9 +13,5 @@
     "key": "shift+cmd+k",
     "command": "-aipopup.action.modal.generate",
     "when": "editorFocus && !composerBarIsVisible"
-  },
-  {
-    "key": "cmd+e",
-    "command": "composerMode.background"
   }
 ]

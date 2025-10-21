@@ -1,0 +1,46 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["tsgo", "vtsls"]
+    }
+  },
+  "agent": {
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4-5"
+    },
+    "always_allow_tool_actions": true,
+    "model_parameters": []
+  },
+  "context_servers": {
+    
+  },
+  "terminal": {
+    "font_family": "MesloLGS NF",
+    "font_size": 12
+  },
+  "minimap": {
+    "show": "auto"
+  },
+  "autosave": "on_focus_change",
+  "confirm_quit": true,
+  "linked_edits": true,
+  "preferred_line_length": 160,
+  "base_keymap": "Cursor",
+  "ui_font_size": 15,
+  "buffer_font_size": 14,
+  "theme": {
+    "mode": "system",
+    "light": "Ayu Light",
+    "dark": "Modest Dark"
+  },
+  "icon_theme": "Material Icon Theme"
+}

@@ -7,10 +7,16 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "languages": {
-    "TypeScript": {
-      "language_servers": ["tsgo", "vtsls"]
-    }
+  "outline_panel": {
+    "dock": "right"
+  },
+  "project_panel": {
+    "dock": "right"
+  },
+  "code_actions_on_format": {
+    "source.organizeImports": true,
+    "source.fixAll.eslint": true,
+    "source.fixAll.oxc": true
   },
   "agent": {
     "default_model": {
@@ -20,9 +26,7 @@
     "always_allow_tool_actions": true,
     "model_parameters": []
   },
-  "context_servers": {
-    
-  },
+  "context_servers": {},
   "terminal": {
     "font_family": "MesloLGS NF",
     "font_size": 12
@@ -40,7 +44,7 @@
   "theme": {
     "mode": "system",
     "light": "Ayu Light",
-    "dark": "Modest Dark"
+    "dark": "VSCode Dark Modern"
   },
   "icon_theme": "Material Icon Theme"
 }

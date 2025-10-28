@@ -1,15 +1,19 @@
 
+# replace native common commands with better defaults
+alias ls='eza --group-directories-first --icons'
+alias cat='bat --paging=never'
+
 # single character aliases - be sparing!
 alias _=sudo
-alias l=ls
+alias l='ls'
 alias g=git
 
 # mask built-ins with better defaults
 alias vi=vim
 
 # more ways to ls
-alias ll='ls -lh'
-alias la='ls -lAh'
+alias ll='ls -l'
+alias la='ls -la'
 alias ldot='ls -ld .*'
 
 # more git alias
@@ -26,8 +30,8 @@ alias tarls="tar -tvf"
 alias untar="tar -xf"
 
 # find
-alias fd='find . -type d -name'
-alias ff='find . -type f -name'
+# alias fd='find . -type d -name'
+# alias ff='find . -type f -name'
 
 # brew
 alias bua='bup && bcup --greedy && bcn'

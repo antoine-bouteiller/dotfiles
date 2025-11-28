@@ -12,6 +12,8 @@ export XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
 export DOTDIR=${ZDOTDIR:-$XDG_CONFIG_HOME/dotfiles/zsh}
 export ZDOTDIR=${ZDOTDIR:-$XDG_CONFIG_HOME/dotfiles/zsh}
 
+export GITLAB_PRIVATE_TOKEN=glpat-yH6Q_H9P1M-AyyFjDxNJ
+
 # Ensure path arrays do not contain duplicates.
 typeset -gU path fpath
 

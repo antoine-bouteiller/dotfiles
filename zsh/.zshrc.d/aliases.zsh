@@ -2,6 +2,7 @@
 # replace native common commands with better defaults
 alias ls='eza --group-directories-first --icons'
 alias cat='bat --paging=never'
+alias grep='rg'
 
 # single character aliases - be sparing!
 alias _=sudo

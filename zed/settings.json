@@ -7,6 +7,18 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "languages": {
+    "Python": {
+      "code_actions_on_format": {
+        "source.organizeImports.ruff": false
+      },
+      "formatter": {
+        "language_server": {
+          "name": "black"
+        }
+      }
+    }
+  },
   "code_actions_on_format": {
     "source.organizeImports": true,
     "source.fixAll.eslint": true,
@@ -38,7 +50,7 @@
   "theme": {
     "mode": "system",
     "light": "Ayu Light",
-    "dark": "VSCode Dark Modern"
+    "dark": "Fleet Dark"
   },
-  "icon_theme": "Material Icon Theme"
+  "icon_theme": "Colored Zed Icons Theme Dark"
 }

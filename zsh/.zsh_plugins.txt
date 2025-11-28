@@ -11,9 +11,6 @@ belak/zsh-utils path:editor
 # History
 belak/zsh-utils path:history
 
-# Prompt
-romkatv/powerlevel10k
-
 # Utilities
 belak/zsh-utils path:utility
 ohmyzsh/ohmyzsh path:plugins/git
@@ -24,6 +21,6 @@ ohmyzsh/ohmyzsh path:plugins/brew
 ohmyzsh/ohmyzsh path:plugins/extract
 
 # Other Fish-like features
-zsh-users/zsh-autosuggestions  
+zsh-users/zsh-autosuggestions
 zdharma-continuum/fast-syntax-highlighting
-zsh-users/zsh-history-substring-search 
+zsh-users/zsh-history-substring-search

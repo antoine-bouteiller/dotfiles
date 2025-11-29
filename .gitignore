@@ -10,6 +10,7 @@
 *.zwc
 *.zwc.old
 ~*
+data.nu
 
 .zprofile
 localaliases.zsh

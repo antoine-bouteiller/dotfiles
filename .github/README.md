@@ -1,16 +1,7 @@
 # config
 
-## Zsh installation
-
-Add this to .zshrc
+## Linux / MacOS
 
 ```bash
-DOTDIR=~/.config/dotfiles
-git clone git@github.com:antoine-bouteiller/config.git $DOTDIR
-
-# source the .zshenv from DOTDIR
-echo ". $DOTDIR/zsh/.zshenv" > ~/.zshenv
-
-# start a new zsh session
-zsh
+sh -c "$(curl -fsSL https://gist.github.com/antoine-bouteiller/3a82084fb95a5e45e4edec380221a9c8/raw)"
 ```

@@ -87,7 +87,7 @@ format = '[─](fg:current_line)[](fg:green)[$symbol](fg:primary bg:green)[�
 symbol = ' '
 
 [git_status]
-format = '[$all_status](fg:green bg:box)[](fg:box)'
+format = '[$all_status$ahead_behind](fg:green bg:box)[](fg:box)'
 conflicted = ' ='
 up_to_date = ''
 untracked = ' ?${count}'

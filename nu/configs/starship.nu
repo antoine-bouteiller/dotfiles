@@ -2,10 +2,13 @@
 # - overlay which can be loaded with `overlay use starship.nu`
 # - module which can be used with `use starship.nu`
 # - script which can be used with `source starship.nu`
-export-env { $env.STARSHIP_SHELL = "nu"; load-env {
+
+export-env { $env.STARSHIP_SHELL = "nu";
+    let starship_path = (which starship | get path.0);
+    load-env {
     STARSHIP_SESSION_KEY: (random chars -l 16)
     PROMPT_MULTILINE_INDICATOR: (
-        ^/opt/homebrew/bin/starship prompt --continuation
+        ^$starship_path prompt --continuation
     )
 
     # Does not play well with default character module.
@@ -17,7 +20,7 @@ export-env { $env.STARSHIP_SHELL = "nu"; load-env {
             # The initial value of `$env.CMD_DURATION_MS` is always `0823`, which is an official setting.
             # See https://github.com/nushell/nushell/discussions/6402#discussioncomment-3466687.
             let cmd_duration = if $env.CMD_DURATION_MS == "0823" { 0 } else { $env.CMD_DURATION_MS };
-            ^/opt/homebrew/bin/starship prompt
+            ^$starship_path prompt
                 --cmd-duration $cmd_duration
                 $"--status=($env.LAST_EXIT_CODE)"
                 --terminal-width (term size).columns
@@ -40,7 +43,7 @@ export-env { $env.STARSHIP_SHELL = "nu"; load-env {
             # The initial value of `$env.CMD_DURATION_MS` is always `0823`, which is an official setting.
             # See https://github.com/nushell/nushell/discussions/6402#discussioncomment-3466687.
             let cmd_duration = if $env.CMD_DURATION_MS == "0823" { 0 } else { $env.CMD_DURATION_MS };
-            ^/opt/homebrew/bin/starship prompt
+            ^$starship_path prompt
                 --right
                 --cmd-duration $cmd_duration
                 $"--status=($env.LAST_EXIT_CODE)"

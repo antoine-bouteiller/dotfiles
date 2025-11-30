@@ -1,5 +1,5 @@
 # replace native common commands with better defaults
-export alias ls = eza --group-directories-first --icons
+# export alias ls = eza --group-directories-first --icons
 export alias cat = bat --paging=never
 export alias grep = rg
 

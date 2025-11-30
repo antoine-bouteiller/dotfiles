@@ -1,4 +1,6 @@
-$env.PATH = ($env.PATH | split row (char esep) | where { $in != "/Users/antoine.bouteiller/.config/carapace/bin" } | prepend "/Users/antoine.bouteiller/.config/carapace/bin")
+let carapath_path = (which carapace | get path.0)
+
+$env.PATH = ($env.PATH | split row (char esep) | where { $in != $carapath_path } | prepend $carapath_path)
 $env.CARAPACE_BRIDGES = 'zsh,fish,bash,inshellisense'
 
 def --env get-env [name] { $env | get $name }

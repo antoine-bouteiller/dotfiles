@@ -7,7 +7,18 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "buffer_font_family": "MesloLGL Nerd Font",
+  "buffer_font_family": "MesloLGM Nerd Font",
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "preferences": {
+            "importModuleSpecifier": "non-relative"
+          }
+        }
+      }
+    }
+  },
   "languages": {
     "Python": {
       "code_actions_on_format": {
@@ -35,6 +46,9 @@
   },
   "context_servers": {},
   "terminal": {
+    "shell": {
+      "program": "nu"
+    },
     "font_family": "MesloLGM Nerd Font",
     "font_size": 12,
     "line_height": {

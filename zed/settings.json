@@ -46,6 +46,12 @@
   },
   "context_servers": {},
   "terminal": {
+    "detect_venv": {
+      "on": {
+        "directories": [".env", "env", ".venv", "venv"],
+        "activate_script": "nushell"
+      }
+    },
     "shell": {
       "program": "nu"
     },

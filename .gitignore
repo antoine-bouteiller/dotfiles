@@ -12,5 +12,10 @@
 ~*
 data.nu
 
-.zprofile
-localaliases.zsh
+local.nu
+
+zed/conversations
+zed/prompts
+zed/themes
+carapace
+history.txt

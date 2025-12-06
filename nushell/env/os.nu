@@ -8,6 +8,11 @@ export-env {
 				std path add '~/.local/bin'
 			}
 		}
+		"linux" => {
+			with-env { PATH: $env.PATH } {
+				std path add '~/.local/bin'
+			}
+		}
 		"windows" => {
 		  $env.HOME = $env.USERPROFILE
 		}

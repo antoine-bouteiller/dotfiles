@@ -11,34 +11,28 @@ export-env {
   )
 }
 
-def complete_zoxide [context: string] {
-    let parts = $context | str trim --left | split row " " | skip 1 | each { str downcase }
-    let completions = (
-        ^zoxide query --list --exclude $env.PWD -- ...$parts
-            | lines
-            | each { |dir|
-                if ($parts | length) <= 1 {
-                    $dir
-                } else {
-                    let dir_lower = $dir | str downcase
-                    let rem_start = $parts | drop 1 | reduce --fold 0 { |part, rem_start|
-                        ($dir_lower | str index-of --range $rem_start.. $part) + ($part | str length)
-                    }
-                    {
-                        value: ($dir | str substring $rem_start..),
-                        description: $dir
-                    }
-                }
-            })
-    {
-        options: {
-            sort: false,
-            completion_algorithm: substring,
-            case_sensitive: false,
-        },
-        completions: $completions,
+def "complete_zoxide" [context: string] {
+    let guess = $context | split row " " | skip 1
+
+    let subDirs = ls | where type == dir | get name
+    let subDotDirs = ls .* | where type == dir | get name | skip 2 # . and ..
+    let zoxideDirs = zoxide query --list --exclude $env.PWD -- ...$guess | lines | first 10 | each {|it|
+        if ($it | str starts-with $env.PWD) {
+            $it | path relative-to $env.PWD
+        } else {
+            $it
+        }
     }
-}
+    let completions =  [$subDirs  $subDotDirs  $zoxideDirs] | compact | flatten | uniq
+    {
+      options: {
+        sort: false,
+        completion_algorithm: substring,
+        case_sensitive: false,
+      },
+     completions: $completions,
+    }
+  }
 
 export def --env __zoxide_z [...rest: string@'complete_zoxide'] {
 	let arg0 = ($rest | append '~').0
@@ -54,6 +48,5 @@ export def --env __zoxide_zi  [...rest: string@'complete_zoxide'] {
 	cd (^zoxide query -i -- ...$rest | str trim --right --char "\n")
 }
 
-export alias z = __zoxide_z
 export alias cd = __zoxide_z
-export alias zi = __zoxide_zi
+export alias cdi = __zoxide_zi

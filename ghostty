@@ -1,4 +1,2 @@
-command = /opt/homebrew/bin/nu --config ~/.config/nushell/config.nu --env-config ~/.config/nushell/env.nu
-shell-integration = none
 keybind = shift+enter=text:\x1b\r
-shell-integration-features = ssh-env
+shell-integration-features = true

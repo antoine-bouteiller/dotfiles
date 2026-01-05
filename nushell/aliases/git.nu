@@ -65,7 +65,16 @@ export alias gcb = git checkout -b
 export alias gcd = git checkout develop
 export alias gcf = git config --list
 export alias gcl = git clone --recurse-submodules
-export alias gclean = git clean --interactive -d
+export def gclean [] {
+    git fetch -p;
+    git for-each-ref --format '%(refname:short) %(upstream:track)' refs/heads
+        | lines
+        | parse "{branch} {status}"
+        | where status == "[gone]"
+        | get branch
+        | each { |branch_name| do -i { git branch -D $branch_name } }
+}
+
 export def gpristine [] {
     git reset --hard
     git clean -d --force -x
@@ -159,7 +168,7 @@ export alias grba = git rebase --abort
 export alias grbc = git rebase --continue
 export alias grbd = git rebase develop
 export alias grbi = git rebase --interactive
-export alias grbm = git rebase (git_main_branch)
+export alias grbm = git rebase $'origin/(git_main_branch)'
 export alias grbo = git rebase --onto
 export alias grbs = git rebase --skip
 export alias grev = git revert

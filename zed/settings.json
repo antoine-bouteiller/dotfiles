@@ -12,16 +12,10 @@
     "vtsls": {
       "enable_lsp_tasks": false,
       "settings": {
-        "typescript.preferences.importModuleSpecifier": "non-relative",
-      },
-    },
-    "oxc": {
-      "initialization_options": {
-        "options": {
-          "configPath": null,
-          "tsConfigPath": null,
-          "unusedDisableDirectives": "allow",
-          "typeAware": true,
+        "typescript": {
+          "preferences": {
+            "importModuleSpecifier": "non-relative",
+          },
         },
       },
     },
@@ -58,6 +52,14 @@
         "allowed": true,
       },
     },
+    "Nix": {
+      "formatter": {
+        "external": {
+          "command": "alejandra", // or "nixfmt"
+          "arguments": ["--quiet", "--"],
+        },
+      },
+    },
   },
   "code_actions_on_format": {
     "source.organizeImports": true,
@@ -72,19 +74,7 @@
     "always_allow_tool_actions": true,
     "model_parameters": [],
   },
-  "context_servers": {
-    "local-mcp-server": {
-      "command": "npx",
-      "args": ["-y", "@agentdeskai/browser-tools-mcp@latest"],
-    },
-  },
   "terminal": {
-    "detect_venv": {
-      "on": {
-        "directories": [".env", "env", ".venv", "venv"],
-        "activate_script": "nushell",
-      },
-    },
     "font_family": "MesloLGM Nerd Font",
     "font_size": 12,
     "line_height": {

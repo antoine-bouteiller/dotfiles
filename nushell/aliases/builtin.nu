@@ -15,3 +15,4 @@ export alias vi = vim
 export alias ll = ls -l
 export alias la = ls -la
 export alias ldot = ls -ld .*
+export alias zsh = do { NO_NU=1 zsh }

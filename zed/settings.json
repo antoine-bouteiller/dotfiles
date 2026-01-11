@@ -12,10 +12,27 @@
     "vtsls": {
       "enable_lsp_tasks": false,
       "settings": {
-        "typescript": {
-          "preferences": {
-            "importModuleSpecifier": "non-relative",
-          },
+        "typescript.preferences.importModuleSpecifier": "non-relative",
+      },
+    },
+    "oxlint": {
+      "initialization_options": {
+        "settings": {
+          "configPath": null,
+          "tsConfigPath": null,
+          "fixKind": "safe_fix",
+          "run": "onType",
+          "typeAware": true,
+          "unusedDisableDirectives": "deny",
+        },
+      },
+    },
+    "oxfmt": {
+      "initialization_options": {
+        "settings": {
+          "fmt.experimental": true,
+          "run": "onSave",
+          "unusedDisableDirectives": "deny",
         },
       },
     },
@@ -41,16 +58,12 @@
       },
     },
     "TSX": {
+      "format_on_save": "on",
       "language_servers": ["!typescript-language-server", "!vtsls", "tsgo", "..."],
-      "prettier": {
-        "allowed": true,
-      },
     },
     "TypeScript": {
+      "format_on_save": "on",
       "language_servers": ["!typescript-language-server", "!vtsls", "tsgo", "..."],
-      "prettier": {
-        "allowed": true,
-      },
     },
     "Nix": {
       "formatter": {

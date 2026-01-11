@@ -1,21 +1,15 @@
+# zsh
 .antidote/
 .zcompcache/
 .zsh_sessions/
 .zcompdump*
-.zsh_history
 .zsh_plugins.zsh
+
+# misc
+.zlocal
 *.bak
-*.local
-*.local.zsh
-*.zwc
-*.zwc.old
-~*
-data.nu
 
-local.nu
-
+# zed
 zed/conversations
 zed/prompts
 zed/themes
-carapace
-history.txt

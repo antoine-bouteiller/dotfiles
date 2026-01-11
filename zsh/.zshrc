@@ -1,23 +1,25 @@
 #!/bin/zsh
 
 # Lazy-load (autoload) Zsh function files from a directory.
-ZFUNCDIR=${ZDOTDIR:-$HOME}/.zfunctions
+ZFUNCDIR=$ZDOTDIR/.zfunctions
 fpath=($ZFUNCDIR $fpath)
 autoload -Uz $ZFUNCDIR/*(.:t)
 
 # Set any zstyles you might use for configuration.
-[[ ! -f ${ZDOTDIR:-$HOME}/.zstyles ]] || source ${ZDOTDIR:-$HOME}/.zstyles
+[[ ! -f $ZDOTDIR/.zstyles ]] || source $ZDOTDIR/.zstyles
 
 # Clone antidote if necessary.
-if [[ ! -d ${ZDOTDIR:-$HOME}/.antidote ]]; then
-  git clone https://github.com/mattmc3/antidote ${ZDOTDIR:-$HOME}/.antidote
+if [[ ! -d $ZDOTDIR/.antidote ]]; then
+  git clone https://github.com/mattmc3/antidote $ZDOTDIR/.antidote
 fi
 
-source ${ZDOTDIR:-$HOME}/.antidote/antidote.zsh
+source $ZDOTDIR/.antidote/antidote.zsh
 antidote load
 
+[[ ! -f $ZDOTDIR/.zlocal ]] || source $ZDOTDIR/.zlocal
+
 # Source anything in .zshrc.d.
-for _rc in ${ZDOTDIR:-$HOME}/.zshrc.d/*.zsh; do
+for _rc in $ZDOTDIR/.zshrc.d/*.zsh; do
   # Ignore tilde files.
   if [[ $_rc:t != '~'* ]]; then
     source "$_rc"

@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $dotfilesDir = "$env:USERPROFILE\.dotfiles"
 
-$packages = @("Nushell.Nushell", "Starship.Starship", "sharkdp.bat", "ajeetdsouza.zoxide", "rsteube.Carapace", "jdx.mise", "ZedIndustries.Zed")
+$packages = @("Nushell.Nushell", "Starship.Starship", "sharkdp.bat", "ajeetdsouza.zoxide", "jdx.mise", "ZedIndustries.Zed")
 foreach ($package in $packages) {
     winget install --id $package --silent --accept-source-agreements --accept-package-agreements
 }

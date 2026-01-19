@@ -1,5 +1,13 @@
 #!/bin/zsh
 
+path=(
+  $HOME/{,s}bin(N)
+  $HOME/.local/{,s}bin(N)
+  /opt/{homebrew,local}/{,s}bin(N)
+  /usr/local/{,s}bin(N)
+  $path
+)
+
 # Lazy-load (autoload) Zsh function files from a directory.
 ZFUNCDIR=$ZDOTDIR/.zfunctions
 fpath=($ZFUNCDIR $fpath)

@@ -1,18 +1,9 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
 {
   "buffer_font_family": "MesloLGM Nerd Font",
   "lsp": {
-    "vtsls": {
-      "enable_lsp_tasks": false,
+    "omnisharp": {
       "settings": {
-        "typescript.preferences.importModuleSpecifier": "non-relative",
+        "path": "",
       },
     },
     "oxlint": {
@@ -23,7 +14,6 @@
           "fixKind": "safe_fix",
           "run": "onType",
           "typeAware": true,
-          "unusedDisableDirectives": "deny",
         },
       },
     },
@@ -32,7 +22,6 @@
         "settings": {
           "fmt.experimental": true,
           "run": "onSave",
-          "unusedDisableDirectives": "deny",
         },
       },
     },
@@ -59,11 +48,9 @@
     },
     "TSX": {
       "format_on_save": "on",
-      "language_servers": ["!typescript-language-server", "!vtsls", "tsgo", "..."],
     },
     "TypeScript": {
       "format_on_save": "on",
-      "language_servers": ["!typescript-language-server", "!vtsls", "tsgo", "..."],
     },
     "Nix": {
       "formatter": {

@@ -1,29 +1,20 @@
 {
   "buffer_font_family": "MesloLGM Nerd Font",
   "lsp": {
-    "omnisharp": {
+    "vtsls": {
       "settings": {
-        "path": "",
-      },
-    },
-    "oxlint": {
-      "initialization_options": {
-        "settings": {
-          "configPath": null,
-          "tsConfigPath": null,
-          "fixKind": "safe_fix",
-          "run": "onType",
-          "typeAware": true,
+        "typescript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
+        },
+        "javascript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
         },
       },
-    },
-    "oxfmt": {
-      "initialization_options": {
-        "settings": {
-          "fmt.experimental": true,
-          "run": "onSave",
-        },
-      },
+      "enable_lsp_tasks": true,
     },
   },
   "agent_servers": {
@@ -48,11 +39,20 @@
     },
     "TSX": {
       "format_on_save": "on",
+      "language_servers": ["eslint", "!typescript-language-server", "vtsls", "!oxlint", "!oxfmt", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true,
+      },
     },
     "TypeScript": {
       "format_on_save": "on",
+      "language_servers": ["eslint", "!typescript-language-server", "vtsls", "!oxlint", "!oxfmt", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true,
+      },
     },
     "Nix": {
+      "language_servers": [],
       "formatter": {
         "external": {
           "command": "alejandra", // or "nixfmt"
@@ -63,8 +63,6 @@
   },
   "code_actions_on_format": {
     "source.organizeImports": true,
-    "source.fixAll.eslint": true,
-    "source.fixAll.oxc": true,
   },
   "agent": {
     "default_model": {

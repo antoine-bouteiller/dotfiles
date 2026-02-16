@@ -9,6 +9,7 @@
 .zlocal
 .DS_Store
 *.bak
+.gitconfig
 
 # zed
 zed/conversations

@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-path=(
+export path=(
   $HOME/{,s}bin(N)
   $HOME/.local/{,s}bin(N)
   /opt/{homebrew,local}/{,s}bin(N)

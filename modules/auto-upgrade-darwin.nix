@@ -5,7 +5,7 @@ in {
     script = ''
       export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
       cd ${flakePath}
-      nix flake update --commit-lock-file
+      git pull --ff-only origin main
       darwin-rebuild switch --flake .
     '';
     serviceConfig = {

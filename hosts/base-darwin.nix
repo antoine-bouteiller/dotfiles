@@ -26,6 +26,7 @@
 
       # Browsers
       "zen"
+      "brave-browser"
 
       # Utility Tools
       "unnaturalscrollwheels"

@@ -226,8 +226,26 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
+        "rtk-src": "rtk-src",
         "sops-nix": "sops-nix",
+        "vite-plus-src": "vite-plus-src",
         "ygege": "ygege"
+      }
+    },
+    "rtk-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773918859,
+        "narHash": "sha256-p4OX3SSDGKlHVLIWhgKpcme449wOHbfWbc3mxlCkaMI=",
+        "owner": "rtk-ai",
+        "repo": "rtk",
+        "rev": "c85e348a91ee5c7afb5adc298e1e71d6782a594e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rtk-ai",
+        "repo": "rtk",
+        "type": "github"
       }
     },
     "sops-nix": {
@@ -247,6 +265,22 @@
       "original": {
         "owner": "Mic92",
         "repo": "sops-nix",
+        "type": "github"
+      }
+    },
+    "vite-plus-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774104873,
+        "narHash": "sha256-MdZ6yuecGi8oBdBNgCY+VBpX8mNMgjmXii0d7KJuhMA=",
+        "owner": "voidzero-dev",
+        "repo": "vite-plus",
+        "rev": "a206ba9c11bddd36d9761b31ad842e8fd4d35c87",
+        "type": "github"
+      },
+      "original": {
+        "owner": "voidzero-dev",
+        "repo": "vite-plus",
         "type": "github"
       }
     },

@@ -42,6 +42,10 @@
       url = "github:UwUDev/ygege";
       flake = false;
     };
+    rtk-src = {
+      url = "github:rtk-ai/rtk";
+      flake = false;
+    };
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -62,11 +66,13 @@
     autoscan,
     ygege,
     nixos-wsl,
+    rtk-src,
   } @ inputs: let
     globals = import ./globals.nix;
     overlays = [
       (import ./overlays/comment-checker.nix {comment-checker-src = comment-checker-src;})
       (import ./overlays/vite-plus.nix)
+      (import ./overlays/rtk.nix {inherit rtk-src;})
     ];
     linuxSystems = ["x86_64-linux"];
     darwinSystems = ["aarch64-darwin"];

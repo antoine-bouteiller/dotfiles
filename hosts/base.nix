@@ -65,5 +65,6 @@
     nixd
     comment-checker
     ffmpeg
+    rtk
   ];
 }

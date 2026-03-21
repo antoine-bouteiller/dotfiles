@@ -27,13 +27,13 @@ in {
   };
 
   config = {
-    # Separate flake-update service with retry logic
-    systemd.services.flake-update = {
+    # Pull latest flake.lock before rebuild
+    systemd.services.flake-pull = {
       stopIfChanged = false;
       restartIfChanged = false;
 
       unitConfig = {
-        Description = "Update flake inputs";
+        Description = "Pull latest flake.lock from remote";
         StartLimitIntervalSec = 300;
         StartLimitBurst = 5;
       };
@@ -41,28 +41,16 @@ in {
       serviceConfig = {
         WorkingDirectory = flakePath;
 
-        ExecStart = pkgs.writeShellScript "flake-update-script" ''
-          ${pkgs.nix}/bin/nix flake update
-
-          if ! ${pkgs.git}/bin/git diff --exit-code flake.lock > /dev/null; then
-              ${pkgs.git}/bin/git add flake.lock
-              ${pkgs.git}/bin/git commit -m "chore(deps): auto-update flake.lock"
-          fi
+        ExecStart = pkgs.writeShellScript "flake-pull-script" ''
+          ${pkgs.git}/bin/git pull --ff-only origin main
         '';
         Restart = "on-failure";
         RestartSec = "30";
         Type = "oneshot";
-
-        Environment = [
-          "GIT_AUTHOR_NAME='${globals.name}'"
-          "GIT_AUTHOR_EMAIL=${globals.email}"
-          "GIT_COMMITTER_NAME='${globals.name}'"
-          "GIT_COMMITTER_EMAIL=${globals.email}"
-        ];
       };
 
       before = ["nixos-upgrade.service"];
-      path = [pkgs.nix pkgs.git pkgs.host];
+      path = [pkgs.git];
     };
 
     system.autoUpgrade =
@@ -92,8 +80,8 @@ in {
         StartLimitIntervalSec = 600;
         StartLimitBurst = 2;
       };
-      after = ["flake-update.service"];
-      wants = ["flake-update.service"];
+      after = ["flake-pull.service"];
+      wants = ["flake-pull.service"];
       path = [pkgs.host];
     };
   };

@@ -54,6 +54,7 @@
       "codex"
       "slack"
       "zed"
+      "t3-code"
     ];
   };
 

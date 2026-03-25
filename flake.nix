@@ -26,10 +26,6 @@
       url = "github:homebrew/homebrew-cask";
       flake = false;
     };
-    comment-checker-src = {
-      url = "github:code-yeongyu/go-claude-code-comment-checker";
-      flake = false;
-    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,10 +33,6 @@
     autoscan = {
       url = "github:antoine-bouteiller/autoscan";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-    rtk-src = {
-      url = "github:rtk-ai/rtk";
-      flake = false;
     };
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL/main";
@@ -55,20 +47,13 @@
     homebrew-bundle,
     homebrew-core,
     homebrew-cask,
-    comment-checker-src,
     home-manager,
     nixpkgs,
     sops-nix,
     autoscan,
     nixos-wsl,
-    rtk-src,
   } @ inputs: let
     globals = import ./globals.nix;
-    overlays = [
-      (import ./overlays/comment-checker.nix {comment-checker-src = comment-checker-src;})
-      (import ./overlays/vite-plus.nix)
-      (import ./overlays/rtk.nix {inherit rtk-src;})
-    ];
     linuxSystems = ["x86_64-linux"];
     darwinSystems = ["aarch64-darwin"];
     forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
@@ -100,11 +85,19 @@
     devShells = forAllSystems devShell;
     apps = nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) mkApps;
 
+    packages = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      comment-checker = pkgs.callPackage ./pkgs/comment-checker.nix {};
+      rtk = pkgs.callPackage ./pkgs/rtk.nix {};
+      vite-plus = pkgs.callPackage ./pkgs/vite-plus.nix {};
+      _1mcp = pkgs.callPackage ./pkgs/1mcp.nix {};
+    });
+
     darwinConfigurations.pelico = darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       specialArgs = {inherit inputs globals;};
       modules = [
-        {nixpkgs.overlays = overlays;}
         home-manager.darwinModules.home-manager
         nix-homebrew.darwinModules.nix-homebrew
         ./hosts/pelico
@@ -116,7 +109,6 @@
         system = "x86_64-linux";
         specialArgs = {inherit inputs globals;};
         modules = [
-          {nixpkgs.overlays = overlays;}
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
           autoscan.nixosModules.default
@@ -128,7 +120,6 @@
         system = "x86_64-linux";
         specialArgs = {inherit inputs globals;};
         modules = [
-          {nixpkgs.overlays = overlays;}
           home-manager.nixosModules.home-manager
           nixos-wsl.nixosModules.default
           ./hosts/wsl

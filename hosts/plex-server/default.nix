@@ -23,7 +23,7 @@ in {
     useGlobalPkgs = true;
     useUserPackages = true;
     extraSpecialArgs = {
-      inherit globals;
+      inherit inputs globals;
       hostUser = user;
     };
     users.${user} = import ./home.nix;

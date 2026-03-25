@@ -37,22 +37,6 @@
         "type": "github"
       }
     },
-    "comment-checker-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1766901401,
-        "narHash": "sha256-RyZlVPJ+G3Vvt5Mhja7mxSe8bd+BfsYqbbrfqjjCbYE=",
-        "owner": "code-yeongyu",
-        "repo": "go-claude-code-comment-checker",
-        "rev": "3af15e041cf73c94735d2be965f083d4e84093ad",
-        "type": "github"
-      },
-      "original": {
-        "owner": "code-yeongyu",
-        "repo": "go-claude-code-comment-checker",
-        "type": "github"
-      }
-    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -217,7 +201,6 @@
     "root": {
       "inputs": {
         "autoscan": "autoscan",
-        "comment-checker-src": "comment-checker-src",
         "darwin": "darwin",
         "home-manager": "home-manager",
         "homebrew-bundle": "homebrew-bundle",
@@ -226,24 +209,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "rtk-src": "rtk-src",
         "sops-nix": "sops-nix"
-      }
-    },
-    "rtk-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1773918859,
-        "narHash": "sha256-p4OX3SSDGKlHVLIWhgKpcme449wOHbfWbc3mxlCkaMI=",
-        "owner": "rtk-ai",
-        "repo": "rtk",
-        "rev": "c85e348a91ee5c7afb5adc298e1e71d6782a594e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rtk-ai",
-        "repo": "rtk",
-        "type": "github"
       }
     },
     "sops-nix": {

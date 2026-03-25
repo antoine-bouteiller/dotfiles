@@ -1,8 +1,11 @@
 {
+  inputs,
   lib,
   pkgs,
   ...
-}: {
+}: let
+  customPkgs = inputs.self.packages.${pkgs.system};
+in {
   nixpkgs.config = {
     allowUnfree = true;
     allowBroken = true;
@@ -63,8 +66,9 @@
     lazygit
     alejandra
     nixd
-    comment-checker
+    customPkgs.comment-checker
     ffmpeg
-    rtk
+    customPkgs.rtk
+    customPkgs._1mcp
   ];
 }

@@ -46,7 +46,8 @@
       "Read(//tmp/**)",
       "Write(//tmp/**)",
       "Edit(//tmp/**)",
-      "WebFetch"
+      "WebFetch",
+      "WebSearch"
     ],
     "additionalDirectories": ["~/.claude"]
   },
@@ -98,7 +99,7 @@
     "dotfiles-plugins": {
       "source": {
         "source": "directory",
-        "path": "~/.dotfiles/home-manager/applications/claude-code/plugins"
+        "path": "/Users/antoinebouteiller/.dotfiles/home-manager/applications/claude-code/plugins"
       }
     },
     "thedotmack": {

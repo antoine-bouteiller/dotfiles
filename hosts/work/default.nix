@@ -60,7 +60,7 @@
 
   home-manager = {
     useGlobalPkgs = true;
-    extraSpecialArgs = {inherit globals;};
+    extraSpecialArgs = {inherit inputs globals;};
     users.${globals.user} = import ./home.nix;
   };
 

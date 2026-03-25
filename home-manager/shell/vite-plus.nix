@@ -1,15 +1,17 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }: let
+  customPkgs = inputs.self.packages.${pkgs.system};
   cfg = config.programs.vite-plus;
   home = config.home.homeDirectory;
-  vpNix = "${pkgs.vite-plus}/bin/vp";
+  vpNix = "${customPkgs.vite-plus}/bin/vp";
   installDir = "${home}/.vite-plus";
   vpBin = "${installDir}/bin/vp";
-  version = pkgs.vite-plus.version;
+  version = customPkgs.vite-plus.version;
   versionDir = "${installDir}/${version}";
 in {
   options.programs.vite-plus = {

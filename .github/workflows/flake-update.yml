@@ -1,4 +1,4 @@
-name: Update flake.lock
+name: Update flake.lock and packages
 
 on:
   schedule:
@@ -8,20 +8,31 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
 
       - name: Update flake.lock
         run: nix flake update
+
+      - name: Update packages
+        run: |
+          nix run nixpkgs#nix-update -- --flake comment-checker
+          nix run nixpkgs#nix-update -- --flake rtk
+          nix run nixpkgs#nix-update -- --flake _1mcp
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --exit-code flake.lock > /dev/null; then
-            git add flake.lock
-            git commit -m "chore(deps): auto-update flake.lock"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(deps): auto-update flake.lock and packages"
             git push
           fi

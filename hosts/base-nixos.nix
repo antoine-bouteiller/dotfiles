@@ -14,6 +14,8 @@
     efi.canTouchEfiVariables = true;
   };
 
+  programs.zsh.enable = true;
+
   i18n.defaultLocale = "en_GB.UTF-8";
   console.keyMap = "fr";
 

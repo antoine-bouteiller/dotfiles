@@ -1,5 +1,6 @@
 {
   globals,
+  inputs,
   pkgs,
   ...
 }: let

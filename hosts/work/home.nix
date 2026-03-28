@@ -1,6 +1,7 @@
 {
   globals,
   pkgs,
+  config,
   ...
 }: {
   imports = [
@@ -17,7 +18,13 @@
     stateVersion = "25.11";
   };
 
-  # Host-specific git email override
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.npm-packages/bin"
+  ];
+  home.sessionVariables = {
+    NODE_PATH = "${config.home.homeDirectory}/.npm-packages/lib/node_modules";
+  };
+
   programs.git = {
     settings.user.email = (let value = builtins.getEnv "WORK_EMAIL"; in if value == "" then throw "Set WORK_EMAIL and evaluate with --impure" else value);
     includes = [
@@ -38,6 +45,11 @@
         email = ${globals.email}
     '';
   };
+
+  home.file.".npmrc".text = ''
+    @work:registry=http://nexus.example.com/repository/npm/
+    prefix=${config.home.homeDirectory}/.npm-packages
+  '';
 
   manual.manpages.enable = false;
 }

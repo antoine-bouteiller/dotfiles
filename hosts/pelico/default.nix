@@ -14,6 +14,18 @@
     NODE_OPTIONS = "--max-old-space-size=4096";
   };
 
+  environment.systemPackages = with pkgs; [
+    # Java
+    jdk25_headless
+
+    # Python
+    (python313.withPackages (ps:
+      with ps; [
+        python-gitlab
+      ]))
+    uv
+  ];
+
   nix-homebrew = {
     inherit (globals) user;
     enable = true;

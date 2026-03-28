@@ -1,6 +1,7 @@
 {
   globals,
   pkgs,
+  config,
   ...
 }: {
   imports = [
@@ -17,7 +18,13 @@
     stateVersion = "25.11";
   };
 
-  # Host-specific git email override
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.npm-packages/bin"
+  ];
+  home.sessionVariables = {
+    NODE_PATH = "${config.home.homeDirectory}/.npm-packages/lib/node_modules";
+  };
+
   programs.git = {
     settings.user.email = "antoine.bouteiller@pelico.io";
     includes = [
@@ -38,6 +45,11 @@
         email = ${globals.email}
     '';
   };
+
+  home.file.".npmrc".text = ''
+    @pelico:registry=http://nexus.pelico.best/repository/npm/
+    prefix=${config.home.homeDirectory}/.npm-packages
+  '';
 
   manual.manpages.enable = false;
 }

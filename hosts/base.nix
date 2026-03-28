@@ -45,12 +45,7 @@ in {
     # Node.js development tools
     nodejs_24
     bun
-
-    # Python
-    python313
-
-    # Java
-    jdk25_headless
+    pnpm
 
     # Text and terminal utilities
     htop
@@ -60,12 +55,6 @@ in {
     tmux
     unzip
     eza
-
-    # Shell tools
-    zoxide
-    carapace
-    direnv
-    fzf
 
     # Development tools
     curl

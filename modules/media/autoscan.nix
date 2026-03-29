@@ -15,6 +15,7 @@ in {
       sonarrApiUrl = "http://localhost:${toString cfg.sonarr.port}";
       radarrApiUrl = "http://localhost:${toString cfg.radarr.port}";
       transcodePath = "${cfg.paths.mediaDir}/transcode";
+      databaseUrl = "postgres:///autoscan?host=/run/postgresql";
     };
     secrets = {
       plexTokenFile = config.sops.secrets."autoscan/plex_token".path;
@@ -27,6 +28,21 @@ in {
       traktClientIdFile = config.sops.secrets."autoscan/trakt_client_id".path;
       traktClientSecretFile = config.sops.secrets."autoscan/trakt_client_secret".path;
     };
+  };
+
+  services.postgresql = {
+    ensureDatabases = ["autoscan"];
+    ensureUsers = [
+      {
+        name = "autoscan";
+        ensureDBOwnership = true;
+      }
+    ];
+  };
+
+  systemd.services.autoscan = {
+    after = ["postgresql-setup.service"];
+    requires = ["postgresql-setup.service"];
   };
 
   sops.secrets."autoscan/plex_token" = {

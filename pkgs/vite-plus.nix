@@ -51,12 +51,12 @@
       }
       EOF
 
-      npm install --silent
+      npm install --omit=optional --silent
     '';
 
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
-    outputHash = "sha256-MJC2oYlFw2Bu8rQreG9OsLuH8CzztBS6o4q82aCx4NE=";
+    outputHash = "sha256-Y15Gakngs9L8xXchQ/ZrQOEgh6KtrF/7PECkVaRGAp0=";
   };
 in
   stdenvNoCC.mkDerivation {

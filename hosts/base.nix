@@ -1,11 +1,8 @@
 {
-  inputs,
   lib,
   pkgs,
   ...
-}: let
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
-in {
+}: {
   nixpkgs.config = {
     allowUnfree = true;
     allowBroken = true;
@@ -36,16 +33,8 @@ in {
   environment.systemPackages = with pkgs; [
     bat
     openssh
-    wget
     zip
-
-    # Encryption and security tools
-    gnupg
-
-    # Node.js development tools
-    nodejs_24
-    bun
-    pnpm
+    unzip
 
     # Text and terminal utilities
     htop
@@ -53,7 +42,6 @@ in {
     ripgrep
     tree
     tmux
-    unzip
     eza
 
     # Development tools
@@ -62,10 +50,6 @@ in {
     lazygit
     alejandra
     nixd
-    customPkgs.comment-checker
     ffmpeg
-    customPkgs.rtk
-    customPkgs._1mcp
-    customPkgs.vite-plus
   ];
 }

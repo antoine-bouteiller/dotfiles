@@ -20,10 +20,6 @@
   console.keyMap = "fr";
 
   environment.systemPackages = with pkgs; [
-    appimage-run
     home-manager
-    fontconfig
-    sqlite
-    xdg-utils
   ];
 }

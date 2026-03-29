@@ -4,7 +4,9 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
+in {
   imports = [
     ../base-darwin.nix
     ../../modules/auto-upgrade-darwin.nix
@@ -15,6 +17,12 @@
   };
 
   environment.systemPackages = with pkgs; [
+    # Node.js development tools
+    nodejs_24
+    bun
+    pnpm
+    customPkgs.vite-plus
+
     # Java
     jdk25_headless
 
@@ -24,6 +32,11 @@
         python-gitlab
       ]))
     uv
+
+    # Agents
+    customPkgs.comment-checker
+    customPkgs.rtk
+    customPkgs._1mcp
   ];
 
   nix-homebrew = {

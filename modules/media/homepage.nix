@@ -104,8 +104,8 @@ in {
               };
             }
             {
-              Jellyseerr = {
-                icon = "jellyseerr.svg";
+              Seerr = {
+                icon = "seerr.svg";
                 href = "https://${cfg.network.domain}";
               };
             }

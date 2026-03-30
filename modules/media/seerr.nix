@@ -6,13 +6,13 @@
   cfg = config.mediaServer;
 in {
   config = lib.mkIf cfg.enable {
-    services.jellyseerr = {
+    services.seerr = {
       enable = true;
-      configDir = cfg.jellyseerr.dataDir;
+      configDir = cfg.seerr.dataDir;
     };
 
     services.caddy.virtualHosts."${cfg.network.domain}" = {
-      extraConfig = "reverse_proxy localhost:${toString cfg.jellyseerr.port}";
+      extraConfig = "reverse_proxy localhost:${toString cfg.seerr.port}";
     };
   };
 }

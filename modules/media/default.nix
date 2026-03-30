@@ -6,7 +6,7 @@ in {
     ./authelia.nix
     ./postgres.nix
     ./plex.nix
-    ./jellyseerr.nix
+    ./seerr.nix
     ./sonarr.nix
     ./radarr.nix
     ./prowlarr.nix
@@ -123,18 +123,18 @@ in {
       default = 2283;
     };
 
-    jellyseerr = {
+    seerr = {
       port = mkOption {
         type = types.port;
         default = 5055;
       };
       user = mkOption {
         type = types.str;
-        default = "jellyseerr";
+        default = "seerr";
       };
       group = mkOption {
         type = types.str;
-        default = "jellyseerr";
+        default = "seerr";
       };
       dataDir = mkOption {
         type = types.str;

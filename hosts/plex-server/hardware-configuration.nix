@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   modulesPath,
   ...
 }: let
@@ -44,18 +43,6 @@ in {
   };
 
   swapDevices = [];
-
-  # Backup disk spindown
-  systemd.services.backup-disk-spindown = {
-    description = "hd-idle daemon for backup disk spindown";
-    wantedBy = ["multi-user.target"];
-    after = ["local-fs.target"];
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${pkgs.hd-idle}/bin/hd-idle -i 0 -a /dev/disk/by-uuid/20af820e-357e-49fe-a62c-38b6039bffc5 -i 900 -d";
-      Restart = "always";
-    };
-  };
 
   # Networking
   networking = {

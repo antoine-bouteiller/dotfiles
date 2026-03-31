@@ -14,5 +14,11 @@ in {
     services.caddy.virtualHosts."${cfg.network.domain}" = {
       extraConfig = "reverse_proxy localhost:${toString cfg.seerr.port}";
     };
+
+    systemd.services.seerr = {
+      environment = {
+        LOG_LEVEL = "info";
+      };
+    };
   };
 }

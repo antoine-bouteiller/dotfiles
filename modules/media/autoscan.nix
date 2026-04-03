@@ -6,12 +6,11 @@
   cfg = config.mediaServer;
 in {
   config = lib.mkIf cfg.enable {
-    users.users.autoscan.extraGroups = [cfg.libraryOwner.group];
-
     services.autoscan = {
       enable = true;
       dataDir = cfg.autoscan.dataDir;
       port = cfg.autoscan.port;
+      group = cfg.libraryOwner.group;
 
       settings = {
         plexUrl = "http://localhost:${toString cfg.plex.port}";
@@ -57,42 +56,34 @@ in {
     sops.secrets."autoscan/telegram_token" = {
       key = "telegram/token";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/telegram_chat_id" = {
       key = "telegram/chat_id";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/cloudflare_token" = {
       key = "cloudflare_token";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/tmdb_api_token" = {
       key = "tmdb_api_token";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/sonarr_api_key" = {
       key = "sonarr_api_key";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/radarr_api_key" = {
       key = "radarr_api_key";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/trakt_client_id" = {
       key = "trakt/client_id";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
     sops.secrets."autoscan/trakt_client_secret" = {
       key = "trakt/client_secret";
       owner = cfg.autoscan.user;
-      group = cfg.autoscan.group;
     };
   };
 }

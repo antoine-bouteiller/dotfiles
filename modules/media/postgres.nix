@@ -10,7 +10,6 @@ in {
   config = lib.mkIf config.mediaServer.enable {
     sops.secrets."postgres/password" = {
       owner = user;
-      group = group;
     };
 
     services.postgresql = {

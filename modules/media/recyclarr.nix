@@ -9,12 +9,10 @@ in {
     sops.secrets = {
       "recyclarr/sonarr_api_key" = {
         owner = cfg.recyclarr.user;
-        group = cfg.recyclarr.group;
         key = "sonarr_api_key";
       };
       "recyclarr/radarr_api_key" = {
         owner = cfg.recyclarr.user;
-        group = cfg.recyclarr.group;
         key = "radarr_api_key";
       };
     };

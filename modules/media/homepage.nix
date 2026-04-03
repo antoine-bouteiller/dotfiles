@@ -10,27 +10,22 @@ in {
       "homepage/sonarr_api_key" = {
         key = "sonarr_api_key";
         owner = "homepage-dashboard";
-        group = "homepage-dashboard";
       };
       "homepage/radarr_api_key" = {
         key = "radarr_api_key";
         owner = "homepage-dashboard";
-        group = "homepage-dashboard";
       };
       "homepage/prowlarr_api_key" = {
         key = "prowlarr_api_key";
         owner = "homepage-dashboard";
-        group = "homepage-dashboard";
       };
       "homepage/bazarr_api_key" = {
         key = "bazarr_api_key";
         owner = "homepage-dashboard";
-        group = "homepage-dashboard";
       };
       "homepage/plex_token" = {
         key = "plex_token";
         owner = "homepage-dashboard";
-        group = "homepage-dashboard";
       };
     };
 

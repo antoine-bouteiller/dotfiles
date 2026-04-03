@@ -11,19 +11,15 @@ in {
     sops.secrets = {
       "authelia/jwt_secret" = {
         owner = user;
-        group = group;
       };
       "authelia/storage_encryption_key" = {
         owner = user;
-        group = group;
       };
       "authelia/session_secret" = {
         owner = user;
-        group = group;
       };
       "authelia/resend_api_key" = {
         owner = user;
-        group = group;
       };
     };
 

@@ -36,6 +36,8 @@
       "spotify"
     ];
     greedyCasks = true;
-    masApps = {};
+    masApps = {
+      # "runcat" = 1429033973;
+    };
   };
 }

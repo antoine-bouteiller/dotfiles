@@ -11,7 +11,7 @@
 
   updateFlakeScript = pkgs.writeShellScript "update-flake" ''
     cd "${cfg.flakePath}"
-    ${pkgs.git}/bin/git pull --ff-only origin main
+    ${pkgs.git}/bin/git -c safe.directory="${cfg.flakePath}" pull --ff-only origin main
   '';
 in {
   options.autoUpgrade = {
@@ -39,7 +39,7 @@ in {
         script = ''
           export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
           ${updateFlakeScript}
-          darwin-rebuild switch --flake .
+          darwin-rebuild switch --flake ${cfg.flakePath}
         '';
         serviceConfig = {
           StartCalendarInterval = [

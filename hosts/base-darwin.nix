@@ -37,7 +37,7 @@
     ];
     greedyCasks = true;
     masApps = {
-      # "runcat" = 1429033973;
+      "runcat" = 1429033973;
     };
   };
 }

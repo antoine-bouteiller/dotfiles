@@ -24,7 +24,6 @@ in {
   options.mediaServer = {
     enable = mkEnableOption "media server stack";
 
-    # Host-specific (no defaults)
     network.domain = mkOption {
       type = types.str;
       description = "Domain name for media services";
@@ -53,7 +52,6 @@ in {
       };
     };
 
-    # Service configurations with defaults
     authelia = {
       port = mkOption {
         type = types.port;
@@ -62,6 +60,10 @@ in {
       dataDir = mkOption {
         type = types.str;
         default = "/var/lib/authelia-main";
+      };
+      user = mkOption {
+        type = types.str;
+        default = "authelia-main";
       };
     };
 
@@ -245,6 +247,13 @@ in {
       group = mkOption {
         type = types.str;
         default = "media";
+      };
+    };
+
+    postgres = {
+      user = mkOption {
+        type = types.str;
+        default = "postgres";
       };
     };
   };

@@ -4,22 +4,20 @@
   ...
 }: let
   cfg = config.mediaServer;
-  user = "authelia-main";
-  group = "authelia-main";
 in {
   config = lib.mkIf cfg.enable {
     sops.secrets = {
       "authelia/jwt_secret" = {
-        owner = user;
+        owner = cfg.authelia.user;
       };
       "authelia/storage_encryption_key" = {
-        owner = user;
+        owner = cfg.authelia.user;
       };
       "authelia/session_secret" = {
-        owner = user;
+        owner = cfg.authelia.user;
       };
       "authelia/resend_api_key" = {
-        owner = user;
+        owner = cfg.authelia.user;
       };
     };
 

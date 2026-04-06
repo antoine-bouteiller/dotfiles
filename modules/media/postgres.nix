@@ -4,12 +4,11 @@
   lib,
   ...
 }: let
-  user = "postgres";
-  group = "postgres";
+  cfg = config.mediaServer;
 in {
   config = lib.mkIf config.mediaServer.enable {
     sops.secrets."postgres/password" = {
-      owner = user;
+      owner = cfg.postgres.user;
     };
 
     services.postgresql = {

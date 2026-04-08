@@ -81,7 +81,6 @@ in {
     casks = [
       "tailscale-app"
       "codex"
-      "slack"
       "zed"
       "t3-code"
     ];

@@ -90,7 +90,7 @@
     in {
       comment-checker = pkgs.callPackage ./pkgs/comment-checker.nix {};
       rtk = pkgs.callPackage ./pkgs/rtk.nix {};
-      vite-plus = pkgs.callPackage ./pkgs/vite-plus.nix {};
+      vite-plus = pkgs.callPackage ./pkgs/vite-plus {};
       _1mcp = pkgs.callPackage ./pkgs/1mcp.nix {};
     });
 

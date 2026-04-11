@@ -4,17 +4,24 @@
   "lsp": {
     "vtsls": {
       "settings": {
-        "tsserver": {
-          "maxTsServerMemory": 8192,
+        "vtsls": {
+          "autoUseWorkspaceTsdk": true,
+          "experimental": {
+            "completion": {
+              "enableServerSideFuzzyMatch": true,
+              "entriesLimit": 10,
+            },
+          },
         },
         "typescript": {
+          "preferGoToSourceDefinition": true,
           "updateImportsOnFileMove": {
             "enabled": "always",
           },
-        },
-        "javascript": {
-          "updateImportsOnFileMove": {
-            "enabled": "always",
+          "tsserver": {
+            "maxTsServerMemory": 16384,
+            "enableTracing": false,
+            "log": "off",
           },
         },
       },

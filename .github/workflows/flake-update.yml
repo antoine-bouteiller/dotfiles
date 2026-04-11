@@ -26,6 +26,7 @@ jobs:
           nix run nixpkgs#nix-update -- --flake comment-checker
           nix run nixpkgs#nix-update -- --flake rtk
           nix run nixpkgs#nix-update -- --flake _1mcp
+          ./pkgs/vite-plus/update.sh
 
       - name: Commit and push
         run: |

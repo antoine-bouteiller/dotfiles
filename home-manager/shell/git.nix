@@ -5,7 +5,31 @@
 }: {
   programs.git = {
     enable = true;
-    ignores = ["*.swp"];
+    ignores = [
+      # Editor
+      "*.swp"
+      "*~"
+      ".vscode/"
+      ".idea/"
+      ".zed/"
+
+      # OS
+      ".DS_Store"
+      "Thumbs.db"
+
+      # Nix
+      "result"
+      "result-*"
+
+      # Direnv
+      ".direnv/"
+
+      # Node
+      "node_modules/"
+
+      # Claude
+      ".claude/settings.local.json"
+    ];
     lfs = {
       enable = true;
     };

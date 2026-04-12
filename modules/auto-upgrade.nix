@@ -28,7 +28,7 @@ in {
     };
     schedule = lib.mkOption {
       type = lib.types.str;
-      default = "Sun *-*-* 01:00:00";
+      default = "Mon *-*-* 01:00:00";
       description = "Systemd calendar schedule for auto-upgrade (NixOS only)";
     };
   };
@@ -45,7 +45,7 @@ in {
         serviceConfig = {
           StartCalendarInterval = [
             {
-              Weekday = 0;
+              Weekday = 1;
               Hour = 3;
               Minute = 0;
             }

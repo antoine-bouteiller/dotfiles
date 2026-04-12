@@ -3,6 +3,19 @@
     ./base.nix
   ];
 
+  system.defaults.CustomUserPreferences = {
+    "com.brave.Browser" = {
+      BraveRewardsDisabled = true;
+      BraveWalletDisabled = true;
+      BraveVPNDisabled = true;
+      BraveAIChatEnabled = false;
+      BraveNewsDisabled = true;
+      BraveTalkDisabled = true;
+      TorDisabled = true;
+      DnsOverHttpsMode = "automatic";
+    };
+  };
+
   homebrew = {
     enable = true;
     onActivation = {

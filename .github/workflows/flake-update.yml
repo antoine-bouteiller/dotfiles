@@ -22,6 +22,8 @@ jobs:
         run: nix flake update
 
       - name: Update packages
+        env:
+          NIX_PATH: nixpkgs=flake:nixpkgs
         run: |
           nix run nixpkgs#nix-update -- --flake comment-checker
           nix run nixpkgs#nix-update -- --flake rtk

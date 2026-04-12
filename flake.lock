@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1775832053,
-        "narHash": "sha256-0UbYS8ixzYYHxq2vYrdiMqHkxYETXohQKoXIwgdNNb8=",
+        "lastModified": 1775990270,
+        "narHash": "sha256-5pWO0Lv9SwI7hyXZ0q8UcyGCfVSZv9UPz4962PqebBw=",
         "owner": "antoine-bouteiller",
         "repo": "autoscan",
-        "rev": "6c31eadced365ec64af5d89636d52b5c13be7869",
+        "rev": "0f5d48113d18c99e25cb5ad259355d5c88f78096",
         "type": "github"
       },
       "original": {
@@ -129,11 +129,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1775989147,
-        "narHash": "sha256-BUCuvVWyJNzjMRgknvt1kgyC3XcXIT6n9yttmZRAxBM=",
+        "lastModified": 1775989381,
+        "narHash": "sha256-o6tLcQTyJf24YbxbUfz5rLGtIM7hMj7PCnFCZ6FfXE8=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "b00ac060e126a075c760ff9e3ac5120512ddb486",
+        "rev": "3492c4be7de44d010b5ae080e6be52440cb6a6e3",
         "type": "github"
       },
       "original": {

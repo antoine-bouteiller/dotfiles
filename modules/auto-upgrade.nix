@@ -11,6 +11,7 @@
 
   updateFlakeScript = pkgs.writeShellScript "update-flake" ''
     cd "${cfg.flakePath}"
+    export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh"
     ${pkgs.git}/bin/git -c safe.directory="${cfg.flakePath}" pull --ff-only origin main
   '';
 in {

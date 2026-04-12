@@ -92,19 +92,6 @@ in {
     users.${globals.user} = import ./home.nix;
   };
 
-  # Shared dock configuration for all Macs
-  local.dock = {
-    enable = true;
-    username = globals.user;
-    entries = [
-      {path = "/Applications/Slack.app/";}
-      {path = "/Applications/Ghostty.app/";}
-      {path = "/Applications/Zen.app/";}
-      {path = "/Applications/Zed.app/";}
-      {path = "/Applications/Telegram.app/";}
-    ];
-  };
-
   system = {
     checks.verifyNixPath = false;
     primaryUser = globals.user;
@@ -129,6 +116,14 @@ in {
         launchanim = true;
         orientation = "bottom";
         tilesize = 56;
+
+        persistent-apps = [
+          "/Applications/Slack.app/"
+          "/Applications/Ghostty.app/"
+          "/Applications/Brave Browser.app/"
+          "/Applications/Zed.app/"
+          "/Applications/Telegram.app/"
+        ];
       };
 
       finder = {

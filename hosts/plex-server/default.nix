@@ -36,7 +36,7 @@ in {
     enable = true;
     flakePath = "${config.users.users.${user}.home}/nixconfig";
     allowReboot = true;
-    schedule = "Sun *-*-* 01:00:00";
+    schedule = "Mon *-*-* 01:00:00";
   };
 
   # Nix

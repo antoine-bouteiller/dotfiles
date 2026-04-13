@@ -6,7 +6,7 @@
   cfg = config.mediaServer;
   cloudflareIpsV4File = builtins.fetchurl {
     url = "https://www.cloudflare.com/ips-v4";
-    sha256 = "sha256-8Cxtg7wBqwroV3Fg4DbXAMdFU1m84FTfiE5dfZ5Onns="; # Note: builtins.fetchurl uses 'sha256' instead of 'hash'
+    sha256 = "sha256-8Cxtg7wBqwroV3Fg4DbXAMdFU1m84FTfiE5dfZ5Onns=";
   };
   cloudflareIps =
     builtins.filter (s: s != "")

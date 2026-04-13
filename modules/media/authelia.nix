@@ -111,7 +111,12 @@ in {
     };
 
     services.caddy.virtualHosts."auth.${cfg.network.domain}" = {
-      extraConfig = "reverse_proxy localhost:${toString cfg.authelia.port}";
+      extraConfig = ''
+        import crowdsec_proxy
+        route {
+          reverse_proxy localhost:${toString cfg.authelia.port}
+        }
+      '';
     };
   };
 }

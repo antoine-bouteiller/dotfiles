@@ -3,6 +3,7 @@
 in {
   imports = [
     ./caddy.nix
+    ./crowdsec.nix
     ./authelia.nix
     ./postgres.nix
     ./plex.nix

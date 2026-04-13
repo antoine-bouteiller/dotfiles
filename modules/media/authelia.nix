@@ -95,6 +95,8 @@ in {
           ban_time = "5 minutes";
         };
 
+        log.level = "info";
+
         storage.local.path = "${cfg.authelia.dataDir}/db.sqlite3";
 
         notifier = {

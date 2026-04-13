@@ -23,7 +23,10 @@ in {
     };
 
     services.caddy.virtualHosts."photo.${cfg.network.domain}" = {
-      extraConfig = "reverse_proxy localhost:${toString cfg.immich.port}";
+      extraConfig = ''
+        import crowdsec_proxy
+        reverse_proxy localhost:${toString cfg.immich.port}
+      '';
     };
 
     services.postgresql = {

@@ -91,5 +91,6 @@ in {
   # Journald
   services.journald.extraConfig = ''
     MaxRetentionSec=1week
+    MaxFileSec=1day
   '';
 }

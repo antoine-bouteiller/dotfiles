@@ -11,6 +11,7 @@ in {
         common.log_level = "warn";
         api.server = {
           enable = true;
+          log_level = "warn";
           listen_uri = "127.0.0.1:8080";
           console_path = "/var/lib/crowdsec/state/console.yaml";
         };

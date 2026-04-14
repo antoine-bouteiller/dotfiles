@@ -87,6 +87,21 @@ in {
       };
     };
 
+    caddy = {
+      user = mkOption {
+        type = types.str;
+        default = "caddy";
+      };
+      group = mkOption {
+        type = types.str;
+        default = "caddy";
+      };
+      logDir = mkOption {
+        type = types.str;
+        default = "/var/log/caddy";
+      };
+    };
+
     bazarr = {
       port = mkOption {
         type = types.port;

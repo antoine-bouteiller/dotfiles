@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     sops.secrets = {
@@ -196,11 +197,10 @@ in {
       HOMEPAGE_FILE_BAZARR_API_KEY = config.sops.secrets."homepage/bazarr_api_key".path;
     };
 
-    services.caddy.virtualHosts."dashboard.${cfg.network.domain}" = {
-      extraConfig = ''
-        import auth_proxy
-        reverse_proxy localhost:${toString cfg.homepage.port}
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "dashboard.${cfg.network.domain}";
+      port = cfg.homepage.port;
+      auth = true;
     };
   };
 }

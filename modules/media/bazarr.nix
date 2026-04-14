@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.bazarr = {
@@ -34,11 +35,10 @@ in {
       };
     };
 
-    services.caddy.virtualHosts."bazarr.${cfg.network.domain}" = {
-      extraConfig = ''
-        import auth_proxy
-        reverse_proxy localhost:${toString cfg.bazarr.port}
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "bazarr.${cfg.network.domain}";
+      port = cfg.bazarr.port;
+      auth = true;
     };
 
     users.users.bazarr.isSystemUser = true;

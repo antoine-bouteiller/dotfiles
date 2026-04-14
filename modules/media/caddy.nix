@@ -27,6 +27,13 @@ in {
     systemd.services.caddy.serviceConfig.EnvironmentFile = [
       config.sops.templates."caddy-crowdsec.env".path
     ];
+
+    systemd.tmpfiles.rules = [
+      "d /var/log/caddy 0750 ${cfg.caddy.user} ${cfg.caddy.group} - -"
+      "a+ /var/log/caddy - - - - group:${cfg.caddy.group}:r--"
+      "a+ /var/log/caddy - - - - group:${cfg.caddy.group}:r-x"
+    ];
+
     services.caddy = {
       enable = true;
 
@@ -43,11 +50,13 @@ in {
 
       globalConfig = ''
         order crowdsec first
+        order appsec after crowdsec
 
         crowdsec {
           api_url http://127.0.0.1:8080
           api_key {$CROWDSEC_API_KEY:dummy_key}
           ticker_interval 15s
+          appsec_url http://127.0.0.1:7422
         }
         servers {
           trusted_proxies static 127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 ${trustedProxies}
@@ -56,8 +65,8 @@ in {
 
       extraConfig = ''
         (crowdsec_proxy) {
-          log
           crowdsec
+          appsec
         }
 
         (auth_proxy) {

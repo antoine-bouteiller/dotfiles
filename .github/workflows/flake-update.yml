@@ -30,12 +30,29 @@ jobs:
           nix run nixpkgs#nix-update -- --flake _1mcp
           ./pkgs/vite-plus/update.sh
 
+      - name: Update Caddy Hash
+        run: |
+          sed -i -E 's/hash = "sha256-[a-zA-Z0-9+/=]+";/hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";/' ./modules/media/caddy.nix
+
+          OUTPUT=$(nix build .#nixosConfigurations.YOUR_HOSTNAME.config.services.caddy.package --no-link 2>&1 || true)
+
+          NEW_HASH=$(echo "$OUTPUT" | grep -oP 'got:\s+\Ksha256-[a-zA-Z0-9+/=]+')
+
+          if [ -n "$NEW_HASH" ]; then
+            echo "Successfully found new Caddy hash: $NEW_HASH"
+            sed -i -E "s/hash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\";/hash = \"$NEW_HASH\";/" ./modules/media/caddy.nix
+          else
+            echo "Failed to extract new hash. Build output was:"
+            echo "$OUTPUT"
+            exit 1
+          fi
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "chore(deps): auto-update flake.lock and packages"
+            git commit -m "chore(deps): auto-update flake.lock, packages, and caddy hash"
             git push
           fi

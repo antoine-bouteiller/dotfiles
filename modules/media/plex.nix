@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.plex = {
@@ -11,15 +12,14 @@ in {
       dataDir = cfg.plex.dataDir;
     };
 
-    services.caddy.virtualHosts."plex.${cfg.network.domain}" = {
-      extraConfig = ''
-        reverse_proxy localhost:${toString cfg.plex.port} {
-            header_up Host {host}
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-For {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-        }
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "plex.${cfg.network.domain}";
+      port = cfg.plex.port;
+      extraProxyConfig = ''
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}'';
     };
 
     systemd.tmpfiles.rules = [

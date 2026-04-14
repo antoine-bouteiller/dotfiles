@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.seerr = {
@@ -11,8 +12,9 @@ in {
       configDir = cfg.seerr.dataDir;
     };
 
-    services.caddy.virtualHosts."${cfg.network.domain}" = {
-      extraConfig = "reverse_proxy localhost:${toString cfg.seerr.port}";
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = cfg.network.domain;
+      port = cfg.seerr.port;
     };
 
     systemd.services.seerr = {

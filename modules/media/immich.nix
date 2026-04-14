@@ -5,6 +5,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.immich = {
@@ -22,11 +23,9 @@ in {
       };
     };
 
-    services.caddy.virtualHosts."photo.${cfg.network.domain}" = {
-      extraConfig = ''
-        import crowdsec_proxy
-        reverse_proxy localhost:${toString cfg.immich.port}
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "photo.${cfg.network.domain}";
+      port = cfg.immich.port;
     };
 
     services.postgresql = {

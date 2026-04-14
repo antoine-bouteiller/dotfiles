@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     sops.secrets = {
@@ -110,13 +111,9 @@ in {
       };
     };
 
-    services.caddy.virtualHosts."auth.${cfg.network.domain}" = {
-      extraConfig = ''
-        import crowdsec_proxy
-        route {
-          reverse_proxy localhost:${toString cfg.authelia.port}
-        }
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "auth.${cfg.network.domain}";
+      port = cfg.authelia.port;
     };
   };
 }

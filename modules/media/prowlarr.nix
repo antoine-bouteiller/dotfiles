@@ -4,6 +4,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.prowlarr = {
@@ -41,13 +42,11 @@ in {
       requires = ["postgresql-setup.service"];
     };
 
-    services.caddy.virtualHosts."prowlarr.${cfg.network.domain}" = {
-      extraConfig = ''
-        import auth_proxy
-        reverse_proxy localhost:${toString cfg.prowlarr.port} {
-          header_down -Access-Control-Allow-Origin
-        }
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "prowlarr.${cfg.network.domain}";
+      port = cfg.prowlarr.port;
+      auth = true;
+      extraProxyConfig = "header_down -Access-Control-Allow-Origin";
     };
   };
 }

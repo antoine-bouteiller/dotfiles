@@ -5,6 +5,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
 in {
   config = lib.mkIf cfg.enable {
     services.radarr = {
@@ -25,13 +26,11 @@ in {
       };
     };
 
-    services.caddy.virtualHosts."radarr.${cfg.network.domain}" = {
-      extraConfig = ''
-        import auth_proxy
-        reverse_proxy localhost:${toString cfg.radarr.port} {
-          header_down -Access-Control-Allow-Origin
-        }
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "radarr.${cfg.network.domain}";
+      port = cfg.radarr.port;
+      auth = true;
+      extraProxyConfig = "header_down -Access-Control-Allow-Origin";
     };
 
     services.postgresql = {

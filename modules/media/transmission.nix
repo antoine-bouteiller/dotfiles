@@ -5,6 +5,7 @@
   ...
 }: let
   cfg = config.mediaServer;
+  inherit (import ./lib.nix cfg) mkCaddyVirtualHost;
   downloadDir = "${cfg.paths.mediaDir}/torrents";
 in {
   config = lib.mkIf cfg.enable {
@@ -50,11 +51,10 @@ in {
       "d '${downloadDir}/.watch'      0755 ${cfg.transmission.user} ${cfg.transmission.group} - -"
     ];
 
-    services.caddy.virtualHosts."torrent.${cfg.network.domain}" = {
-      extraConfig = ''
-        import auth_proxy
-        reverse_proxy localhost:${toString cfg.transmission.port}
-      '';
+    services.caddy.virtualHosts = mkCaddyVirtualHost {
+      url = "torrent.${cfg.network.domain}";
+      port = cfg.transmission.port;
+      auth = true;
     };
   };
 }

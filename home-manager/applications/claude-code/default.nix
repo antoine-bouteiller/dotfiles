@@ -18,9 +18,7 @@ in
         enable = true;
         package = pkgs.claude-code;
 
-        memory.source =
-          config.lib.file.mkOutOfStoreSymlink
-          "${claudeDir}/CLAUDE.md";
+        context = "${claudeDir}/CLAUDE.md";
 
         mcpServers = {
           "1mcp" = {
@@ -28,6 +26,8 @@ in
             url = "http://127.0.0.1:${mcpPort}/mcp?app=claude-code";
           };
         };
+
+        hooksDir = "${claudeDir}/hooks";
       };
 
       home.file = {

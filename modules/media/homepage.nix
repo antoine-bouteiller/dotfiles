@@ -32,6 +32,10 @@ in {
         key = "seerr_api_key";
         owner = "homepage-dashboard";
       };
+      "homepage/immich_api_key" = {
+        key = "immich_api_key";
+        owner = "homepage-dashboard";
+      };
       "homepage/crowdsec_username" = {
         key = "crowdsec/username";
         owner = "homepage-dashboard";
@@ -129,6 +133,11 @@ in {
               Immich = {
                 icon = "immich.svg";
                 href = "https://photo.${cfg.network.domain}";
+                widget = {
+                  type = "immich";
+                  url = "http://localhost:${toString cfg.immich.port}";
+                  key = "{{HOMEPAGE_FILE_IMMICH_API_KEY}}";
+                };
               };
             }
           ];
@@ -143,7 +152,6 @@ in {
                   type = "seerr";
                   url = "http://localhost:${toString cfg.seerr.port}";
                   key = "{{HOMEPAGE_FILE_SEERR_API_KEY}}";
-                  fields = ["wanted"];
                 };
               };
             }

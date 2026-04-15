@@ -21,7 +21,7 @@ in {
       environment = {
         POSTGRES_ENABLED = "true";
         POSTGRES_HOST = "/run/pgbouncer";
-        POSTGRES_PORT = "6432";
+        POSTGRES_PORT = "5432";
         POSTGRES_DATABASE = "bazarr";
         POSTGRES_USERNAME = "bazarr";
       };

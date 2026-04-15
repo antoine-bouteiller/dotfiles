@@ -12,7 +12,7 @@ in {
         api.server = {
           enable = true;
           log_level = "warn";
-          listen_uri = "127.0.0.1:8080";
+          listen_uri = "127.0.0.1:${toString cfg.crowdsec.port}";
           console_path = "/var/lib/crowdsec/state/console.yaml";
         };
       };
@@ -51,7 +51,7 @@ in {
         appsec_config = "crowdsecurity/appsec-default";
         source = "appsec";
         labels.type = "appsec";
-        listen_addr = "127.0.0.1:7422";
+        listen_addr = "127.0.0.1:${toString cfg.crowdsec.appsecPort}";
       }
     ];
   };

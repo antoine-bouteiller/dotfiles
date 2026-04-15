@@ -16,7 +16,7 @@ in {
         enable = true;
         createDB = false;
         host = "/run/pgbouncer";
-        port = 6432;
+        port = 5432;
         name = "immich";
         user = "immich";
       };

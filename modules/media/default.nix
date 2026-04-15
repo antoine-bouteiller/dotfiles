@@ -272,5 +272,23 @@ in {
         default = "postgres";
       };
     };
+
+    databases = mkOption {
+      type = types.listOf (types.submodule {
+        options = {
+          name = mkOption {type = types.str;};
+          user = mkOption {type = types.str;};
+          extraDatabases = mkOption {
+            type = types.listOf types.str;
+            default = [];
+          };
+          setupScript = mkOption {
+            type = types.lines;
+            default = "";
+          };
+        };
+      });
+      default = [];
+    };
   };
 }

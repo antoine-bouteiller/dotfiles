@@ -13,23 +13,15 @@ in {
       dataDir = cfg.bazarr.dataDir;
     };
 
-    services.postgresql = {
-      ensureDatabases = ["bazarr"];
-      ensureUsers = [
-        {
-          name = "bazarr";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
+    mediaServer.databases = [{name = "bazarr"; user = "bazarr";}];
 
     systemd.services.bazarr = {
-      after = ["postgresql-setup.service"];
-      requires = ["postgresql-setup.service"];
+      after = ["pgbouncer.service"];
+      requires = ["pgbouncer.service"];
       environment = {
         POSTGRES_ENABLED = "true";
-        POSTGRES_HOST = "/run/postgresql";
-        POSTGRES_PORT = "5432";
+        POSTGRES_HOST = "/run/pgbouncer";
+        POSTGRES_PORT = "6432";
         POSTGRES_DATABASE = "bazarr";
         POSTGRES_USERNAME = "bazarr";
       };

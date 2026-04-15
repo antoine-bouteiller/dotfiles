@@ -137,6 +137,7 @@ in {
                   type = "immich";
                   url = "http://localhost:${toString cfg.immich.port}";
                   key = "{{HOMEPAGE_FILE_IMMICH_API_KEY}}";
+                  version = 2;
                 };
               };
             }

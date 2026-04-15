@@ -40,7 +40,7 @@ jobs:
 
           if [ -n "$NEW_HASH" ]; then
             echo "Successfully found new Caddy hash: $NEW_HASH"
-            sed -i -E "s/hash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\";/hash = \"$NEW_HASH\";/" ./modules/media/caddy.nix
+            sed -i -E "s|hash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\";|hash = \"$NEW_HASH\";|" ./modules/media/caddy.nix
           else
             echo "Failed to extract new hash. Build output was:"
             echo "$OUTPUT"

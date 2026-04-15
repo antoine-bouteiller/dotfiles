@@ -18,6 +18,7 @@ in {
       enable = true;
       settings = {
         pgbouncer = {
+          listen_port = 5432;
           unix_socket_dir = "/run/pgbouncer";
           unix_socket_mode = "0770";
 

@@ -15,7 +15,7 @@ in {
         auth.method = "external";
         postgres = {
           host = "/run/pgbouncer";
-          port = 6432;
+          port = 5432;
           user = "prowlarr";
           mainDb = "prowlarr";
           logDb = "prowlarr-log";

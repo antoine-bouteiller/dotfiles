@@ -277,6 +277,17 @@ in {
       };
     };
 
+    crowdsec = {
+      port = mkOption {
+        type = types.port;
+        default = 8080;
+      };
+      appsecPort = mkOption {
+        type = types.port;
+        default = 7422;
+      };
+    };
+
     databases = mkOption {
       type = types.listOf (types.submodule {
         options = {

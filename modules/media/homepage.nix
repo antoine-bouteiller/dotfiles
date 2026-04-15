@@ -28,6 +28,18 @@ in {
         key = "plex_token";
         owner = "homepage-dashboard";
       };
+      "homepage/seerr_api_key" = {
+        key = "seerr_api_key";
+        owner = "homepage-dashboard";
+      };
+      "homepage/crowdsec_username" = {
+        key = "crowdsec/username";
+        owner = "homepage-dashboard";
+      };
+      "homepage/crowdsec_password" = {
+        key = "crowdsec/password";
+        owner = "homepage-dashboard";
+      };
     };
 
     users.users.homepage-dashboard = {
@@ -127,6 +139,12 @@ in {
               Seerr = {
                 icon = "seerr.svg";
                 href = "https://${cfg.network.domain}";
+                widget = {
+                  type = "seerr";
+                  url = "http://localhost:${toString cfg.seerr.port}";
+                  key = "{{HOMEPAGE_FILE_SEERR_API_KEY}}";
+                  fields = ["wanted"];
+                };
               };
             }
             {
@@ -195,6 +213,12 @@ in {
               Crowdsec = {
                 icon = "crowdsec.svg";
                 href = "https://app.crowdsec.net";
+                widget = {
+                  type = "crowdsec";
+                  url = "http://localhost:${toString cfg.crowdsec.port}";
+                  username = "{{HOMEPAGE_FILE_CROWDSEC_USERNAME}}";
+                  password = "{{HOMEPAGE_FILE_CROWDSEC_PASSWORD}}";
+                };
               };
             }
             {
@@ -238,6 +262,9 @@ in {
       HOMEPAGE_FILE_RADARR_API_KEY = config.sops.secrets."homepage/radarr_api_key".path;
       HOMEPAGE_FILE_PROWLARR_API_KEY = config.sops.secrets."homepage/prowlarr_api_key".path;
       HOMEPAGE_FILE_BAZARR_API_KEY = config.sops.secrets."homepage/bazarr_api_key".path;
+      HOMEPAGE_FILE_SEERR_API_KEY = config.sops.secrets."homepage/seerr_api_key".path;
+      HOMEPAGE_FILE_CROWDSEC_USERNAME = config.sops.secrets."homepage/crowdsec_username".path;
+      HOMEPAGE_FILE_CROWDSEC_PASSWORD = config.sops.secrets."homepage/crowdsec_password".path;
     };
 
     services.caddy.virtualHosts = mkCaddyVirtualHost {

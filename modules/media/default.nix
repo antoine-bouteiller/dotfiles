@@ -100,6 +100,10 @@ in {
         type = types.str;
         default = "/var/log/caddy";
       };
+      port = mkOption {
+        type = types.port;
+        default = 2019;
+      };
     };
 
     bazarr = {

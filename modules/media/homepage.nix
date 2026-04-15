@@ -59,6 +59,20 @@ in {
               columns = 2;
             };
           }
+          {
+            Arr = {
+              header = false;
+              style = "row";
+              columns = 3;
+            };
+          }
+          {
+            Infrastructure = {
+              header = false;
+              style = "row";
+              columns = 3;
+            };
+          }
         ];
       };
 
@@ -99,6 +113,16 @@ in {
                 };
               };
             }
+            {
+              Immich = {
+                icon = "immich.svg";
+                href = "https://photo.${cfg.network.domain}";
+              };
+            }
+          ];
+        }
+        {
+          Arr = [
             {
               Seerr = {
                 icon = "seerr.svg";
@@ -152,6 +176,10 @@ in {
                 };
               };
             }
+          ];
+        }
+        {
+          Infrastructure = [
             {
               Transmission = {
                 icon = "transmission.svg";
@@ -160,6 +188,21 @@ in {
                   type = "transmission";
                   url = "http://localhost:${toString cfg.transmission.port}";
                   fields = ["download" "upload"];
+                };
+              };
+            }
+            {
+              Crowdsec = {
+                icon = "crowdsec.svg";
+                href = "https://app.crowdsec.net";
+              };
+            }
+            {
+              Caddy = {
+                icon = "caddy.svg";
+                widget = {
+                  type = "caddy";
+                  url = "http://localhost:${toString cfg.caddy.port}";
                 };
               };
             }

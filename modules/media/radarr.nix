@@ -17,8 +17,8 @@ in {
         server.bindAddress = "*";
         auth.method = "external";
         postgres = {
-          host = "/run/postgresql";
-          port = 5432;
+          host = "/run/pgbouncer";
+          port = 6432;
           user = "radarr";
           mainDb = "radarr";
           logDb = "radarr-log";
@@ -33,23 +33,15 @@ in {
       extraProxyConfig = "header_down -Access-Control-Allow-Origin";
     };
 
-    services.postgresql = {
-      ensureDatabases = ["radarr" "radarr-log"];
-      ensureUsers = [
-        {
-          name = "radarr";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
-
-    systemd.services.postgresql-setup.script = pkgs.lib.mkAfter ''
-      psql -tAc "ALTER DATABASE \"radarr-log\" OWNER TO radarr"
-    '';
+    mediaServer.databases = [{
+      name = "radarr";
+      user = "radarr";
+      extraDatabases = ["radarr-log"];
+    }];
 
     systemd.services.radarr = {
-      after = ["postgresql-setup.service"];
-      requires = ["postgresql-setup.service"];
+      after = ["pgbouncer.service"];
+      requires = ["pgbouncer.service"];
       serviceConfig.UMask = pkgs.lib.mkForce "002";
     };
 

@@ -1,5 +1,4 @@
 {
-  pkgs,
   config,
   lib,
   ...
@@ -16,8 +15,8 @@ in {
       database = {
         enable = true;
         createDB = false;
-        host = "/run/postgresql";
-        port = 5432;
+        host = "/run/pgbouncer";
+        port = 6432;
         name = "immich";
         user = "immich";
       };
@@ -28,20 +27,14 @@ in {
       port = cfg.immich.port;
     };
 
-    services.postgresql = {
-      ensureDatabases = ["immich"];
-      ensureUsers = [
-        {
-          name = "immich";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
-
-    systemd.services.postgresql-setup.script = pkgs.lib.mkAfter ''
-      psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vector"
-      psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vchord CASCADE"
-    '';
+    mediaServer.databases = [{
+      name = "immich";
+      user = "immich";
+      setupScript = ''
+        psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vector"
+        psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vchord CASCADE"
+      '';
+    }];
 
     systemd.services.immich-machine-learning = {
       serviceConfig = {
@@ -51,8 +44,8 @@ in {
     };
 
     systemd.services.immich-server = {
-      after = ["postgresql-setup.service"];
-      requires = ["postgresql-setup.service"];
+      after = ["pgbouncer.service"];
+      requires = ["pgbouncer.service"];
     };
 
     users.users.immich.extraGroups = [cfg.libraryOwner.group];

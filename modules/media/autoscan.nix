@@ -19,7 +19,7 @@ in {
         sonarrApiUrl = "http://localhost:${toString cfg.sonarr.port}";
         radarrApiUrl = "http://localhost:${toString cfg.radarr.port}";
         transcodePath = "${cfg.paths.mediaDir}/transcode";
-        databaseUrl = "postgres:///autoscan?host=/run/postgresql";
+        databaseUrl = "postgres:///autoscan?host=/run/pgbouncer&port=6432";
       };
       secrets = {
         plexTokenFile = config.sops.secrets."autoscan/plex_token".path;
@@ -34,19 +34,11 @@ in {
       };
     };
 
-    services.postgresql = {
-      ensureDatabases = ["autoscan"];
-      ensureUsers = [
-        {
-          name = "autoscan";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
+    mediaServer.databases = [{name = "autoscan"; user = "autoscan";}];
 
     systemd.services.autoscan = {
-      after = ["postgresql-setup.service"];
-      requires = ["postgresql-setup.service"];
+      after = ["pgbouncer.service"];
+      requires = ["pgbouncer.service"];
     };
 
     sops.secrets."autoscan/plex_token" = {

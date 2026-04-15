@@ -14,8 +14,8 @@ in {
       settings = {
         auth.method = "external";
         postgres = {
-          host = "/run/postgresql";
-          port = 5432;
+          host = "/run/pgbouncer";
+          port = 6432;
           user = "prowlarr";
           mainDb = "prowlarr";
           logDb = "prowlarr-log";
@@ -23,23 +23,15 @@ in {
       };
     };
 
-    services.postgresql = {
-      ensureDatabases = ["prowlarr" "prowlarr-log"];
-      ensureUsers = [
-        {
-          name = "prowlarr";
-        }
-      ];
-    };
-
-    systemd.services.postgresql-setup.script = lib.mkAfter ''
-      psql -tAc "ALTER DATABASE \"prowlarr\" OWNER TO prowlarr"
-      psql -tAc "ALTER DATABASE \"prowlarr-log\" OWNER TO prowlarr"
-    '';
+    mediaServer.databases = [{
+      name = "prowlarr";
+      user = "prowlarr";
+      extraDatabases = ["prowlarr-log"];
+    }];
 
     systemd.services.prowlarr = {
-      after = ["postgresql-setup.service"];
-      requires = ["postgresql-setup.service"];
+      after = ["pgbouncer.service"];
+      requires = ["pgbouncer.service"];
     };
 
     services.caddy.virtualHosts = mkCaddyVirtualHost {

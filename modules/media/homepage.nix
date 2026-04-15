@@ -271,6 +271,7 @@ in {
       HOMEPAGE_FILE_RADARR_API_KEY = config.sops.secrets."homepage/radarr_api_key".path;
       HOMEPAGE_FILE_PROWLARR_API_KEY = config.sops.secrets."homepage/prowlarr_api_key".path;
       HOMEPAGE_FILE_BAZARR_API_KEY = config.sops.secrets."homepage/bazarr_api_key".path;
+      HOMEPAGE_FILE_IMMICH_API_KEY = config.sops.secrets."homepage/immich_api_key".path;
       HOMEPAGE_FILE_SEERR_API_KEY = config.sops.secrets."homepage/seerr_api_key".path;
       HOMEPAGE_FILE_CROWDSEC_USERNAME = config.sops.secrets."homepage/crowdsec_username".path;
       HOMEPAGE_FILE_CROWDSEC_PASSWORD = config.sops.secrets."homepage/crowdsec_password".path;

@@ -21,7 +21,8 @@ in {
           unix_socket_dir = "/run/pgbouncer";
           unix_socket_mode = "0770";
 
-          auth_type = "peer";
+          auth_type = "hba";
+          auth_hba_file = "/etc/pgbouncer/pg_hba.conf";
           auth_file = "/etc/pgbouncer/userlist.txt";
 
           pool_mode = "transaction";
@@ -36,6 +37,16 @@ in {
           allDatabases
         );
       };
+    };
+
+    # PgBouncer HBA: allow peer auth on local unix socket connections
+    environment.etc."pgbouncer/pg_hba.conf" = {
+      text = ''
+        local all all peer
+      '';
+      mode = "0640";
+      user = "pgbouncer";
+      group = "pgbouncer";
     };
 
     # Auto-generate userlist.txt for peer auth

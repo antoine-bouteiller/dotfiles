@@ -47,6 +47,10 @@ jobs:
             exit 1
           fi
 
+      - name: Verify hosts build
+        run: |
+          nix build .#nixosConfigurations.plex-server.config.system.build.toplevel --dry-run --impure
+
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"

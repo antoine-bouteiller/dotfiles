@@ -29,6 +29,19 @@ in {
       ];
     };
 
+    localConfig.parsers.s02Enrich = [
+      {
+        name = "local/homepage-whitelist";
+        description = "Whitelist Homepage dashboard /api/services/proxy calls";
+        whitelist = {
+          reason = "Homepage dashboard widget API proxy calls";
+          expression = [
+            "evt.Parsed.uri startsWith '/api/services/proxy'"
+          ];
+        };
+      }
+    ];
+
     localConfig.acquisitions = [
       {
         filename = "${cfg.caddy.logDir}/*.log";

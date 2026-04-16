@@ -37,16 +37,7 @@ in {
     services.caddy = {
       enable = true;
 
-      package =
-        (pkgs.caddy.withPlugins {
-          plugins = [
-            "github.com/hslatman/caddy-crowdsec-bouncer/http@v0.12.0"
-            "github.com/hslatman/caddy-crowdsec-bouncer/appsec@v0.12.0"
-          ];
-          hash = "sha256-2ASQpbEgCq9/OYlhs8Ikz6F3FimOAUWxMCPaQ1u1H2k=";
-        }).overrideAttrs (oldAttrs: {
-          doInstallCheck = false;
-        });
+      package = pkgs.callPackage ../../pkgs/caddy-crowdsec.nix {};
 
       globalConfig = ''
         order crowdsec first

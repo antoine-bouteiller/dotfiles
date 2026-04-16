@@ -42,32 +42,18 @@
 
   outputs = {
     self,
-    darwin,
-    nix-homebrew,
-    homebrew-bundle,
-    homebrew-core,
-    homebrew-cask,
-    home-manager,
     nixpkgs,
-    sops-nix,
-    autoscan,
-    nixos-wsl,
+    ...
   } @ inputs: let
     globals = import ./globals.nix;
+    libHelpers = import ./lib {inherit inputs globals self;};
+    inherit (libHelpers) mkDarwinHost mkNixosHost;
+
     linuxSystems = ["x86_64-linux"];
     darwinSystems = ["aarch64-darwin"];
-    forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
-    devShell = system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in {
-      default = with pkgs;
-        mkShell {
-          nativeBuildInputs = with pkgs; [bashInteractive git];
-          shellHook = ''
-            export EDITOR=vim
-          '';
-        };
-    };
+    allSystems = linuxSystems ++ darwinSystems;
+    forAllSystems = f: nixpkgs.lib.genAttrs allSystems f;
+
     mkApp = scriptName: system: {
       type = "app";
       program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
@@ -82,8 +68,7 @@
       "clean" = mkApp "clean" system;
     };
   in {
-    devShells = forAllSystems devShell;
-    apps = nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) mkApps;
+    apps = nixpkgs.lib.genAttrs allSystems mkApps;
 
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -94,36 +79,49 @@
       _1mcp = pkgs.callPackage ./pkgs/1mcp.nix {};
     });
 
-    darwinConfigurations.pelico = darwin.lib.darwinSystem {
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+
+    checks = forAllSystems (system: let
+      darwinChecks = nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) (
+        nixpkgs.lib.mapAttrs (_: cfg: cfg.system) self.darwinConfigurations
+      );
+      nixosChecks = nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) (
+        nixpkgs.lib.mapAttrs (_: cfg: cfg.config.system.build.toplevel) self.nixosConfigurations
+      );
+    in
+      darwinChecks // nixosChecks);
+
+    nixosModules = {
+      default = ./modules;
+      media = ./modules/media;
+      autoUpgrade = ./modules/auto-upgrade.nix;
+    };
+
+    darwinModules = {
+      default = ./modules;
+      autoUpgrade = ./modules/auto-upgrade.nix;
+    };
+
+    homeModules = {
+      default = ./home-manager;
+    };
+
+    darwinConfigurations.pelico = mkDarwinHost {
+      hostname = "pelico";
       system = "aarch64-darwin";
-      specialArgs = {inherit inputs globals;};
-      modules = [
-        home-manager.darwinModules.home-manager
-        nix-homebrew.darwinModules.nix-homebrew
-        ./hosts/pelico
-      ];
     };
 
     nixosConfigurations = {
-      plex-server = nixpkgs.lib.nixosSystem {
+      plex-server = mkNixosHost {
+        hostname = "plex-server";
         system = "x86_64-linux";
-        specialArgs = {inherit inputs globals;};
-        modules = [
-          home-manager.nixosModules.home-manager
-          sops-nix.nixosModules.sops
-          autoscan.nixosModules.default
-          ./hosts/plex-server
-        ];
+        extraModules = [inputs.autoscan.nixosModules.default];
       };
 
-      wsl = nixpkgs.lib.nixosSystem {
+      wsl = mkNixosHost {
+        hostname = "wsl";
         system = "x86_64-linux";
-        specialArgs = {inherit inputs globals;};
-        modules = [
-          home-manager.nixosModules.home-manager
-          nixos-wsl.nixosModules.default
-          ./hosts/wsl
-        ];
+        extraModules = [inputs.nixos-wsl.nixosModules.default];
       };
     };
   };

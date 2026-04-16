@@ -20,8 +20,8 @@ related: [path/to/other.spec.md, doc/architecture/sse/adr.md]
 
 ### Spec file location
 
-- **Single-module spec** → colocate in the module directory: `libs/java/phoenix-event-store/event-store.spec.md`
-- **Cross-cutting spec** → place in `doc/architecture/specs/`: `doc/architecture/specs/latency-tiers.spec.md`
+- **Single-module spec** → colocate in the module directory: `src/modules/event-store/event-store.spec.md` (or `src/features/…`, `src/lib/…` — match the project's layout)
+- **Cross-cutting spec** → place in `docs/specs/`: `docs/specs/latency-tiers.spec.md`
 - **Bugfix spec** → colocate next to the original spec it references
 
 ### Splitting a spec
@@ -38,7 +38,7 @@ A single `*.spec.md` file is the default. Promote to a directory when:
 When splitting, promote the file to a `spec/` directory:
 
 ```
-libs/java/phoenix-event-store/spec/
+src/modules/event-store/spec/
 ├── index.spec.md          # Sections 1–7, 9–10 (overview, decisions, component inventory)
 ├── store-api.spec.md      # Section 8 deep dive for Store API component
 ├── query-engine.spec.md   # Section 8 deep dive for Query Engine component
@@ -67,10 +67,11 @@ Top-level architectural choices with rationale. Link to ADRs (`doc/architecture/
 
 ### 4. Principles & Intents
 
-Guiding constraints that shape every subsequent detail (e.g., "compute-on-write", "immutable models", "zero-reflection DI"). These act as tiebreakers when the detailed design is ambiguous. Number each principle with `[PI-N]`:
+Guiding constraints that shape every subsequent detail (e.g., "compute-on-write", "immutable models", "no runtime reflection"). These act as tiebreakers when the detailed design is ambiguous. Number each principle with `[PI-N]`:
 
 - `[PI-1]` Compute-on-write — pre-compute at ingestion, not at query time
-- `[PI-2]` Immutable models — all domain types are records or sealed hierarchies
+- `[PI-2]` Immutable models — all domain types are `readonly` interfaces or discriminated unions; no mutation after construction
+- `[PI-3]` Strict typing — no `any`, no unchecked casts; prefer discriminated unions and `satisfies` over type assertions
 
 ### 5. Non-Goals
 
@@ -91,29 +92,39 @@ Known limitations, assumptions about external systems, and constraints that impl
 - Overview diagram (Mermaid or ASCII)
 - Component inventory table:
 
-| Component   | Module type | Responsibility | Public API surface         |
-| ----------- | ----------- | -------------- | -------------------------- |
-| Event Store | Java lib    | Persist events | `EventStore`, `EventQuery` |
+| Component   | Module type        | Responsibility | Public API surface (exports)       |
+| ----------- | ------------------ | -------------- | ---------------------------------- |
+| Event Store | Server module      | Persist events | `EventStore`, `EventQuery`, types  |
+| Dashboard   | React feature      | Render events  | `<EventTimeline />`, `useEvents()` |
+| Ingest API  | HTTP route handler | HTTP endpoints | `POST /events`, `GET /events/:id`  |
+
+**Module type** examples: `server module`, `React feature`, `React component`, `hook`, `HTTP route handler`, `tRPC router`, `Zod schema`, `CLI command`, `worker`, `utility`.
+
+**Public API surface** should enumerate the exports from the module's `index.ts` barrel — the contract the rest of the app consumes. For route handlers, list the HTTP routes instead.
 
 ### 8. Detailed Design
 
 Per-component deep dive. For each component listed in section 7:
 
-- **Data model / types** — records, enums, classes, schemas
-- **Interactions** — how this component calls or is called by others (sequence diagrams encouraged)
-- **Configuration** — YAML/JSON shape, defaults, validation rules
-- **Error handling** — failure modes, recovery strategies, error types
-- **Examples** — end-to-end usage showing how pieces compose
+- **Data model / types** — interfaces, type aliases, discriminated unions, enums, Zod schemas with code examples. Prefer `readonly` fields; mark optional with `?`; use `satisfies` instead of type assertions where possible.
+- **API surface** — exported functions, classes, hooks, components; their signatures and JSDoc-worthy invariants. For HTTP routes, document method + path + request/response schema.
+- **Interactions** — how this component calls or is called by others (sequence diagrams encouraged). Note async boundaries (`Promise`, streams, event emitters).
+- **Configuration** — env vars, JSON/YAML shape, Zod validation schema, defaults. Reference the `.env.example` keys.
+- **Error handling** — failure modes, recovery strategies, error types (custom `Error` subclasses or discriminated `Result` unions). Distinguish expected errors (return) from unexpected (throw).
+- **Examples** — end-to-end usage showing how pieces compose, including import paths.
 
-Code examples MUST specify language (`java`, `typescript`, `bash`). Use Aspect/Detail tables for summaries.
+Code examples MUST specify language — default to `typescript`, use `tsx` for JSX, `bash` for shell, `json` for config. Use Aspect/Detail tables for summaries.
 
 ### 9. Verification Criteria
 
 Concrete, testable acceptance criteria. Each criterion should map to at least one test:
 
 - `[VC-1]` Given X, when Y, then Z
-- `[VC-2]` The module builds with `./mvnw clean install -pl <module> -am`
-- `[VC-3]` Integration test covers cross-component interaction
+- `[VC-2]` Type-check passes: `pnpm tsc --noEmit` (or `npm run typecheck`)
+- `[VC-3]` Unit tests pass: `pnpm test src/modules/<name>` (Vitest/Jest)
+- `[VC-4]` Lint passes with no new warnings: `pnpm lint`
+- `[VC-5]` Integration test covers cross-component interaction
+- `[VC-6]` No new `any`, `as` casts, or `@ts-ignore` introduced
 
 ### 10. Open Questions
 
@@ -129,8 +140,9 @@ Unresolved items requiring human decision before implementation. Tag with owner 
 - Use Aspect/Detail tables for metadata and component summaries
 - Cross-reference related docs with relative paths from repo root
 - `> **Note:**` blockquotes for important callouts
-- ASCII tree diagrams for package hierarchies
+- ASCII tree diagrams for directory/module hierarchies
 - Mermaid diagrams for component interactions and sequences
+- Inline types as fenced `typescript` blocks rather than prose descriptions — the type *is* the spec
 
 ## Numbered item conventions
 
@@ -193,7 +205,7 @@ For fixing bugs in spec-implemented code, use a lightweight `*.spec.md` with:
 ### Condensing a spec
 
 After implementation and verification, condense the spec to preserve design intent while stripping implementation
-details that now live in the code. Run `/phoenix:condense-spec <path>`.
+details that now live in the code. Run `/condense-spec <path>`.
 
 **Preserve verbatim** (design intent — not recoverable from code):
 - Section 2 (Problem Statement), 3 (Key Design Decisions), 4 (Principles & Intents), 5 (Non-Goals), 6 (Caveats)
@@ -202,8 +214,8 @@ details that now live in the code. Run `/phoenix:condense-spec <path>`.
 
 **Condense** (implementation details — now live in code):
 - Section 7: keep inventory table only, remove diagrams
-- Section 8: replace with a pointer table mapping components to modules and entry-point classes
-- Section 9: keep criteria list, annotate with test class references
+- Section 8: replace with a pointer table mapping components to module paths and entry-point files (e.g. `src/modules/event-store/index.ts`)
+- Section 9: keep criteria list, annotate with test file references (e.g. `src/modules/event-store/event-store.test.ts`)
 
 **Reintegration:** When a spec's `related:` points to a parent spec (bugfix or amendment), the condensation step offers
 to merge the child's design decisions (sections 3, 5, 6) back into the parent spec and mark the child as

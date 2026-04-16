@@ -19,6 +19,7 @@
 
       hooksDir = "${./hooks}";
       rulesDir = "${./rules}";
+      commandsDir = "${./commands}";
     };
 
     home.file = {

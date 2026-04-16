@@ -1,18 +1,27 @@
 {
-  inputs,
   globals,
   pkgs,
   config,
+  inputs,
   ...
-}: {
+}: let
+  inherit (config.home) homeDirectory;
+in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
     ../../home-manager/common.nix
-    ../../home-manager/applications/ghostty.nix
-    ../../home-manager/applications/vim.nix
-    ../../home-manager/applications/zed
-    ../../home-manager/applications/claude-code
   ];
+
+  local.home-manager = {
+    ghostty.enable = true;
+    zed.enable = true;
+    claudeCode.enable = true;
+    tmux.enable = true;
+    oneMcp = {
+      enable = true;
+      configFile = config.sops.templates."1mcp-config".path;
+    };
+  };
 
   home = {
     enableNixpkgsReleaseCheck = false;
@@ -21,10 +30,10 @@
   };
 
   home.sessionPath = [
-    "${config.home.homeDirectory}/.npm-packages/bin"
+    "${homeDirectory}/.npm-packages/bin"
   ];
   home.sessionVariables = {
-    NODE_PATH = "${config.home.homeDirectory}/.npm-packages/lib/node_modules";
+    NODE_PATH = "${homeDirectory}/.npm-packages/lib/node_modules";
   };
 
   programs.git = {
@@ -50,13 +59,13 @@
 
   home.file.".npmrc".text = ''
     @pelico:registry=http://nexus.pelico.best/repository/npm/
-    prefix=${config.home.homeDirectory}/.npm-packages
+    prefix=${homeDirectory}/.npm-packages
   '';
 
   sops = {
     defaultSopsFile = ./secrets/secrets.yaml;
     defaultSopsFormat = "yaml";
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+    age.keyFile = "${homeDirectory}/.config/sops/age/keys.txt";
 
     secrets = {
       github_pat = {};
@@ -65,6 +74,41 @@
       linear_token = {};
       "deskbird/refresh_token" = {};
       "deskbird/google_api_key" = {};
+    };
+
+    templates."1mcp-config".content = builtins.toJSON {
+      mcpServers = {
+        context7 = {
+          type = "stdio";
+          disabled = false;
+          command = "npx";
+          args = ["-y" "@upstash/context7-mcp"];
+        };
+        devtools = {
+          type = "stdio";
+          disabled = false;
+          command = "npx";
+          args = ["-y" "firefox-devtools-mcp@latest"];
+        };
+        linear = {
+          type = "http";
+          url = "https://mcp.linear.app/mcp";
+          disabled = false;
+        };
+        notion = {
+          type = "http";
+          url = "https://mcp.notion.com/mcp";
+          disabled = false;
+        };
+        github = {
+          type = "http";
+          url = "https://api.githubcopilot.com/mcp";
+          headers = {
+            Authorization = "Bearer ${config.sops.placeholder.github_pat}";
+          };
+          disabled = false;
+        };
+      };
     };
 
     templates."secrets.env" = {

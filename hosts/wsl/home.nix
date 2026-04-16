@@ -11,9 +11,18 @@
 in {
   imports = [
     ../../home-manager/common.nix
-    ../../home-manager/applications/vim.nix
-    ../../home-manager/applications/zed
   ];
+
+  local.home-manager = {
+    zsh.enable = true;
+    git.enable = true;
+    ssh.enable = true;
+    starship.enable = true;
+    tmux.enable = true;
+    shellTools.enable = true;
+    vim.enable = true;
+    zed.enable = true;
+  };
 
   home = {
     enableNixpkgsReleaseCheck = false;

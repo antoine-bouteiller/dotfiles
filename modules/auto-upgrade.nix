@@ -31,6 +31,15 @@ in {
       default = "Mon *-*-* 01:00:00";
       description = "Systemd calendar schedule for auto-upgrade (NixOS only)";
     };
+    darwinSchedule = lib.mkOption {
+      type = lib.types.attrsOf lib.types.int;
+      default = {
+        Weekday = 1;
+        Hour = 3;
+        Minute = 0;
+      };
+      description = "launchd StartCalendarInterval entry for auto-upgrade (Darwin only)";
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -43,13 +52,7 @@ in {
           darwin-rebuild switch --flake ${cfg.flakePath}
         '';
         serviceConfig = {
-          StartCalendarInterval = [
-            {
-              Weekday = 1;
-              Hour = 3;
-              Minute = 0;
-            }
-          ];
+          StartCalendarInterval = [cfg.darwinSchedule];
           StandardOutPath = "/tmp/nix-auto-upgrade.log";
           StandardErrorPath = "/tmp/nix-auto-upgrade.err";
         };

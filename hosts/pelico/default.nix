@@ -5,6 +5,7 @@
   pkgs,
   ...
 }: let
+  user = globals.user;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
@@ -13,7 +14,7 @@ in {
 
   autoUpgrade = {
     enable = true;
-    flakePath = "${config.users.users.${globals.user}.home}/.dotfiles";
+    flakePath = "${config.users.users.${user}.home}/.dotfiles";
   };
 
   environment.variables = {
@@ -44,7 +45,7 @@ in {
   ];
 
   nix-homebrew = {
-    inherit (globals) user;
+    inherit user;
     enable = true;
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;
@@ -55,16 +56,16 @@ in {
     autoMigrate = false;
   };
 
-  users.users.${globals.user} = {
-    name = globals.user;
-    home = "/Users/${globals.user}";
+  users.users.${user} = {
+    name = user;
+    home = "/Users/${user}";
     isHidden = false;
     shell = pkgs.zsh;
   };
 
   nix = {
     settings = {
-      trusted-users = ["@admin" "${globals.user}"];
+      trusted-users = ["@admin" "${user}"];
     };
 
     gc = {
@@ -88,13 +89,16 @@ in {
 
   home-manager = {
     useGlobalPkgs = true;
-    extraSpecialArgs = {inherit inputs globals;};
-    users.${globals.user} = import ./home.nix;
+    extraSpecialArgs = {
+      inherit inputs globals;
+      hostUser = user;
+    };
+    users.${user} = import ./home.nix;
   };
 
   system = {
     checks.verifyNixPath = false;
-    primaryUser = globals.user;
+    primaryUser = user;
     stateVersion = 5;
 
     defaults = {

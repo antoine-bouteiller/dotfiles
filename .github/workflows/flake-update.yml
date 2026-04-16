@@ -32,20 +32,22 @@ jobs:
 
       - name: Update Caddy Hash
         run: |
-          sed -i -E 's/hash = "sha256-[a-zA-Z0-9+/=]+";/hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";/' ./modules/media/caddy.nix
+          PKG_FILE=./pkgs/caddy-crowdsec.nix
+          FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+          sed -i -E "s|hash = \"sha256-[A-Za-z0-9+/=]+\";|hash = \"$FAKE_HASH\";|" "$PKG_FILE"
 
           OUTPUT=$(nix build .#nixosConfigurations.plex-server.config.services.caddy.package --no-link --impure 2>&1 || true)
+          NEW_HASH=$(echo "$OUTPUT" | grep -oP 'got:\s+\Ksha256-[A-Za-z0-9+/=]+')
 
-          NEW_HASH=$(echo "$OUTPUT" | grep -oP 'got:\s+\Ksha256-[a-zA-Z0-9+/=]+')
-
-          if [ -n "$NEW_HASH" ]; then
-            echo "Successfully found new Caddy hash: $NEW_HASH"
-            sed -i -E "s|hash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\";|hash = \"$NEW_HASH\";|" ./modules/media/caddy.nix
-          else
-            echo "Failed to extract new hash. Build output was:"
+          if [ -z "$NEW_HASH" ]; then
+            echo "Failed to extract new hash. Build output:"
             echo "$OUTPUT"
             exit 1
           fi
+
+          echo "New Caddy hash: $NEW_HASH"
+          sed -i -E "s|hash = \"$FAKE_HASH\";|hash = \"$NEW_HASH\";|" "$PKG_FILE"
 
       - name: Verify hosts build
         run: |

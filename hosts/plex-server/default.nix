@@ -9,16 +9,9 @@
 in {
   imports = [
     ../base-nixos.nix
-    ../../modules/media
+    ./media
     ./hardware-configuration.nix
   ];
-
-  # Media server
-  mediaServer = {
-    enable = true;
-    network.domain = "antoinebouteiller.fr";
-    paths.mediaDir = "/mnt/media";
-  };
 
   # Home manager
   home-manager = {

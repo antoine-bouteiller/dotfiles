@@ -1,4 +1,6 @@
-cfg: {
+let
+  constants = import ./constants.nix;
+in {
   mkCaddyVirtualHost = {
     url,
     port,
@@ -27,7 +29,7 @@ cfg: {
           reverse_proxy localhost:${toString port}
         '';
       logFormat = ''
-        output file ${cfg.caddy.logDir}/access-${url}.log {
+        output file ${constants.caddy.logDir}/access-${url}.log {
           roll_size 10MiB
           roll_keep 3
         }

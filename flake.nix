@@ -93,7 +93,6 @@
 
     nixosModules = {
       default = ./modules;
-      media = ./modules/media;
       autoUpgrade = ./modules/auto-upgrade.nix;
     };
 

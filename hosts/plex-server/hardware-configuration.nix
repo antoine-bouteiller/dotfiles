@@ -4,7 +4,7 @@
   modulesPath,
   ...
 }: let
-  cfg = config.mediaServer;
+  constants = import ./media/constants.nix;
 in {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -32,7 +32,7 @@ in {
     options = ["fmask=0077" "dmask=0077"];
   };
 
-  fileSystems.${cfg.paths.mediaDir} = {
+  fileSystems.${constants.paths.mediaDir} = {
     device = "/dev/disk/by-uuid/8059153a-838e-4bfd-82aa-5831c1f5047a";
     fsType = "ext4";
   };

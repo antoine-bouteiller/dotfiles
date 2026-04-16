@@ -1,0 +1,22 @@
+{...}: {
+  imports = [
+    ./caddy.nix
+    ./crowdsec.nix
+    ./authelia.nix
+    ./postgres.nix
+    ./plex.nix
+    ./seerr.nix
+    ./sonarr.nix
+    ./radarr.nix
+    ./prowlarr.nix
+    ./bazarr.nix
+    ./transmission.nix
+    ./recyclarr.nix
+    ./homepage.nix
+    ./flaresolverr.nix
+    ./coolercontrol.nix
+    ./autoscan.nix
+    ./immich.nix
+    ./smartd.nix
+  ];
+}

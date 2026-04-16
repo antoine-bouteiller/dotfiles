@@ -1,7 +1,7 @@
-{config, ...}: let
-  cfg = config.mediaServer;
+{...}: let
+  constants = import ./constants.nix;
 in {
-  users.users.crowdsec.extraGroups = [cfg.caddy.group];
+  users.users.crowdsec.extraGroups = [constants.caddy.group];
 
   services.crowdsec = {
     enable = true;
@@ -12,7 +12,7 @@ in {
         api.server = {
           enable = true;
           log_level = "warn";
-          listen_uri = "127.0.0.1:${toString cfg.crowdsec.port}";
+          listen_uri = "127.0.0.1:${toString constants.crowdsec.port}";
           console_path = "/var/lib/crowdsec/state/console.yaml";
         };
       };
@@ -44,14 +44,14 @@ in {
 
     localConfig.acquisitions = [
       {
-        filename = "${cfg.caddy.logDir}/*.log";
+        filename = "${constants.caddy.logDir}/*.log";
         labels.type = "caddy";
       }
       {
         appsec_config = "crowdsecurity/appsec-default";
         source = "appsec";
         labels.type = "appsec";
-        listen_addr = "127.0.0.1:${toString cfg.crowdsec.appsecPort}";
+        listen_addr = "127.0.0.1:${toString constants.crowdsec.appsecPort}";
       }
     ];
   };

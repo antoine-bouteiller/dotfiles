@@ -184,6 +184,16 @@ Specs are living documents. Amend in-place — do not create separate amendment 
 ```
 
 4. Prefix new or modified numbered items with sub-versions (e.g., `[VC-N.1]`, `[G-N.1]`) to distinguish from originals
+5. **Spec body reflects the current state only — evolution lives in the changelog.** When amending, rewrite
+   the affected sections as if the spec were authored today against today's codebase. Do not leave historical
+   breadcrumbs in `[G-N]`, `[KD-N]`, `[PI-N]`, `[NG-N]`, `[C-N]`, `[VC-N]`, or section 7/8 bodies — no
+   "the legacy X has been removed", no "previously we …", no "X no longer exists", no references to deleted
+   files, folders, or modules. A caveat like `[C-3] agents_doc/ has been removed` is a changelog entry, not a
+   caveat. If a fact is only interesting because it used to be different, it belongs in the changelog row
+   for that amendment.
+6. **Remove resolved open questions** from `[OQ-N]`. Once resolved, fold the decision into the appropriate
+   section (KD / C / NG / PI / VC) and record the resolution in the changelog. Do not leave `[OQ-N]` entries
+   annotated with "_Resolved_" — an open question is open by definition.
 
 ### When to create a new spec
 

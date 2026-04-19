@@ -16,14 +16,14 @@
       package = pkgs.claude-code;
 
       context = "${claudeDir}/CLAUDE.md";
-
-      hooksDir = "${./hooks}";
-      rulesDir = "${./rules}";
-      commandsDir = "${./commands}";
     };
 
     home.file = {
       ".claude/settings.json".source = mkOutOfStoreSymlink "${claudeDir}/settings.json";
+      ".claude/hooks".source = mkOutOfStoreSymlink "${claudeDir}/hooks";
+      ".claude/skills".source = mkOutOfStoreSymlink "${claudeDir}/skills";
+      ".claude/commands".source = mkOutOfStoreSymlink "${claudeDir}/commands";
+      ".claude/rules".source = mkOutOfStoreSymlink "${claudeDir}/rules";
     };
   });
 }

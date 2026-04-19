@@ -4,13 +4,16 @@
   "lsp": {
     "vtsls": {
       "settings": {
-        "vtsls": {
-          "autoUseWorkspaceTsdk": true,
-          "experimental": {
-            "completion": {
-              "enableServerSideFuzzyMatch": true,
-              "entriesLimit": 10,
-            },
+        "autoUseWorkspaceTsdk": true,
+        "experimental": {
+          "completion": {
+            "enableServerSideFuzzyMatch": true,
+            "entriesLimit": 10,
+          },
+        },
+        "javascript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
           },
         },
         "typescript": {
@@ -38,7 +41,6 @@
     "**/.classpath",
     "**/.settings",
     "**/node_modules",
-    "**/coverage",
   ],
   "languages": {
     "Python": {

@@ -68,6 +68,12 @@
         "source.fixAll.eslint": true,
       },
     },
+    "Astro": {
+      "language_servers": ["eslint", "vtsls", "astro-language-server", "!oxlint", "!oxfmt", "..."],
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true,
+      },
+    },
     "Nix": {
       "language_servers": ["nixd"],
       "formatter": {

@@ -87,8 +87,6 @@
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
       zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
 
-      export PATH="''${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
       # Source local/work config
       [[ -f $HOME/.zlocal ]] && source $HOME/.zlocal
     '';

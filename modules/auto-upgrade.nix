@@ -9,11 +9,46 @@
 
   isDarwin = options ? launchd;
 
-  updateFlakeScript = pkgs.writeShellScript "update-flake" ''
-    cd "${cfg.flakePath}"
-    export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh"
-    ${pkgs.git}/bin/git -c safe.directory="${cfg.flakePath}" pull --ff-only origin main
-  '';
+  githubKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
+    "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk="
+  ];
+
+  sshOpts = "-i ${cfg.sshKeyPath} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes";
+
+  updateFlakeScript = pkgs.writeShellApplication {
+    name = "update-flake";
+    runtimeInputs = [pkgs.git pkgs.openssh];
+    text = ''
+      cd "${cfg.flakePath}"
+      export GIT_SSH_COMMAND="ssh ${sshOpts}"
+      git -c safe.directory="${cfg.flakePath}" pull --ff-only origin "${cfg.flakeBranch}"
+    '';
+  };
+
+  darwinInterval =
+    {
+      Hour = cfg.schedule.hour;
+      Minute = cfg.schedule.minute;
+    }
+    // lib.optionalAttrs (cfg.schedule.weekday != null) {
+      Weekday = cfg.schedule.weekday;
+    };
+
+  systemdDays = ["Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun"];
+  systemdDayStr =
+    if cfg.schedule.weekday == null
+    then ""
+    else "${builtins.elemAt systemdDays (cfg.schedule.weekday - 1)} ";
+
+  padZero = num:
+    if num < 10
+    then "0${toString num}"
+    else toString num;
+  systemdTimeStr = "${padZero cfg.schedule.hour}:${padZero cfg.schedule.minute}:00";
+
+  systemdCalendar = "${systemdDayStr}*-*-* ${systemdTimeStr}";
 in {
   options.autoUpgrade = {
     enable = lib.mkEnableOption "automatic system upgrades";
@@ -21,44 +56,66 @@ in {
       type = lib.types.str;
       description = "Path to the flake directory";
     };
+    flakeBranch = lib.mkOption {
+      type = lib.types.str;
+      default = "main";
+      description = "Branch to pull updates from";
+    };
+    sshKeyPath = lib.mkOption {
+      type = lib.types.str;
+      description = "SSH private key path used by root to pull the flake (must be readable by root and unencrypted)";
+    };
     allowReboot = lib.mkOption {
       type = lib.types.bool;
       default = false;
       description = "Whether to allow automatic reboots after upgrade (NixOS only)";
     };
-    schedule = lib.mkOption {
-      type = lib.types.str;
-      default = "Mon *-*-* 01:00:00";
-      description = "Systemd calendar schedule for auto-upgrade (NixOS only)";
-    };
-    darwinSchedule = lib.mkOption {
-      type = lib.types.attrsOf lib.types.int;
-      default = {
-        Weekday = 1;
-        Hour = 3;
-        Minute = 0;
+    schedule = {
+      hour = lib.mkOption {
+        type = lib.types.ints.between 0 23;
+        default = 3;
+        description = "Hour of the day to run the upgrade (0-23).";
       };
-      description = "launchd StartCalendarInterval entry for auto-upgrade (Darwin only)";
+      minute = lib.mkOption {
+        type = lib.types.ints.between 0 59;
+        default = 0;
+        description = "Minute of the hour to run the upgrade (0-59).";
+      };
+      weekday = lib.mkOption {
+        type = lib.types.nullOr (lib.types.ints.between 1 7);
+        default = null;
+        description = "Day of the week to run the upgrade (1=Monday, 7=Sunday). Leave null for every day.";
+      };
     };
   };
 
   config = lib.mkIf cfg.enable (
     if isDarwin
     then {
+      environment.etc."ssh/ssh_known_hosts".text = lib.concatStringsSep "\n" (map (key: "github.com ${key}") githubKeys);
+
       launchd.daemons.nix-auto-upgrade = {
         script = ''
           export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
-          ${updateFlakeScript}
-          darwin-rebuild switch --flake ${cfg.flakePath}
+          ${lib.getExe updateFlakeScript}
+          darwin-rebuild switch --flake "${cfg.flakePath}#${config.networking.hostName}"
         '';
         serviceConfig = {
-          StartCalendarInterval = [cfg.darwinSchedule];
+          StartCalendarInterval = [darwinInterval];
           StandardOutPath = "/tmp/nix-auto-upgrade.log";
           StandardErrorPath = "/tmp/nix-auto-upgrade.err";
+          ProcessType = "Background";
         };
       };
     }
     else {
+      programs.ssh.knownHosts = lib.listToAttrs (lib.imap0 (i: key:
+        lib.nameValuePair "github-${toString i}" {
+          hostNames = ["github.com"];
+          publicKey = key;
+        })
+      githubKeys);
+
       systemd.services.flake-pull = {
         description = "Pull latest flake.lock from remote";
         stopIfChanged = false;
@@ -75,7 +132,7 @@ in {
 
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${updateFlakeScript}";
+          ExecStart = "${lib.getExe updateFlakeScript}";
           Restart = "on-failure";
           RestartSec = "30";
         };
@@ -84,8 +141,8 @@ in {
       system.autoUpgrade =
         {
           enable = true;
-          dates = cfg.schedule;
-          flake = cfg.flakePath;
+          dates = systemdCalendar;
+          flake = "${cfg.flakePath}#${config.networking.hostName}";
           flags = ["-L"];
           allowReboot = cfg.allowReboot;
         }

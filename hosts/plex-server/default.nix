@@ -28,8 +28,7 @@ in {
   autoUpgrade = {
     enable = true;
     flakePath = "${config.users.users.${user}.home}/nixconfig";
-    allowReboot = true;
-    schedule = "Mon *-*-* 01:00:00";
+    sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
   };
 
   # Nix

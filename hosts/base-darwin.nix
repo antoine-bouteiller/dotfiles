@@ -23,15 +23,22 @@
       cleanup = "uninstall";
       upgrade = true;
     };
+    enableZshIntegration = true;
     global = {
       autoUpdate = true;
     };
+
+    brews = [
+      "coreutils"
+    ];
+
     casks = [
       # Development Tools
       "orbstack"
       "beekeeper-studio"
       "yaak"
       "ghostty"
+      "zed"
 
       # Productivity Tools
       "sol"

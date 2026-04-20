@@ -18,6 +18,7 @@ in {
         [
           home-manager.darwinModules.home-manager
           inputs.nix-homebrew.darwinModules.nix-homebrew
+          {networking.hostName = hostname;}
           (self + "/hosts/${hostname}")
         ]
         ++ extraModules;
@@ -35,6 +36,7 @@ in {
         [
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
+          {networking.hostName = nixpkgs.lib.mkDefault hostname;}
           (self + "/hosts/${hostname}")
         ]
         ++ extraModules;

@@ -15,6 +15,7 @@ in {
   autoUpgrade = {
     enable = true;
     flakePath = "${config.users.users.${user}.home}/.dotfiles";
+    sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
   };
 
   environment.variables = {
@@ -81,9 +82,6 @@ in {
     taps = builtins.attrNames config.nix-homebrew.taps;
     casks = [
       "tailscale-app"
-      "codex"
-      "zed"
-      "t3-code"
     ];
   };
 

@@ -3,27 +3,32 @@
   lib,
   pkgs,
   ...
-}: {
-  options.local.home-manager.claudeCode.enable = lib.mkEnableOption "claude code";
+}: let
+  # 1. Alias the config path for cleaner access
+  cfg = config.local.home-manager.claudeCode;
 
-  config = lib.mkIf config.local.home-manager.claudeCode.enable (let
-    inherit (config.lib.file) mkOutOfStoreSymlink;
-    inherit (config.home) homeDirectory;
-    claudeDir = "${homeDirectory}/.dotfiles/home-manager/applications/claude-code";
-  in {
-    programs.claude-code = {
-      enable = true;
-      package = pkgs.claude-code;
+  inherit (config.lib.file) mkOutOfStoreSymlink;
+  inherit (config.home) homeDirectory;
 
-      context = "${claudeDir}/CLAUDE.md";
-    };
+  claudeDir = "${homeDirectory}/.dotfiles/home-manager/applications/claude-code";
+in {
+  options.local.home-manager.claudeCode = {
+    enable = lib.mkEnableOption "claude code";
+  };
 
-    home.file = {
-      ".claude/settings.json".source = mkOutOfStoreSymlink "${claudeDir}/settings.json";
-      ".claude/hooks".source = mkOutOfStoreSymlink "${claudeDir}/hooks";
-      ".claude/skills".source = mkOutOfStoreSymlink "${claudeDir}/skills";
-      ".claude/commands".source = mkOutOfStoreSymlink "${claudeDir}/commands";
-      ".claude/rules".source = mkOutOfStoreSymlink "${claudeDir}/rules";
-    };
-  });
+  config = lib.mkIf cfg.enable {
+    home.packages = [pkgs.claude-code];
+
+    home.file = builtins.listToAttrs (map (name: {
+        name = ".claude/${name}";
+        value = {source = mkOutOfStoreSymlink "${claudeDir}/${name}";};
+      }) [
+        "CLAUDE.md"
+        "settings.json"
+        "hooks"
+        "skills"
+        "commands"
+        "rules"
+      ]);
+  };
 }

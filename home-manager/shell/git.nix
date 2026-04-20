@@ -1,8 +1,19 @@
 {
+  config,
   globals,
   lib,
   ...
-}: {
+}: let
+  signingKeyPath = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
+  allowedSignersFile = "${config.xdg.configHome}/git/allowed_signers";
+in {
+  home.activation.gitAllowedSigners = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if [ -f ${lib.escapeShellArg signingKeyPath} ]; then
+      mkdir -p ${lib.escapeShellArg (builtins.dirOf allowedSignersFile)}
+      printf '%s namespaces="git" %s\n' ${lib.escapeShellArg globals.email} "$(cat ${lib.escapeShellArg signingKeyPath})" > ${lib.escapeShellArg allowedSignersFile}
+    fi
+  '';
+
   programs.git = {
     enable = true;
     ignores = [
@@ -46,6 +57,11 @@
       pull.rebase = true;
       push.autoSetupRemote = true;
       rebase.autoStash = true;
+      commit.gpgsign = true;
+      tag.gpgsign = true;
+      gpg.format = "ssh";
+      gpg.ssh.allowedSignersFile = allowedSignersFile;
+      user.signingkey = signingKeyPath;
     };
   };
 }

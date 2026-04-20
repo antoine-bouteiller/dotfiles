@@ -38,7 +38,6 @@ in {
     isNormalUser = true;
     description = globals.name;
     extraGroups = ["wheel"];
-    openssh.authorizedKeys.keys = globals.sshKeys;
   };
 
   system.stateVersion = "25.11";

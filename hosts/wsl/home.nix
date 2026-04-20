@@ -10,18 +10,12 @@
   winStarshipConfig = "${winHome}/.config";
 in {
   imports = [
-    ../../home-manager/common.nix
+    ../../home-manager
   ];
 
   local.home-manager = {
-    zsh.enable = true;
-    git.enable = true;
-    ssh.enable = true;
-    starship.enable = true;
+    claudeCode.enable = true;
     tmux.enable = true;
-    shellTools.enable = true;
-    vim.enable = true;
-    zed.enable = true;
   };
 
   home = {

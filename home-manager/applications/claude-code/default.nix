@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }: let
   # 1. Alias the config path for cleaner access
@@ -9,6 +10,7 @@
 
   inherit (config.lib.file) mkOutOfStoreSymlink;
   inherit (config.home) homeDirectory;
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
   claudeDir = "${homeDirectory}/.dotfiles/home-manager/applications/claude-code";
 in {
@@ -17,7 +19,13 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [pkgs.claude-code];
+    home.packages = [
+      pkgs.claude-code
+      # Agents
+      customPkgs.comment-checker
+      customPkgs.rtk
+      customPkgs._1mcp
+    ];
 
     home.file = builtins.listToAttrs (map (name: {
         name = ".claude/${name}";

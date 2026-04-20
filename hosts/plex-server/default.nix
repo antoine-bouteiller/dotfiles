@@ -38,10 +38,7 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
-    git
-    curl
     lm_sensors
-    ffmpeg
   ];
 
   system.stateVersion = "25.11";
@@ -64,7 +61,7 @@ in {
   users.defaultUserShell = pkgs.zsh;
   users.users.${user} = {
     isNormalUser = true;
-    description = "Antoine Bouteiller";
+    description = globals.name;
     extraGroups = ["networkmanager" "wheel" "media" "caddy" "crowdsec"];
     openssh.authorizedKeys.keys = globals.sshKeys;
   };

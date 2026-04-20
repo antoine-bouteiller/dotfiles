@@ -6,7 +6,6 @@
   ...
 }: let
   user = globals.user;
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
     ../base-darwin.nix
@@ -38,11 +37,6 @@ in {
         python-gitlab
       ]))
     uv
-
-    # Agents
-    customPkgs.comment-checker
-    customPkgs.rtk
-    customPkgs._1mcp
   ];
 
   nix-homebrew = {

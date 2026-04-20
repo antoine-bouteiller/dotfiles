@@ -1,5 +1,7 @@
 {...}: {
   imports = [
-    ./common.nix
+    ./desktop.nix
+    ./shell
+    ./applications
   ];
 }

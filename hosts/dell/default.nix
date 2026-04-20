@@ -15,11 +15,6 @@ in {
     defaultUser = user;
   };
 
-  # WSL doesn't use systemd-boot
-  boot.loader.systemd-boot.enable = false;
-  boot.loader.efi.canTouchEfiVariables = false;
-
-  # Home manager
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
@@ -30,12 +25,11 @@ in {
     users.${user} = import ./home.nix;
   };
 
-  # Users
   users.defaultUserShell = pkgs.zsh;
   users.users.${user} = {
     isNormalUser = true;
     description = globals.name;
-    extraGroups = ["wheel"];
+    extraGroups = ["networkmanager" "wheel"];
   };
 
   system.stateVersion = "25.11";

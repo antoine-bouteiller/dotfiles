@@ -46,7 +46,6 @@ in {
 
   # Networking
   networking = {
-    hostName = "plex-server";
     nameservers = ["1.1.1.1" "9.9.9.9"];
     hosts = {
       "192.168.1.254" = ["mabbox.bytel.fr"];

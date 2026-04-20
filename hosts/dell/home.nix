@@ -7,6 +7,11 @@
     ../../home-manager
   ];
 
+  local.home-manager = {
+    claudeCode.enable = true;
+    tmux.enable = true;
+  };
+
   home = {
     enableNixpkgsReleaseCheck = false;
     username = hostUser;

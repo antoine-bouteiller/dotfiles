@@ -9,7 +9,7 @@
 in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
-    ../../home-manager/common.nix
+    ../../home-manager
   ];
 
   local.home-manager = {

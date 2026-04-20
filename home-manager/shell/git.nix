@@ -9,7 +9,7 @@
 in {
   home.activation.gitAllowedSigners = lib.hm.dag.entryAfter ["writeBoundary"] ''
     if [ -f ${lib.escapeShellArg signingKeyPath} ]; then
-      mkdir -p ${lib.escapeShellArg (builtins.dirOf allowedSignersFile)}
+      mkdir -p ${lib.escapeShellArg allowedSignersFile}
       printf '%s namespaces="git" %s\n' ${lib.escapeShellArg globals.email} "$(cat ${lib.escapeShellArg signingKeyPath})" > ${lib.escapeShellArg allowedSignersFile}
     fi
   '';

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="1189.0mm" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 3370.82 3370.82" width="1189.0mm" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient gradientTransform="matrix(332.449 1124.14 -406.246 373.2 1351.52 981.475)" gradientUnits="userSpaceOnUse" id="LinearGradient" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0" stop-color="#057dfa"/>
+<stop offset="1" stop-color="#08a2f0"/>
+</linearGradient>
+<linearGradient gradientTransform="matrix(0 0 0 0 3003.02 1851.05)" gradientUnits="userSpaceOnUse" id="LinearGradient_2" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0" stop-color="#007aff"/>
+<stop offset="1" stop-color="#000000"/>
+</linearGradient>
+</defs>
+<g id="Layer-1" vectornator:layerName="Layer 1">
+<path d="M307.626 336.938C178.394 336.938 73.6881 441.644 73.6881 570.876L73.6881 2359.94C73.6881 2489.17 178.393 2593.95 307.626 2593.95L1405.59 2593.95L1219.14 2852.26C1197.49 2882.27 1185.87 2918.34 1185.87 2955.36L1185.87 3033.88L1685.41 3033.88L2184.94 3033.88L2184.94 3029.18L2184.94 2955.99C2184.94 2915.45 2170.97 2876.12 2145.37 2844.7L1941.06 2593.95L3063.19 2593.95C3192.42 2593.95 3297.13 2489.17 3297.13 2359.94L3297.13 570.876C3297.13 441.644 3192.42 336.938 3063.19 336.938L307.626 336.938Z" fill="#29272a" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Curve"/>
+</g>
+<g id="Layer-3" vectornator:layerName="Layer 3">
+<path d="M227.836 547.488L3142.98 547.488L3142.98 2111.52L227.836 2111.52L227.836 547.488Z" fill="url(#LinearGradient)" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Rectangle 1"/>
+<path d="M3003.02 1832.03L3003.02 1832.03L3003.02 1870.06L3003.02 1870.06L3003.02 1832.03Z" fill="url(#LinearGradient_2)" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Rectangle 2"/>
+</g>
+</svg>

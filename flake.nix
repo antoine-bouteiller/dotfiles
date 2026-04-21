@@ -38,6 +38,11 @@
       url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs = {
@@ -77,6 +82,10 @@
       rtk = pkgs.callPackage ./pkgs/rtk.nix {};
       vite-plus = pkgs.callPackage ./pkgs/vite-plus {};
       _1mcp = pkgs.callPackage ./pkgs/1mcp.nix {};
+      whitesur-icon-theme = pkgs.callPackage ./pkgs/whitesur-icon-theme.nix {
+        overlay = ./home-manager/themes/WhiteSur-icon-overlay;
+      };
+      we10x-gtk-theme = pkgs.callPackage ./pkgs/we10x-gtk-theme.nix {};
     });
 
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);

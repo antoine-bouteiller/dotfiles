@@ -1,8 +1,14 @@
 {
   osConfig,
   lib,
+  pkgs,
+  inputs,
   ...
-}: {
+}: let
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
+in {
+  imports = [inputs.plasma-manager.homeManagerModules.plasma-manager];
+
   config = lib.mkIf osConfig.desktop.enable {
     programs.plasma = {
       enable = true;
@@ -10,7 +16,8 @@
       workspace = {
         clickItemTo = "select";
         lookAndFeel = "org.kde.breezedark.desktop";
-        iconTheme = "Papirus-Dark";
+        theme = "WhiteSur-dark";
+        iconTheme = "WhiteSur";
       };
 
       fonts = {
@@ -63,6 +70,35 @@
           ];
         }
       ];
+    };
+
+    gtk = {
+      enable = true;
+      theme = {
+        name = "We10X-Dark";
+        package = customPkgs.we10x-gtk-theme;
+      };
+    };
+
+    home.packages = [
+      customPkgs.whitesur-icon-theme
+      pkgs.whitesur-kde
+      pkgs.kdePackages.qtstyleplugin-kvantum
+      pkgs.klassy
+    ];
+
+    xdg = {
+      dataFile = {
+        "klassy/presets/whitesur.klpw".source = ./themes/whitesur.klpw;
+      };
+
+      configFile = {
+        "Kvantum/Fluent-round".source = ./themes/Fluent-round;
+        "Kvantum/kvantum.kvconfig".text = ''
+          [General]
+          theme=Fluent-roundDark
+        '';
+      };
     };
   };
 }

@@ -7,9 +7,9 @@
 }: let
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
-  imports = [inputs.plasma-manager.homeManagerModules.plasma-manager];
+  imports = [inputs.plasma-manager.homeModules.plasma-manager];
 
-  config = lib.mkIf osConfig.desktop.enable {
+  config = lib.mkIf (osConfig.desktop.enable or false) {
     programs.plasma = {
       enable = true;
 
@@ -38,10 +38,7 @@ in {
       kwin = {
         titlebarButtons.left = ["close" "minimize" "maximize"];
         titlebarButtons.right = [];
-        effects = {
-          magicLamp.enable = true;
-          overview.enable = true;
-        };
+        effects.minimization.animation = "magiclamp";
       };
 
       panels = [

@@ -44,21 +44,14 @@
   ],
   "languages": {
     "Python": {
-      "code_actions_on_format": {
-        "source.organizeImports.ruff": false,
-      },
       "language_servers": ["!basedpyright", "ruff", "ty", "!pyrefly", "!pyright", "!pylsp", "..."],
-      "formatter": {
-        "language_server": {
-          "name": "black",
-        },
-      },
     },
     "TSX": {
       "format_on_save": "on",
       "language_servers": ["eslint", "!typescript-language-server", "vtsls", "!oxlint", "!oxfmt", "..."],
       "code_actions_on_format": {
         "source.fixAll.eslint": true,
+        "source.organizeImports": true,
       },
     },
     "TypeScript": {
@@ -66,12 +59,14 @@
       "language_servers": ["eslint", "!typescript-language-server", "vtsls", "!oxlint", "!oxfmt", "..."],
       "code_actions_on_format": {
         "source.fixAll.eslint": true,
+        "source.organizeImports": true,
       },
     },
     "Astro": {
       "language_servers": ["eslint", "vtsls", "astro-language-server", "!oxlint", "!oxfmt", "..."],
       "code_actions_on_format": {
         "source.fixAll.eslint": true,
+        "source.organizeImports": true,
       },
     },
     "Nix": {
@@ -87,9 +82,6 @@
       "language_servers": [],
       "format_on_save": "off",
     },
-  },
-  "code_actions_on_format": {
-    "source.organizeImports": true,
   },
   "agent": {
     "default_model": {

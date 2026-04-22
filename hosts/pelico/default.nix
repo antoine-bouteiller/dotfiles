@@ -6,14 +6,16 @@
   ...
 }: let
   user = globals.user;
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
     ../base-darwin.nix
   ];
 
+  flakePath = "${config.users.users.${user}.home}/.dotfiles";
+
   autoUpgrade = {
     enable = true;
-    flakePath = "${config.users.users.${user}.home}/.dotfiles";
     sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
   };
 
@@ -35,6 +37,9 @@ in {
     (python313.withPackages (ps:
       with ps; [
         python-gitlab
+        black
+        ruff
+        isort
       ]))
     uv
   ];

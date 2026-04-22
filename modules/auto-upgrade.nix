@@ -6,6 +6,7 @@
   ...
 }: let
   cfg = config.autoUpgrade;
+  flakePath = config.flakePath;
 
   isDarwin = options ? launchd;
 
@@ -21,9 +22,9 @@
     name = "update-flake";
     runtimeInputs = [pkgs.git pkgs.openssh];
     text = ''
-      cd "${cfg.flakePath}"
+      cd "${flakePath}"
       export GIT_SSH_COMMAND="ssh ${sshOpts}"
-      git -c safe.directory="${cfg.flakePath}" pull --ff-only origin "${cfg.flakeBranch}"
+      git -c safe.directory="${flakePath}" pull --ff-only origin "${cfg.flakeBranch}"
     '';
   };
 
@@ -52,10 +53,6 @@
 in {
   options.autoUpgrade = {
     enable = lib.mkEnableOption "automatic system upgrades";
-    flakePath = lib.mkOption {
-      type = lib.types.str;
-      description = "Path to the flake directory";
-    };
     flakeBranch = lib.mkOption {
       type = lib.types.str;
       default = "main";
@@ -98,7 +95,7 @@ in {
         script = ''
           export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
           ${lib.getExe updateFlakeScript}
-          darwin-rebuild switch --flake "${cfg.flakePath}#${config.networking.hostName}"
+          darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}"
         '';
         serviceConfig = {
           StartCalendarInterval = [darwinInterval];
@@ -142,7 +139,7 @@ in {
         {
           enable = true;
           dates = systemdCalendar;
-          flake = "${cfg.flakePath}#${config.networking.hostName}";
+          flake = "${flakePath}#${config.networking.hostName}";
           flags = ["-L"];
           allowReboot = cfg.allowReboot;
         }

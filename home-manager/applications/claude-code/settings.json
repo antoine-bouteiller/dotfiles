@@ -100,7 +100,7 @@
     "dotfiles-plugins": {
       "source": {
         "source": "directory",
-        "path": "/Users/antoinebouteiller/.dotfiles/home-manager/applications/claude-code/plugins"
+        "path": "./plugins"
       }
     },
     "thedotmack": {

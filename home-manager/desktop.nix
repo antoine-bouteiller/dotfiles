@@ -15,7 +15,7 @@ in {
 
       workspace = {
         clickItemTo = "select";
-        lookAndFeel = "org.kde.breezedark.desktop";
+        lookAndFeel = "com.github.vinceliuice.WhiteSur-dark";
         theme = "WhiteSur-dark";
         iconTheme = "WhiteSur";
       };
@@ -23,15 +23,15 @@ in {
       fonts = {
         general = {
           family = "Inter";
-          pointSize = 10;
+          pointSize = 11;
         };
         menu = {
           family = "Inter";
-          pointSize = 10;
+          pointSize = 11;
         };
         toolbar = {
           family = "Inter";
-          pointSize = 10;
+          pointSize = 11;
         };
       };
 
@@ -46,11 +46,14 @@ in {
           location = "top";
           height = 28;
           widgets = [
-            "org.kde.plasma.kickoff"
-            "org.kde.plasma.appmenu" # Global Menu
-            "org.kde.plasma.panelspacer" # Left Spacer
-            "org.kde.plasma.digitalclock" # Center Clock
-            "org.kde.plasma.panelspacer" # Right Spacer
+            {
+              name = "org.kde.plasma.kicker";
+              config.General.icon = "nix-snowflake-white";
+            }
+            "org.kde.plasma.appmenu"
+            "org.kde.plasma.panelspacer"
+            "org.kde.plasma.digitalclock"
+            "org.kde.plasma.panelspacer"
             "org.kde.plasma.systemtray"
           ];
         }
@@ -67,6 +70,11 @@ in {
           ];
         }
       ];
+
+      configFile = {
+        "kdeglobals"."KDE"."widgetStyle" = "kvantum";
+        "kwinrc"."org.kde.kdecoration2"."plugin" = "klassy";
+      };
     };
 
     gtk = {
@@ -77,11 +85,20 @@ in {
       };
     };
 
+    home.pointerCursor = {
+      name = "WhiteSur-cursors";
+      package = pkgs.whitesur-cursors;
+      size = 24;
+      gtk.enable = true;
+      x11.enable = true;
+    };
+
     home.packages = [
       customPkgs.whitesur-icon-theme
-      pkgs.whitesur-kde
       pkgs.kdePackages.qtstyleplugin-kvantum
       pkgs.klassy
+      pkgs.inter
+      pkgs.nixos-icons
     ];
 
     xdg = {

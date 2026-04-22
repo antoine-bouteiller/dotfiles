@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   lib,
   pkgs,
   inputs,
@@ -9,10 +10,9 @@
   cfg = config.local.home-manager.claudeCode;
 
   inherit (config.lib.file) mkOutOfStoreSymlink;
-  inherit (config.home) homeDirectory;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
-  claudeDir = "${homeDirectory}/.dotfiles/home-manager/applications/claude-code";
+  claudeDir = "${osConfig.flakePath}/home-manager/applications/claude-code";
 in {
   options.local.home-manager.claudeCode = {
     enable = lib.mkEnableOption "claude code";

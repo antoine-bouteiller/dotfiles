@@ -17,7 +17,6 @@ in {
 
     environment.systemPackages = with pkgs; [
       inter
-      papirus-icon-theme
     ];
   };
 }

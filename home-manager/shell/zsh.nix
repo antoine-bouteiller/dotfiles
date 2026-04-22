@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  osConfig,
   ...
 }: {
   programs.zsh = {
@@ -51,14 +52,13 @@
       bua = "bup && bcup --greedy && bcn";
       please = "sudo";
       zshrc = "\${EDITOR:-vim} $HOME/.zshrc";
-      zdot = "cd $HOME/.dotfiles";
+      zdot = "cd ${osConfig.flakePath}";
     };
 
     envExtra = ''
       export XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}
       export XDG_DATA_HOME=''${XDG_DATA_HOME:-$HOME/.local/share}
       export XDG_CACHE_HOME=''${XDG_CACHE_HOME:-$HOME/.cache}
-      export DOTDIR=''${DOTDIR:-$HOME/.dotfiles}
       export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
       typeset -gU path fpath
     '';
@@ -88,7 +88,8 @@
       zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
 
       # Source local/work config
-      [[ -f $HOME/.zlocal ]] && source $HOME/.zlocal
+      [[ -f ${osConfig.flakePath}/.zlocal ]] && source ${osConfig.flakePath}/.zlocal
+
     '';
   };
 }

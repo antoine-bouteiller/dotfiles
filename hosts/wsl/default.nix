@@ -10,6 +10,8 @@ in {
     ../base-nixos.nix
   ];
 
+  flakePath = "/home/${user}/.dotfiles";
+
   wsl = {
     enable = true;
     defaultUser = user;

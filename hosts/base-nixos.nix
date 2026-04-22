@@ -1,5 +1,8 @@
 {pkgs, ...}: {
-  imports = [./base.nix];
+  imports = [
+    ./base.nix
+    ../modules/desktop.nix
+  ];
 
   services.openssh = {
     enable = true;

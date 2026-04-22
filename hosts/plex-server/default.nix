@@ -13,6 +13,8 @@ in {
     ./hardware-configuration.nix
   ];
 
+  flakePath = "${config.users.users.${user}.home}/nixconfig";
+
   # Home manager
   home-manager = {
     useGlobalPkgs = true;
@@ -27,7 +29,6 @@ in {
   # Auto upgrade
   autoUpgrade = {
     enable = true;
-    flakePath = "${config.users.users.${user}.home}/nixconfig";
     sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
   };
 

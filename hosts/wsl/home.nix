@@ -1,10 +1,10 @@
 {
   lib,
   config,
+  osConfig,
   hostUser,
   ...
 }: let
-  dotfilesPath = "${config.home.homeDirectory}/.dotfiles";
   winHome = "/mnt/c/Users/${hostUser}";
   winZedConfig = "${winHome}/AppData/Roaming/Zed";
   winStarshipConfig = "${winHome}/.config";
@@ -29,8 +29,8 @@ in {
       # Zed config
       if [ -d "/mnt/c" ]; then
         run mkdir -p "${winZedConfig}"
-        run cp -f "${dotfilesPath}/home-manager/applications/zed/settings.json" "${winZedConfig}/settings.json"
-        run cp -f "${dotfilesPath}/home-manager/applications/zed/keymap.json" "${winZedConfig}/keymap.json"
+        run cp -f "${osConfig.flakePath}/home-manager/applications/zed/settings.json" "${winZedConfig}/settings.json"
+        run cp -f "${osConfig.flakePath}/home-manager/applications/zed/keymap.json" "${winZedConfig}/keymap.json"
 
         # Starship config
         run mkdir -p "${winStarshipConfig}"

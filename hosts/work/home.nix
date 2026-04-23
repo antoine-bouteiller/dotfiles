@@ -88,7 +88,7 @@ in {
           type = "stdio";
           disabled = false;
           command = "npx";
-          args = ["-y" "firefox-devtools-mcp@latest"];
+          args = ["-y" "chrome-devtools-mcp@latest" "--no-usage-statistics"];
         };
         linear = {
           type = "http";

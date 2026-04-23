@@ -14,7 +14,12 @@ in {
       sonarrApiUrl = "http://localhost:${toString constants.sonarr.port}";
       radarrApiUrl = "http://localhost:${toString constants.radarr.port}";
       transcodePath = "${constants.paths.mediaDir}/transcode";
-      databaseUrl = "postgres:///autoscan?host=/run/pgbouncer&port=5432";
+      postgres = {
+        host = "/run/pgbouncer";
+        port = 5432;
+        user = "autoscan";
+        database = "autoscan";
+      };
     };
     secrets = {
       plexTokenFile = config.sops.secrets."autoscan/plex_token".path;

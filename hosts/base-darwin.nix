@@ -51,9 +51,6 @@
       "unnaturalscrollwheels"
       "rectangle"
       "caffeine"
-
-      # Entertainment Tools
-      "spotify"
     ];
     greedyCasks = true;
     masApps = {

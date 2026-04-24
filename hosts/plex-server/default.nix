@@ -79,4 +79,17 @@ in {
     MaxRetentionSec=1week
     MaxFileSec=1day
   '';
+
+  # Early OOM killer — prefers killing Nix rebuild processes over media services
+  services.earlyoom = {
+    enable = true;
+    extraArgs = [
+      "--prefer"
+      "^(nix|nix-daemon|nix-build|nixos-rebuild|home-manager)$"
+      "--avoid"
+      "^(sshd|systemd|init|postgres|pgbouncer|plex|immich-.*)$"
+    ];
+  };
+
+  systemd.services.nix-daemon.serviceConfig.MemoryMax = "2G";
 }

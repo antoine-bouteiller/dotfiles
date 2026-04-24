@@ -70,7 +70,7 @@ in {
     schedule = {
       hour = lib.mkOption {
         type = lib.types.ints.between 0 23;
-        default = 3;
+        default = 1;
         description = "Hour of the day to run the upgrade (0-23).";
       };
       minute = lib.mkOption {
@@ -80,7 +80,7 @@ in {
       };
       weekday = lib.mkOption {
         type = lib.types.nullOr (lib.types.ints.between 1 7);
-        default = null;
+        default = 1;
         description = "Day of the week to run the upgrade (1=Monday, 7=Sunday). Leave null for every day.";
       };
     };

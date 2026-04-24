@@ -42,7 +42,19 @@ in {
     fsType = "ext4";
   };
 
-  swapDevices = [];
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
+    priority = 100;
+  };
+
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 4096;
+      priority = 5;
+    }
+  ];
 
   # Networking
   networking = {

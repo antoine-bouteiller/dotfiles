@@ -25,7 +25,7 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
     patchShebangs install.sh
     mkdir -p $out/share/themes
-    HOME=$TMPDIR ./install.sh --dest $out/share/themes --color dark
+    HOME=$TMPDIR name=We10X ./install.sh --dest $out/share/themes --color dark
     runHook postInstall
   '';
 

@@ -126,6 +126,11 @@
         extraModules = [inputs.autoscan.nixosModules.default];
       };
 
+      dell = mkNixosHost {
+        hostname = "dell";
+        system = "x86_64-linux";
+      };
+
       wsl = mkNixosHost {
         hostname = "wsl";
         system = "x86_64-linux";

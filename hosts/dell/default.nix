@@ -12,9 +12,22 @@ in {
 
   flakePath = "/home/${user}/.dotfiles";
 
-  wsl = {
-    enable = true;
-    defaultUser = user;
+  desktop.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    brave
+    packet
+  ];
+
+  environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
+    BraveRewardsDisabled = true;
+    BraveWalletDisabled = true;
+    BraveVPNDisabled = true;
+    BraveAIChatEnabled = false;
+    BraveNewsDisabled = true;
+    BraveTalkDisabled = true;
+    TorDisabled = true;
+    DnsOverHttpsMode = "automatic";
   };
 
   home-manager = {

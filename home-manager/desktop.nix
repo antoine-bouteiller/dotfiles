@@ -64,7 +64,7 @@ in {
           floating = true;
           hiding = "dodgewindows";
           lengthMode = "fit";
-          height = 44;
+          height = 66;
           widgets = [
             "org.kde.plasma.icontasks" # Icons-only task manager
           ];
@@ -72,16 +72,28 @@ in {
       ];
 
       configFile = {
-        "kdeglobals"."KDE"."widgetStyle" = "kvantum";
+        "kdeglobals"."KDE"."widgetStyle" = "Klassy";
         "kwinrc"."org.kde.kdecoration2"."plugin" = "klassy";
       };
     };
 
     gtk = {
       enable = true;
-      theme = {
+      gtk3.theme = {
         name = "We10X-Dark";
         package = customPkgs.we10x-gtk-theme;
+      };
+      gtk4.theme = {
+        name = "We10X-Dark";
+        package = customPkgs.we10x-gtk-theme;
+      };
+      iconTheme = {
+        name = "WhiteSur";
+        package = customPkgs.whitesur-icon-theme;
+      };
+      font = {
+        name = "Inter";
+        size = 11;
       };
     };
 
@@ -94,7 +106,6 @@ in {
     };
 
     home.packages = [
-      customPkgs.whitesur-icon-theme
       pkgs.kdePackages.qtstyleplugin-kvantum
       pkgs.klassy
       pkgs.inter

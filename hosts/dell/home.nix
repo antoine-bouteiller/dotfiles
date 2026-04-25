@@ -10,6 +10,8 @@
   local.home-manager = {
     claudeCode.enable = true;
     tmux.enable = true;
+    zed.enable = true;
+    ghostty.enable = true;
   };
 
   home = {

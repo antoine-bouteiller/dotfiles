@@ -123,5 +123,10 @@ in {
     };
   };
 
+  programs.zsh.envExtra = ''
+    # Source sops-nix decrypted secrets
+    [[ -f "${config.sops.templates."secrets.env".path}" ]] && source "${config.sops.templates."secrets.env".path}"
+  '';
+
   manual.manpages.enable = false;
 }

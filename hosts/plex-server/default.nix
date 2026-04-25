@@ -15,6 +15,16 @@ in {
 
   flakePath = "${config.users.users.${user}.home}/nixconfig";
 
+  services.openssh = {
+    enable = true;
+    ports = [22];
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
   # Home manager
   home-manager = {
     useGlobalPkgs = true;
@@ -59,7 +69,6 @@ in {
   };
 
   # Users
-  users.defaultUserShell = pkgs.zsh;
   users.users.${user} = {
     isNormalUser = true;
     description = globals.name;
@@ -67,12 +76,6 @@ in {
     openssh.authorizedKeys.keys = globals.sshKeys;
   };
   users.groups.media = {};
-
-  # SSH
-  services.openssh = {
-    ports = [22];
-    settings.PermitRootLogin = "no";
-  };
 
   # Journald
   services.journald.extraConfig = ''

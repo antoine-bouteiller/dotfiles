@@ -21,10 +21,10 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [
       pkgs.claude-code
-      # Agents
+
+      # Utils
       customPkgs.comment-checker
       customPkgs.rtk
-      customPkgs._1mcp
     ];
 
     home.file = builtins.listToAttrs (map (name: {

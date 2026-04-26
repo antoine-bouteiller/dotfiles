@@ -126,6 +126,7 @@
         system = "x86_64-linux";
         extraModules = [inputs.autoscan.nixosModules.default];
       };
+	
 
       dell = mkNixosHost {
         hostname = "dell";

@@ -11,7 +11,7 @@ in {
     ./hardware-configuration.nix
   ];
 
-  flakePath = "/home/${user}/.dotfiles";
+  flakePath = "/home/${user}/nix-config";
 
   desktop.enable = true;
 

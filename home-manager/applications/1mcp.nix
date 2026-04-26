@@ -9,7 +9,6 @@
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
   inherit (config.home) homeDirectory;
   inherit (pkgs.stdenv) isDarwin;
-  port = toString cfg.port;
 in {
   options.local.home-manager.oneMcp = {
     enable = lib.mkEnableOption "1mcp MCP proxy server";
@@ -18,20 +17,13 @@ in {
       type = lib.types.path;
       description = "Path to the 1mcp JSON configuration file.";
     };
-
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 3050;
-      description = "Port the 1mcp server listens on.";
-    };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      programs.claude-code.mcpServers."1mcp" = {
-        type = "http";
-        url = "http://127.0.0.1:${port}/mcp?app=claude-code";
-      };
+      home.packages = [
+        customPkgs._1mcp
+      ];
     }
     (lib.mkIf isDarwin {
       launchd.agents."1mcp" = {

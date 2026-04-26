@@ -15,9 +15,12 @@ in {
 
       workspace = {
         clickItemTo = "select";
-        lookAndFeel = "com.github.vinceliuice.WhiteSur-dark";
         theme = "WhiteSur-dark";
         iconTheme = "WhiteSur";
+        windowDecorations = {
+          library = "org.kde.klassy";
+          theme = "Klassy";
+        };
       };
 
       fonts = {
@@ -77,8 +80,7 @@ in {
       ];
 
       configFile = {
-        "kdeglobals"."KDE"."widgetStyle" = "Klassy";
-        "kwinrc"."org.kde.kdecoration2"."plugin" = "klassy";
+        "kdeglobals"."KDE"."widgetStyle" = "kvantum";
       };
     };
 
@@ -92,6 +94,7 @@ in {
         name = "We10X-Dark";
         package = customPkgs.we10x-gtk-theme;
       };
+      gtk2.force = true;
       iconTheme = {
         name = "WhiteSur";
         package = customPkgs.whitesur-icon-theme;

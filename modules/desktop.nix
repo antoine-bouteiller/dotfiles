@@ -22,7 +22,11 @@ in {
               postPatch =
                 (old.postPatch or "")
                 + ''
-                  sed -i 's/placesDock->setWidget(m_placesPanel);/placesDock->setWidget(m_placesPanel);\n    placesDock->setContentsMargins(16, 0, 8, 0);/g' src/dolphinmainwindow.cpp
+                  substituteInPlace src/dolphinmainwindow.cpp \
+                    --replace-fail \
+                      'placesDock->setWidget(m_placesPanel);' \
+                      'placesDock->setWidget(m_placesPanel);
+                      placesDock->setContentsMargins(16, 0, 8, 0);'
                 '';
             });
           };
@@ -32,7 +36,7 @@ in {
     services.displayManager.sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "WhiteSur-dark";
+      theme = "sphinx";
     };
     services.desktopManager.plasma6.enable = true;
 
@@ -41,6 +45,7 @@ in {
     environment.systemPackages = [
       pkgs.whitesur-kde
       customPkgs.we10x-gtk-theme
+      customPkgs.sphinx-sddm-theme
     ];
 
     fonts.packages = [

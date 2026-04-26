@@ -87,6 +87,7 @@
         overlay = ./home-manager/themes/WhiteSur-icon-overlay;
       };
       we10x-gtk-theme = pkgs.callPackage ./pkgs/we10x-gtk-theme.nix {};
+      sphinx-sddm-theme = pkgs.callPackage ./pkgs/sphinx-sddm-theme.nix {};
     });
 
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);

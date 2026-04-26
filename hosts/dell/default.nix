@@ -8,6 +8,7 @@
 in {
   imports = [
     ../base-nixos.nix
+    ./hardware-configuration.nix
   ];
 
   flakePath = "/home/${user}/.dotfiles";
@@ -46,6 +47,7 @@ in {
     TorDisabled = true;
     DnsOverHttpsMode = "automatic";
   };
+
 
   home-manager = {
     useGlobalPkgs = true;

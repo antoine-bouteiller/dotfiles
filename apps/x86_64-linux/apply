@@ -1,8 +1,7 @@
 #!/bin/sh -e
 
-HOST="${1:-plex-server}"
 shift 2>/dev/null || true
 
-echo "Applying NixOS configuration for ${HOST}..."
-sudo SSH_AUTH_SOCK=$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake ".#${HOST}" "$@"
+echo "Applying NixOS configuration for ${hostname}..."
+sudo SSH_AUTH_SOCK=$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake ".#${hostname}" "$@"
 echo "Switch to new generation complete!"

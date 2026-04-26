@@ -1,5 +1,5 @@
 #!/bin/sh -e
 
 echo "Applying darwin configuration for pelico..."
-sudo darwin-rebuild switch --flake .#pelico "$@"
+sudo darwin-rebuild switch --flake ".#${hostname}" "$@"
 echo "Switch to new generation complete!"

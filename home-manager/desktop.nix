@@ -140,9 +140,11 @@ in {
       };
     };
 
-    home.activation.importKlassyPreset = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.applyKlassyPreset = lib.hm.dag.entryAfter ["writeBoundary"] ''
       run env QT_QPA_PLATFORM=offscreen ${pkgs.klassy}/bin/klassy-settings \
-        --import "${./themes/whitesur.klpw}" -f || true
+        --import-preset "${./themes/whitesur.klpw}" -f || true
+      run env QT_QPA_PLATFORM=offscreen ${pkgs.klassy}/bin/klassy-settings \
+        --load-windeco-preset "WhiteSur" || true
     '';
   };
 }

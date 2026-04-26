@@ -38,6 +38,7 @@
       url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -129,6 +130,7 @@
       dell = mkNixosHost {
         hostname = "dell";
         system = "x86_64-linux";
+        extraModules = [inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia];
       };
 
       wsl = mkNixosHost {

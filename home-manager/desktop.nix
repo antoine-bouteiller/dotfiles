@@ -39,6 +39,11 @@ in {
         titlebarButtons.left = ["close" "minimize" "maximize"];
         titlebarButtons.right = [];
         effects.minimization.animation = "magiclamp";
+        effects.blur = {
+          enable = true;
+          strength = 10;
+          noiseStrength = 0;
+        };
       };
 
       panels = [
@@ -97,6 +102,12 @@ in {
       };
     };
 
+    dconf.settings = {
+      "org/gnome/desktop/interface" = {
+        color-scheme = "prefer-dark";
+      };
+    };
+
     home.pointerCursor = {
       name = "WhiteSur-cursors";
       package = pkgs.whitesur-cursors;
@@ -118,12 +129,17 @@ in {
       };
 
       configFile = {
-        "Kvantum/Fluent-round".source = ./themes/Fluent-round;
+        "Kvantum/Fluent-roundDark".source = ./themes/Fluent-round;
         "Kvantum/kvantum.kvconfig".text = ''
           [General]
           theme=Fluent-roundDark
         '';
       };
     };
+
+    home.activation.importKlassyPreset = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run env QT_QPA_PLATFORM=offscreen ${pkgs.klassy}/bin/klassy-settings \
+        --import "${./themes/whitesur.klpw}" -f || true
+    '';
   };
 }

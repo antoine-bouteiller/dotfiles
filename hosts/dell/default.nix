@@ -27,6 +27,10 @@ in {
     powerOnBoot = true;
   };
 
+  networking.firewall.allowedTCPPorts = [
+    9400 # packet
+  ];
+
   environment.systemPackages = with pkgs; [
     brave
     packet

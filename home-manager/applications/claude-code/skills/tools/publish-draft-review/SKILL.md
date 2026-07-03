@@ -1,7 +1,6 @@
 ---
 name: publish-draft-review
-description:
-  Create unpublished inline DRAFT review comments on a GitLab merge request diff via the
+description: Create unpublished inline DRAFT review comments on a GitLab merge request diff via the
   GitLab API. Use when a code review has produced findings that should be attached to exact
   diff lines as drafts (not published) so the human can review and submit them in one batch.
 ---
@@ -16,7 +15,7 @@ button (or the `bulk_publish` endpoint) is pressed — nothing is published by t
 
 1. **Use a JSON request body via `--input <FILE>`, never `-f "position[...]"`.**
    `glab api -f` flattens form fields and the nested `position` object comes back **null** — the
-   note is created but as a *general* (non-inline) draft. The position object MUST be sent as a
+   note is created but as a _general_ (non-inline) draft. The position object MUST be sent as a
    JSON body.
 2. **`--input -` (stdin) is unreliable here. Use a real file path.** Piping the JSON into
    `glab api --input -` inside a function/heredoc produced empty bodies / parse errors. Writing

@@ -33,6 +33,10 @@ in {
           command = "uvx";
           args = ["mcp-nixos"];
         };
+        postgres = {
+          type = "sse";
+          url = "http://dev-02.example.com:8000/sse";
+        };
         slack = {
           type = "http";
           url = "https://mcp.slack.com/mcp";

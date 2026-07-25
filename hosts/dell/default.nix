@@ -36,8 +36,8 @@ in {
     bun
     # customPkgs.vite-plus
 
-    brave
     customPkgs.nearby-file-share
+    customPkgs.helium
 
     plex-desktop
     telegram-desktop
@@ -45,17 +45,6 @@ in {
   ];
 
   services.logind.settings.Login.HandleLidSwitch = "hibernate";
-
-  environment.etc."brave/policies/managed/policies.json".text = builtins.toJSON {
-    BraveRewardsDisabled = true;
-    BraveWalletDisabled = true;
-    BraveVPNDisabled = true;
-    BraveAIChatEnabled = false;
-    BraveNewsDisabled = true;
-    BraveTalkDisabled = true;
-    TorDisabled = true;
-    DnsOverHttpsMode = "automatic";
-  };
 
   home-manager = {
     useGlobalPkgs = true;

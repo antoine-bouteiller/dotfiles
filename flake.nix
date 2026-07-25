@@ -123,6 +123,7 @@
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           nearby-file-share = pkgs.callPackage ./pkgs/nearby-file-share.nix {};
+          helium = pkgs.callPackage ./pkgs/helium.nix {};
         }
         // nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           neostation = pkgs.callPackage ./pkgs/neostation {};

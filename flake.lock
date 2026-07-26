@@ -122,6 +122,22 @@
         "type": "github"
       }
     },
+    "emilkowalski-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784793617,
+        "narHash": "sha256-1yAW4TGpNfG4sT7/4P7j0mWdETInDjo95FKp7RLorx0=",
+        "owner": "emilkowalski",
+        "repo": "skills",
+        "rev": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "emilkowalski",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {

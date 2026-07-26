@@ -54,7 +54,12 @@
     improve = "${inputs.shadcn-improve-skills}/skills/improve";
     ast-grep = "${inputs.ast-grep-skill}/ast-grep/skills/ast-grep";
     outline = "${inputs.ast-grep-skill}/ast-grep/skills/outline";
-    taste-skill = "${inputs.taste-skill}/skills/taste-skill";
+    design-taste-frontend = "${inputs.taste-skill}/skills/taste-skill";
+    high-end-visual-design = "${inputs.taste-skill}/skills/soft-skill";
+    redesign-existing-projects = "${inputs.taste-skill}/skills/redesign-skill";
+    review-animations = "${inputs.emilkowalski-skills}/skills/review-animations";
+    find-animation-opportunities = "${inputs.emilkowalski-skills}/skills/find-animation-opportunities";
+    improve-animations = "${inputs.emilkowalski-skills}/skills/improve-animations";
   };
 
   # skill name -> home.file entries for a given target dir (".agents" / ".claude")

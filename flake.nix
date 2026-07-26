@@ -59,6 +59,10 @@
       url = "github:leonxlnx/taste-skill";
       flake = false;
     };
+    emilkowalski-skills = {
+      url = "github:emilkowalski/skills";
+      flake = false;
+    };
     vercel-agent-skills = {
       url = "github:vercel-labs/agent-skills";
       flake = false;

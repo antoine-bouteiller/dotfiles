@@ -83,21 +83,21 @@ in {
             qualities = [
               {
                 name = "WEBDL-1080p";
-                min = 15;
-                preferred = 30;
-                max = 100;
+                min = 12.5;
+                preferred = 25;
+                max = 60;
               }
               {
                 name = "WEBRip-1080p";
-                min = 15;
-                preferred = 30;
-                max = 100;
+                min = 12.5;
+                preferred = 25;
+                max = 60;
               }
               {
                 name = "Bluray-1080p";
-                min = 50;
-                preferred = 75;
-                max = 150;
+                min = 25.2;
+                preferred = 50.4;
+                max = 80;
               }
             ];
           };

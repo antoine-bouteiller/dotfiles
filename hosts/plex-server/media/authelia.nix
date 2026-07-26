@@ -32,7 +32,15 @@ in {
     settings = {
       theme = "dark";
 
-      server.endpoints.authz.forward-auth.implementation = "ForwardAuth";
+      server.endpoints.authz.forward-auth = {
+        implementation = "ForwardAuth";
+        # Default strategies are [HeaderAuthorization(Basic), CookieSession], and a
+        # failing Authorization header short-circuits with 401 + WWW-Authenticate
+        # instead of falling through to the cookie. CoolerControl's API authenticates
+        # with `Authorization: Basic`, so Authelia would check CCAdmin against its own
+        # users and trap the browser in a native auth popup. Cookies only.
+        authn_strategies = [{name = "CookieSession";}];
+      };
 
       identity_validation.reset_password = {
         jwt_lifespan = "5 minutes";

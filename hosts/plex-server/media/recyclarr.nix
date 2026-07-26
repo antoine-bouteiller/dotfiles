@@ -112,22 +112,12 @@ in {
           custom_format_groups = {
             add = [
               {
-                trash_id = "9337080378236ce4c0b183e35790d2a7"; # [Optional] Miscellaneous
+                trash_id = "15b1cf0b6f1a1493856a4355907affee"; # [Unwanted] Unwanted Formats SQP
                 select = [
                   "b6832f586342ef70d9c128d40c07b872" # Bad Dual Groups
                   "cc444569854e9de0b084ab2b8b1532b2" # Black and White Editions
-                  "f700d29429c023a5734505e77daeaea7" # DV (Disk)
-                  "73613461ac2cea99d52c4cd6e177ab82" # HFR
-                  "4b900e171accbfb172729b63323ea8ca" # Multi
-                  "ae9b7c9ebde1f3bd336a8cbd1ec4c5e5" # No-RlsGroup
-                  "7357cf5161efbf8c4d5d0c30b4815ee2" # Obfuscated
-                  "5c44f52a8714fdd79bb4d98e2673be1f" # Retags
-                  "f537cf427b64c38c8e36298f657e4828" # Scene
-                  "11cd1db7165d6a7ad9a83bc97b8b1060" # VC-1
-                  "ae4cfaa9283a4f2150ac3da08e388723" # VP9
-                  "2899d84dc9372de3408e6d8cc18e9666" # x264
-                  "9170d55c319f4fe40da8711ba9d8050d" # x265
-                  "390455c22a9cac81a738f6cbad705c3c" # x266
+                  "e6886871085226c3da1830830146846c" # Generated Dynamic HDR
+                  "bfd8eb01832d646a0a89c4deb46f8564" # Upscaled
                 ];
               }
             ];

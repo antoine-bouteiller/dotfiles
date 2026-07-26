@@ -38,10 +38,6 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    git-hooks = {
-      url = "github:cachix/git-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     # External Claude Code skills, pinned as non-flake sources.
     ast-grep-skill = {
       url = "github:ast-grep/claude-skill";
@@ -140,39 +136,8 @@
       system: (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
     );
 
-    # `nix develop` installs gitleaks + treefmt as a pre-commit hook (run once).
-    devShells = forAllSystems (system: {
-      default = nixpkgs.legacyPackages.${system}.mkShell {
-        inherit (self.checks.${system}.pre-commit-check) shellHook;
-        buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
-      };
-    });
-
     checks = forAllSystems (
       system: let
-        pre-commit-check = inputs.git-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            # No built-in gitleaks hook; scan staged changes with our config.
-            gitleaks = {
-              enable = true;
-              name = "gitleaks";
-              entry = "${nixpkgs.legacyPackages.${system}.gitleaks}/bin/gitleaks protect --staged --config .gitleaks.toml";
-              pass_filenames = false;
-            };
-            # Format, then re-stage the results so the commit succeeds
-            # instead of failing on the reformatted files.
-            treefmt = {
-              enable = true;
-              name = "treefmt";
-              entry = "${nixpkgs.legacyPackages.${system}.writeShellScript "treefmt-stage" ''
-                ${self.formatter.${system}}/bin/treefmt --no-cache "$@"
-                git add -- "$@"
-              ''}";
-              pass_filenames = true;
-            };
-          };
-        };
         darwinChecks = nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) (
           nixpkgs.lib.mapAttrs (_: cfg: cfg.system) self.darwinConfigurations
         );
@@ -180,7 +145,7 @@
           nixpkgs.lib.mapAttrs (_: cfg: cfg.config.system.build.toplevel) self.nixosConfigurations
         );
       in
-        darwinChecks // nixosChecks // {inherit pre-commit-check;}
+        darwinChecks // nixosChecks
     );
 
     nixosModules = {

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# gitleaks (secret scan) + treefmt (format, then re-stage).
+#
+# Every tool is resolved at run time through `nix`, so nothing in this file can
+# go stale when `nix run .#clean` garbage-collects the store. Enable with:
+#
+#   git config core.hooksPath .githooks
+#
+# Both `nix fmt` and the pinned `nix run` below need flake.nix to parse, so a
+# syntax error there blocks commits to unrelated files. Use `--no-verify`.
+#
+# Must stay bash 3.2 compatible: macOS ships 3.2.57 at /bin/bash, so no
+# mapfile/readarray and no associative arrays.
+set -euo pipefail
+
+# Git launched from a GUI client or launchd inherits a minimal PATH with no nix.
+for dir in /run/current-system/sw/bin /nix/var/nix/profiles/default/bin "$HOME/.nix-profile/bin"; do
+  if [ -x "$dir/nix" ]; then PATH="$PATH:$dir"; fi
+done
+
+if ! command -v nix >/dev/null 2>&1; then
+  echo "pre-commit: nix not found on PATH; use --no-verify to skip" >&2
+  exit 1
+fi
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+
+# Read NUL-delimited so filenames with spaces survive. A failing `git diff`
+# aborts via set -e here, rather than looking like an empty commit.
+git diff --cached --name-only -z --diff-filter=ACMR >"$tmp"
+staged=()
+while IFS= read -r -d '' file; do staged+=("$file"); done <"$tmp"
+
+if [ ${#staged[@]} -eq 0 ]; then exit 0; fi
+
+# treefmt rewrites the worktree copy, so re-staging a partially staged file
+# would sweep its unstaged hunks into the commit. Refuse rather than guess.
+git diff --name-only -z -- "${staged[@]}" >"$tmp"
+partial=()
+while IFS= read -r -d '' file; do partial+=("$file"); done <"$tmp"
+
+if [ ${#partial[@]} -gt 0 ]; then
+  echo "pre-commit: partially staged, formatting would commit their unstaged hunks:" >&2
+  printf '  %s\n' "${partial[@]}" >&2
+  echo "Stage them fully, or commit with --no-verify." >&2
+  exit 1
+fi
+
+# `--inputs-from .` pins gitleaks to this flake's nixpkgs, not the user registry.
+nix run --inputs-from . nixpkgs#gitleaks -- protect --staged --config .gitleaks.toml
+nix fmt -- "${staged[@]}"
+git --literal-pathspecs add -- "${staged[@]}"

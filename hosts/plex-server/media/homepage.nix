@@ -214,12 +214,14 @@ in {
             };
           }
           {
-            Transmission = {
-              icon = "transmission.svg";
-              href = "https://${localMedia.transmission.domain}";
+            qBittorrent = {
+              icon = "qbittorrent.svg";
+              href = "https://${localMedia.qui.domain}";
               widget = {
-                type = "transmission";
-                url = "http://localhost:${toString config.services.transmission.settings.rpc-port}";
+                type = "qbittorrent";
+                url = "http://localhost:${toString config.services.qbittorrent.webuiPort}";
+                username = "";
+                password = "";
                 fields = [
                   "download"
                   "upload"

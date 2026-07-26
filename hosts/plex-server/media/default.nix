@@ -13,7 +13,7 @@
     ./radarr.nix
     ./prowlarr.nix
     ./bazarr.nix
-    ./transmission.nix
+    ./qbittorrent.nix
     ./recyclarr.nix
     ./homepage.nix
     ./byparr.nix

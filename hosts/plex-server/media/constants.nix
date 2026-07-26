@@ -85,8 +85,8 @@
     dataDir = "/var/lib/sonarr";
   };
 
-  transmission = {
-    user = "transmission";
+  qbittorrent = {
+    user = "qbittorrent";
     group = "media";
   };
 }

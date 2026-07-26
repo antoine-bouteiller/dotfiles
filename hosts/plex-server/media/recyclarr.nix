@@ -47,22 +47,31 @@ in {
           custom_format_groups = {
             add = [
               {
-                trash_id = "f4a0410a1df109a66d6e47dcadcce014"; # [Optional] Miscellaneous
+                trash_id = "85fae4a2294965b75710ef2989c850eb"; # [Streaming Services] HD/UHD boost
                 select = [
-                  "32b367365729d530ca1c124a0b180c64" # Bad Dual Groups
-                  "ef4963043b0987f8485bc9106f16db38" # DV (Disk)
-                  "1bd69272e23c5e6c5b1d6c8a36fce95e" # HFR
-                  "7ba05c6e0e14e793538174c679126996" # MULTi
-                  "82d40da2bc6923f41e14394075dd4b03" # No-RlsGroup
-                  "e1a997ddb54e3ecbfe06341ad323c458" # Obfuscated
-                  "06d66ab109d4d2eddb2794d21526d140" # Retags
-                  "1b3994c551cbb92a2c781af061f4ab44" # Scene
-                  "7470a681e6205243983c4410ee4c920f" # VC-1
-                  "90501962793d580d011511155c97e4e5" # VP9
-                  "cddfb4e32db826151d97352b8e37c648" # x264
-                  "c9eafd50846d299b862ca9bb6ea91950" # x265
-                  "041d90b435ebd773271cea047a457a6a" # x266
+                  "218e93e5702f44a68ad9e3c6ba87d2f0" # HD Streaming Boost
+                  "43b3cf48cb385cd3eac608ee6bca7f09" # UHD Streaming Boost
                 ];
+              }
+              {
+                trash_id = "59c3af66780d08332fdc64e68297098f"; # [Unwanted] Unwanted Formats
+                select = [
+                  "15a05bc7c1a36e2b57fd628f8977e2fc" # AV1
+                  "32b367365729d530ca1c124a0b180c64" # Bad Dual Groups
+                  "85c61753df5da1fb2aab6f2a47426b09" # BR-DISK
+                  "6f808933a71bd9666531610cb8c059cc" # BR-DISK (BTN)
+                  "fbcb31d8dabd2a319072b84fc0b7249c" # Extras
+                  "9c11cd3f07101cdba90a2d81cf0e56b4" # LQ
+                  "e2315f990da2e2cbfc9fa5b7a6fcfe48" # LQ (Release Title)
+                  # "82d40da2bc6923f41e14394075dd4b03"  # No-RlsGroup
+                  # "e1a997ddb54e3ecbfe06341ad323c458"  # Obfuscated
+                  # "06d66ab109d4d2eddb2794d21526d140"  # Retags
+                  # "1b3994c551cbb92a2c781af061f4ab44"  # Scene
+                  "23297a736ca77c0fc8e70f8edd7ee56c" # Upscaled
+                ];
+              }
+              {
+                trash_id = "d920fd959d220306888f40b6f38e1578"; # [Optional] Season Packs
               }
             ];
           };

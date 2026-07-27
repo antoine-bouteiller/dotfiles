@@ -19,7 +19,7 @@ in {
         settings = {
           favorites = [
             "ghostty"
-            "brave-browser"
+            "helium"
             "zed"
             "plex-desktop"
             "telegram"

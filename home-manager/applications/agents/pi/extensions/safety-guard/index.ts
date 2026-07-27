@@ -12,8 +12,9 @@
  * to missing a real destructive command.
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { isToolCallEventType } from "@mariozechner/pi-coding-agent";
+import { isAbsolute, relative, resolve, sep } from "node:path";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 
 // ── Pattern definitions ──────────────────────────────────────────────────────
 
@@ -124,10 +125,80 @@ const HIGH_PATTERNS: DangerousPattern[] = [
 
 const ALL_PATTERNS = [...CRITICAL_PATTERNS, ...HIGH_PATTERNS];
 
-// Exceptions: rm in /tmp or removing build artifacts is common and safe
-const SAFE_EXCEPTIONS = [
-  /\brm\s+(-rf?\s+)?(\/tmp\/|\.\/node_modules|\.\/dist|\.\/build|\.\/\.next|\.\/target)/i,
-];
+function parseShellWords(command: string): string[] | undefined {
+  // Compound commands and expansions could hide an additional destructive operation.
+  if (/[;&|<>`$()\r\n{}]/.test(command)) return undefined;
+
+  const words: string[] = [];
+  let word = "";
+  let quote: "'" | '"' | undefined;
+  let escaped = false;
+
+  for (const char of command.trim()) {
+    if (escaped) {
+      word += char;
+      escaped = false;
+    } else if (char === "\\" && quote !== "'") {
+      escaped = true;
+    } else if (quote) {
+      if (char === quote) quote = undefined;
+      else word += char;
+    } else if (char === "'" || char === '"') {
+      quote = char;
+    } else if (/\s/.test(char)) {
+      if (word) {
+        words.push(word);
+        word = "";
+      }
+    } else {
+      word += char;
+    }
+  }
+
+  if (escaped || quote) return undefined;
+  if (word) words.push(word);
+  return words;
+}
+
+function isDescendant(root: string, candidate: string): boolean {
+  const pathFromRoot = relative(root, candidate);
+  return (
+    pathFromRoot !== "" &&
+    pathFromRoot !== ".." &&
+    !pathFromRoot.startsWith(`..${sep}`) &&
+    !isAbsolute(pathFromRoot)
+  );
+}
+
+function isSafeRmCommand(command: string, cwd: string): boolean {
+  const words = parseShellWords(command);
+  if (!words || words[0] !== "rm") return false;
+
+  let hasForceOrRecursive = false;
+  let parsingOptions = true;
+  const targets: string[] = [];
+
+  for (const word of words.slice(1)) {
+    if (parsingOptions && word === "--") {
+      parsingOptions = false;
+    } else if (parsingOptions && word.startsWith("--")) {
+      if (word === "--force" || word === "--recursive") hasForceOrRecursive = true;
+    } else if (parsingOptions && /^-[^-]/.test(word)) {
+      if (/[fRr]/.test(word.slice(1))) hasForceOrRecursive = true;
+    } else {
+      targets.push(word);
+    }
+  }
+
+  if (!hasForceOrRecursive || targets.length === 0) return false;
+
+  const allowedRoots = [resolve(cwd), resolve("/tmp")];
+  return targets.every((target) => {
+    if (target.startsWith("~")) return false;
+    const resolvedTarget = resolve(cwd, target);
+    return allowedRoots.some((root) => isDescendant(root, resolvedTarget));
+  });
+}
 
 // ── Extension ────────────────────────────────────────────────────────────────
 
@@ -138,8 +209,8 @@ export default function (pi: ExtensionAPI) {
 
     const command = event.input.command;
 
-    // Skip commands that match known safe patterns
-    if (SAFE_EXCEPTIONS.some((p) => p.test(command))) return undefined;
+    // Destructive rm is allowed only when every target stays below cwd or /tmp.
+    if (isSafeRmCommand(command, ctx.cwd)) return undefined;
 
     // Check all dangerous patterns (first match wins)
     for (const { pattern, label, severity } of ALL_PATTERNS) {

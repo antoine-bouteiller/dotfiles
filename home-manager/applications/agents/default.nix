@@ -88,6 +88,7 @@
   piTopLevelFiles = [
     "extensions"
     "themes"
+    "node_modules"
     "settings.json"
     "models.json"
   ];

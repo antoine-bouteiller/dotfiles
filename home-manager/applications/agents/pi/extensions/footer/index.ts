@@ -120,9 +120,7 @@ export default function footer(pi: ExtensionAPI) {
             modelInfo.contextWindow > 0 ? formatTokens(modelInfo.contextWindow) : "?";
           const contextTokens = formatTokens(modelInfo.contextTokens ?? 0);
           const context = `Context: ${progressBar(contextPercent, 10)} ${contextTokens}/${contextWindow} (${Math.round(contextPercent)}%)`;
-          const model = modelInfo.provider
-            ? `${modelInfo.provider}/${modelInfo.modelId} · ${modelInfo.thinking}`
-            : modelInfo.modelId;
+          const model = `${modelInfo.modelId} · ${modelInfo.thinking}`;
           const limit = providerQuota
             ? progressLine(
                 providerQuota.label === "anthropic" ? "Session" : "Azure",

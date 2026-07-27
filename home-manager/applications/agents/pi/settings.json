@@ -13,5 +13,5 @@
     "anthropic/claude-sonnet-5",
     "anthropic/claude-haiku-4-5"
   ],
-  "packages": ["npm:pi-mcp-adapter"]
+  "packages": ["npm:pi-mcp-adapter", "npm:@ff-labs/pi-fff"]
 }

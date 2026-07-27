@@ -93,6 +93,7 @@
     "models.json"
   ];
 in {
+  imports = [./meridian.nix];
   options.local.home-manager.agents = {
     enable = lib.mkEnableOption "agent CLIs";
 

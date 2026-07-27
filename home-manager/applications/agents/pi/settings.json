@@ -1,18 +1,17 @@
 {
-  "lastChangelogVersion": "0.82.0",
-  "theme": "dark",
-  "defaultProvider": "claude-bridge",
-  "defaultModel": "claude-opus-4-8",
+  "lastChangelogVersion": "0.82.1",
+  "theme": "github-dark-default",
+  "defaultProvider": "azure-openai-responses",
+  "defaultModel": "gpt-5.6-luna",
   "enabledModels": [
-    "claude-bridge/claude-fable-5",
-    "claude-bridge/claude-sonnet-5",
-    "claude-bridge/claude-opus-4-8",
     "azure-openai-responses/gpt-5.5",
     "azure-openai-responses/gpt-5.6-luna",
     "azure-openai-responses/gpt-5.6-sol",
     "azure-openai-responses/gpt-5.6-terra",
     "azure-openai-responses/gpt-5.3-codex",
-    "claude-bridge/claude-haiku-4-5"
+    "anthropic/claude-opus-5",
+    "anthropic/claude-sonnet-5",
+    "anthropic/claude-haiku-4-5"
   ],
-  "packages": ["npm:pi-claude-bridge", "npm:pi-mcp-adapter"]
+  "packages": ["npm:pi-mcp-adapter"]
 }

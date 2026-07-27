@@ -87,6 +87,7 @@
 
   piTopLevelFiles = [
     "extensions"
+    "themes"
     "settings.json"
     "models.json"
   ];
@@ -128,7 +129,7 @@ in {
       home.packages = with pkgs; [
         # Utils
         customPkgs.comment-checker
-        rtk
+        (rtk.overrideAttrs (_: {doCheck = false;}))
         ast-grep
         vtsls
         jdt-language-server

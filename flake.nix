@@ -28,6 +28,7 @@
       url = "github:ogulcancelik/herdr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    meridian.url = "github:rynfar/meridian";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     cosmic-manager = {
       url = "github:HeitorAugustoLN/cosmic-manager";
@@ -147,20 +148,6 @@
       in
         darwinChecks // nixosChecks
     );
-
-    nixosModules = {
-      default = ./modules;
-      autoUpgrade = ./modules/auto-upgrade.nix;
-    };
-
-    darwinModules = {
-      default = ./modules;
-      autoUpgrade = ./modules/auto-upgrade.nix;
-    };
-
-    homeModules = {
-      default = ./home-manager;
-    };
 
     darwinConfigurations."lv6cfqjl6l-macos" = mkDarwinHost {
       name = "pelico";

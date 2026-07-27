@@ -36,6 +36,9 @@ in {
             callbackPort = 3118;
           };
         };
+        dbx-mcp = {
+          command = "dbx-mcp-server";
+        };
       };
     };
     tmux.enable = true;

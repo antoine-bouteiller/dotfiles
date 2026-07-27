@@ -69,7 +69,6 @@ in {
   # PostgreSQL
   services.postgresql = {
     enable = true;
-    enableTCPIP = true;
     initdbArgs = [
       "--auth-host=scram-sha-256"
       "--pwfile=${config.sops.secrets."postgres/password".path}"

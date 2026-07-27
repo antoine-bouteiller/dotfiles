@@ -32,6 +32,10 @@ in {
     settings = {
       theme = "dark";
 
+      # Only Caddy talks to Authelia. Keep the forward-auth endpoint off the
+      # network so clients cannot bypass Caddy's forwarded-header boundary.
+      server.address = "tcp://127.0.0.1:9091/";
+
       server.endpoints.authz.forward-auth = {
         implementation = "ForwardAuth";
         # Default strategies are [HeaderAuthorization(Basic), CookieSession], and a
@@ -60,23 +64,7 @@ in {
       access_control = {
         default_policy = "deny";
 
-        networks = [
-          {
-            name = "internal";
-            networks = [
-              "10.0.0.0/8"
-              "172.16.0.0/12"
-              "192.168.0.0/18"
-            ];
-          }
-        ];
-
         rules = [
-          {
-            domain = "*.${constants.network.domain}";
-            policy = "bypass";
-            networks = ["internal"];
-          }
           {
             domain = "*.${constants.network.domain}";
             policy = "one_factor";
@@ -116,5 +104,7 @@ in {
   local.media.authelia = {
     host = "auth";
     port = constants.authelia.port;
+    # The authentication portal cannot itself require forward authentication.
+    auth = false;
   };
 }

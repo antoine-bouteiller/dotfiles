@@ -6,6 +6,7 @@ in {
     dataDir = constants.prowlarr.dataDir;
 
     settings = {
+      server.bindAddress = "127.0.0.1";
       auth.method = "external";
       postgres = {
         host = "/run/pgbouncer";

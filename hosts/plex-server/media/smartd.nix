@@ -13,10 +13,11 @@
           --arg msg "$ALERT_TEXT" \
           '{ "text": $msg }')
 
-        ${pkgs.curl}/bin/curl -s -X POST \
+        ${pkgs.curl}/bin/curl -sS --fail-with-body -X POST \
           -H "Content-Type: application/json" \
           -d "$PAYLOAD" \
-          "https://localhost:${toString config.services.autoscan.port}/send-message" > /dev/null
+          "http://localhost:${toString config.services.autoscan.port}/send_message" \
+          || echo "smartd webhook failed" >&2
   '';
 in {
   services.smartd = {

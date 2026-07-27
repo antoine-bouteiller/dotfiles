@@ -11,7 +11,7 @@ in {
     group = constants.libraryOwner.group;
 
     settings = {
-      server.bindAddress = "*";
+      server.bindAddress = "127.0.0.1";
       auth.method = "external";
       postgres = {
         host = "/run/pgbouncer";

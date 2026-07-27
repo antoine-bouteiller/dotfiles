@@ -1,15 +1,15 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
 import {
   formatHashlineHeader,
   formatNumberedLines,
-  normalizeToLF,
-  NodeFilesystem,
   InMemorySnapshotStore,
+  NodeFilesystem,
+  normalizeToLF,
   Patch,
   Patcher,
 } from "@oh-my-pi/hashline";
 import { relative, resolve } from "node:path";
+import { Type } from "typebox";
 
 const readSchema = Type.Object({
   path: Type.String({ description: "Path to the file to read." }),
@@ -37,6 +37,8 @@ export default function hashline(pi: ExtensionAPI) {
       "Read a file with stable line anchors and a content hash for hashline_write. Use this instead of read before editing a file with hashline.",
     parameters: readSchema,
     async execute(_toolCallId, { path }, _signal, _onUpdate, ctx) {
+      console.log("DEBUG: ctx.cwd is", ctx.cwd);
+      console.log("DEBUG: path is", path);
       const absolutePath = resolve(ctx.cwd, path);
       const text = await fs.readText(absolutePath);
       const normalized = normalizeToLF(text);

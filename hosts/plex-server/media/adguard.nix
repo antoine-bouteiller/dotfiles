@@ -13,7 +13,8 @@ in {
 
     services.adguardhome = {
       enable = true;
-      host = "0.0.0.0";
+      # Bind only the admin UI to loopback; DNS remains available on Tailscale.
+      host = "127.0.0.1";
       port = 3000;
       mutableSettings = true;
       settings = {

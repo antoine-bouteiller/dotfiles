@@ -37,8 +37,12 @@ in {
 
             auth = lib.mkOption {
               type = lib.types.bool;
-              default = false;
-              description = "Whether this Caddy route should import the auth proxy snippet.";
+              default = true;
+              description = ''
+                Whether this Caddy route should import the auth proxy snippet.
+                Defaults to true so that forgetting it fails closed; set it to
+                false only for services that own their own authentication.
+              '';
             };
 
             public = lib.mkOption {

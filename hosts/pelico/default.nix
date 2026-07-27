@@ -105,7 +105,7 @@ in {
         persistent-apps = [
           "/Applications/Slack.app/"
           "/Applications/Ghostty.app/"
-          "/Applications/Brave Browser.app/"
+          "/Applications/Helium.app/"
           "/Applications/Zed.app/"
           "/Applications/Telegram.app/"
         ];

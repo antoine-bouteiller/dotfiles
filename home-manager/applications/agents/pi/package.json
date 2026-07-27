@@ -5,6 +5,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@oh-my-pi/hashline": "17.1.5"
+  },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.82.1",
     "@types/node": "^26.1.1",

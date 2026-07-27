@@ -47,6 +47,7 @@
       "yaak"
       "ghostty"
       "zed"
+      "dbx"
 
       # Productivity Tools
       "sol"

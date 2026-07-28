@@ -7,7 +7,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oh-my-pi/hashline": "17.1.5"
+    "@oh-my-pi/hashline": "17.1.6"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.82.1",

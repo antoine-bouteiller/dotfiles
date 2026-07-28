@@ -18,7 +18,7 @@ const readSchema = Type.Object({
 const writeSchema = Type.Object({
   patch: Type.String({
     description:
-      "A hashline patch. Start each file section with [path#TAG], where TAG comes from hashline_read.",
+      "A hashline patch. Start with [path#TAG], then use SWAP N.=M: with +replacement rows, DEL N.=M, or INS.PRE/POST N: with +inserted rows. Unified-diff @@ hunks are invalid.",
   }),
 });
 
@@ -37,8 +37,6 @@ export default function hashline(pi: ExtensionAPI) {
       "Read a file with stable line anchors and a content hash for hashline_write. Use this instead of read before editing a file with hashline.",
     parameters: readSchema,
     async execute(_toolCallId, { path }, _signal, _onUpdate, ctx) {
-      console.log("DEBUG: ctx.cwd is", ctx.cwd);
-      console.log("DEBUG: path is", path);
       const absolutePath = resolve(ctx.cwd, path);
       const text = await fs.readText(absolutePath);
       const normalized = normalizeToLF(text);
@@ -56,10 +54,11 @@ export default function hashline(pi: ExtensionAPI) {
     name: "hashline_write",
     label: "Hashline Write",
     description:
-      "Apply a hashline patch produced from hashline_read. Hashline patches are content-hash anchored and reject stale edits instead of silently applying them to the wrong file.",
+      "Apply a hashline patch produced from hashline_read. Use hashline operations (SWAP, DEL, or INS), not unified-diff @@ hunks. Patches are content-hash anchored and reject stale edits.",
     parameters: writeSchema,
     promptGuidelines: [
       "Use hashline_read before hashline_write so every section has a current [path#TAG] anchor.",
+      "In hashline_write, replace lines with `SWAP N.=M:` followed by `+` body rows; never use unified-diff `@@` headers.",
       "Use hashline_write for targeted edits; use the built-in write tool when creating a new file from scratch.",
     ],
     async execute(_toolCallId, { patch }, _signal, _onUpdate, ctx) {

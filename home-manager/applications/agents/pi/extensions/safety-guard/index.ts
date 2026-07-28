@@ -65,7 +65,7 @@ const CRITICAL_PATTERNS: DangerousPattern[] = [
 ];
 
 // High: require user confirmation
-const HIGH_PATTERNS: DangerousPattern[] = [
+const HIGH_RM_PATTERNS: DangerousPattern[] = [
   {
     pattern: /\brm\s+(-[a-z]*r[a-z]*\s+|--recursive\s+)/i,
     label: "Recursive delete (rm -r)",
@@ -76,6 +76,10 @@ const HIGH_PATTERNS: DangerousPattern[] = [
     label: "Force delete (rm -f)",
     severity: "high",
   },
+];
+
+const HIGH_PATTERNS: DangerousPattern[] = [
+  ...HIGH_RM_PATTERNS,
   {
     pattern: /\bsudo\b/i,
     label: "Elevated privileges (sudo)",
@@ -200,6 +204,62 @@ function isSafeRmCommand(command: string, cwd: string): boolean {
   });
 }
 
+function areDestructiveRmCommandsSafe(command: string, cwd: string): boolean {
+  // Support the common `rm ... && command` form while rejecting other shell
+  // operators and requiring every destructive rm in the chain to be safe.
+  const commands = command.split("&&");
+  if (commands.some((shellCommand) => shellCommand.trim() === "")) return false;
+
+  let foundDestructiveRm = false;
+  for (const shellCommand of commands) {
+    const words = parseShellWords(shellCommand);
+    if (!words) return false;
+    if (words[0] !== "rm") continue;
+
+    const isDestructive = HIGH_RM_PATTERNS.some(({ pattern }) => pattern.test(shellCommand));
+    if (!isDestructive) continue;
+
+    foundDestructiveRm = true;
+    if (!isSafeRmCommand(shellCommand, cwd)) return false;
+  }
+
+  return foundDestructiveRm;
+}
+
+function omitSafeGitMessageCleanups(command: string): string {
+  // Ignore only this Git-message cleanup fragment, while leaving surrounding
+  // shell commands in place so they are still checked against every pattern.
+  return command.replace(
+    /(^|[;&|\n])\s*gitdir=\$\(git rev-parse --git-dir\)\s*;\s*rm\s+-f\s+"\$gitdir"\/COMMIT_EDITMSG\*\s+"\$gitdir"\/MERGE_MSG\s*;?(?=\s*(?:[;&|\n]|$))/g,
+    "$1",
+  );
+}
+
+function omitSafeFindTargetCleanups(command: string, cwd: string): string {
+  // Maven's conventional `target` directories may be deleted without a prompt
+  // when find is constrained to roots below the current working directory.
+  return command.replace(
+    /(^|[;&|\n])\s*(?:\/usr\/bin\/)?find\s+(.+?)\s+-type\s+d\s+-name\s+(?:target|'target'|"target")\s+-prune\s+-exec\s+rm\s+-rf\s+\{\}\s+\+(?=\s*(?:[;&|\n]|$))/g,
+    (match, separator: string, rawRoots: string) => {
+      const roots = parseShellWords(rawRoots);
+      if (
+        !roots ||
+        roots.length === 0 ||
+        roots.some(
+          (root) =>
+            root.startsWith("-") ||
+            root.startsWith("~") ||
+            !isDescendant(resolve(cwd), resolve(cwd, root)),
+        )
+      ) {
+        return match;
+      }
+
+      return separator;
+    },
+  );
+}
+
 // ── Extension ────────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
@@ -208,13 +268,18 @@ export default function (pi: ExtensionAPI) {
     if (!isToolCallEventType("bash", event)) return undefined;
 
     const command = event.input.command;
-
-    // Destructive rm is allowed only when every target stays below cwd or /tmp.
-    if (isSafeRmCommand(command, ctx.cwd)) return undefined;
+    const commandToCheck = omitSafeFindTargetCleanups(omitSafeGitMessageCleanups(command), ctx.cwd);
+    const hasOnlySafeDestructiveRm = areDestructiveRmCommandsSafe(commandToCheck, ctx.cwd);
 
     // Check all dangerous patterns (first match wins)
     for (const { pattern, label, severity } of ALL_PATTERNS) {
-      if (!pattern.test(command)) continue;
+      if (!pattern.test(commandToCheck)) continue;
+      if (
+        hasOnlySafeDestructiveRm &&
+        HIGH_RM_PATTERNS.some(({ pattern: rmPattern }) => rmPattern === pattern)
+      ) {
+        continue;
+      }
 
       // Critical commands are always hard-blocked
       if (severity === "critical") {
@@ -233,11 +298,19 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      // Truncate very long commands for the confirmation dialog
-      const displayCmd = command.length > 120 ? `${command.slice(0, 120)}…` : command;
-      const ok = await ctx.ui.confirm(`⚠️ ${label}`, `${displayCmd}\n\nAllow this command?`);
+      // Tell state integrations that the agent is waiting for user input. Pi does
+      // not expose confirmation dialogs as lifecycle events, so Herdr cannot
+      // infer this state from the tool_call event alone.
+      pi.events.emit("herdr:blocked", { active: true, label });
+      try {
+        // Truncate very long commands for the confirmation dialog
+        const displayCmd = command.length > 120 ? `${command.slice(0, 120)}…` : command;
+        const ok = await ctx.ui.confirm(`⚠️ ${label}`, `${displayCmd}\n\nAllow this command?`);
 
-      return ok ? undefined : { block: true, reason: `${label} — blocked by user` };
+        return ok ? undefined : { block: true, reason: `${label} — blocked by user` };
+      } finally {
+        pi.events.emit("herdr:blocked", { active: false });
+      }
     }
 
     return undefined;

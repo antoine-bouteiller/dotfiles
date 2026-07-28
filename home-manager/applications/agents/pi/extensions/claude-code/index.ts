@@ -1,5 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { copyFile, mkdtemp, readFile, readdir, realpath, rm, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { extname, join, relative, sep } from "node:path";
 
@@ -21,6 +21,11 @@ interface GlobalRules {
 export interface RuleFrontmatter {
   body: string;
   paths: string[];
+}
+
+interface CommandFrontmatter {
+  body: string;
+  description: string;
 }
 
 async function discoverMarkdownFiles(root: string): Promise<MarkdownFile[]> {
@@ -112,6 +117,39 @@ export function parseRuleFrontmatter(content: string): RuleFrontmatter {
   return { body: content.slice(match[0].length), paths: parsePaths(match[1]) };
 }
 
+/** Convert a Claude command into Agent Skills-compatible metadata and content. */
+export function parseCommandFrontmatter(content: string): CommandFrontmatter {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(content);
+  const body = match ? content.slice(match[0].length) : content;
+  const descriptionMatch = match?.[1].match(/^\s*description\s*:\s*(.*?)\s*$/m);
+  const firstContentLine = body
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean)
+    ?.replace(/^#+\s*/, "");
+  const description =
+    unquote(descriptionMatch?.[1] ?? "") || firstContentLine || "Claude Code command";
+  return { body, description: description.slice(0, 1024) };
+}
+
+function commandSkillName(relativePath: string): string {
+  const withoutExtension = relativePath.slice(0, -extname(relativePath).length);
+  const normalized = withoutExtension
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/-+$/g, "");
+  return normalized || "claude-command";
+}
+
+function formatCommandSkill(name: string, command: CommandFrontmatter): string {
+  const argumentCompatibility = command.body.match(/\$(?:ARGUMENTS|[1-9]\d*)\b/)
+    ? "Pi appends invocation arguments as a final `User: <arguments>` line. Treat those arguments as `$ARGUMENTS`, and their shell-style positional words as `$1`, `$2`, and so on. If no `User:` line is present, the arguments are empty.\n\n"
+    : "";
+  return `---\nname: ${name}\ndescription: ${JSON.stringify(command.description)}\n---\n\n${argumentCompatibility}${command.body}`;
+}
+
 /** Format a lazy-loaded rule and its optional path scope for the system prompt. */
 export function formatRulePointer(
   relativePath: string,
@@ -156,14 +194,14 @@ async function readProjectRules(rulesDirectory: string): Promise<Rule[]> {
 }
 
 export default function claudeCodeExtension(pi: ExtensionAPI) {
-  let generatedPromptDirectory: string | undefined;
+  let generatedSkillDirectory: string | undefined;
   let globalRules: GlobalRules = { inline: "", scoped: [] };
   let projectRules: Rule[] = [];
 
   async function cleanup(): Promise<void> {
-    if (!generatedPromptDirectory) return;
-    const directory = generatedPromptDirectory;
-    generatedPromptDirectory = undefined;
+    if (!generatedSkillDirectory) return;
+    const directory = generatedSkillDirectory;
+    generatedSkillDirectory = undefined;
     await rm(directory, { force: true, recursive: true });
   }
 
@@ -177,36 +215,33 @@ export default function claudeCodeExtension(pi: ExtensionAPI) {
   pi.on("resources_discover", async (event, ctx) => {
     await cleanup();
 
-    // Project commands intentionally override user commands with the same name.
+    // Project commands intentionally override user commands with the same skill name.
     const commandsByName = new Map<string, MarkdownFile>();
     for (const command of await discoverMarkdownFiles(join(homedir(), ".claude", "commands"))) {
-      const name = command.relativePath
-        .slice(0, -extname(command.relativePath).length)
-        .replaceAll("/", ":");
-      commandsByName.set(name, command);
+      commandsByName.set(commandSkillName(command.relativePath), command);
     }
 
     if (ctx.isProjectTrusted()) {
       for (const command of await discoverMarkdownFiles(join(event.cwd, ".claude", "commands"))) {
-        const name = command.relativePath
-          .slice(0, -extname(command.relativePath).length)
-          .replaceAll("/", ":");
-        commandsByName.set(name, command);
+        commandsByName.set(commandSkillName(command.relativePath), command);
       }
     }
 
     if (commandsByName.size === 0) return;
 
-    const promptDirectory = await mkdtemp(join(tmpdir(), "pi-claude-commands-"));
-    generatedPromptDirectory = promptDirectory;
+    const skillDirectory = await mkdtemp(join(tmpdir(), "pi-claude-command-skills-"));
+    generatedSkillDirectory = skillDirectory;
 
     await Promise.all(
-      [...commandsByName].map(([name, command]) =>
-        copyFile(command.path, join(promptDirectory, `${name}.md`)),
-      ),
+      [...commandsByName].map(async ([name, command]) => {
+        const destination = join(skillDirectory, name);
+        await mkdir(destination, { recursive: true });
+        const parsed = parseCommandFrontmatter(await readFile(command.path, "utf8"));
+        await writeFile(join(destination, "SKILL.md"), formatCommandSkill(name, parsed), "utf8");
+      }),
     );
 
-    return { promptPaths: [promptDirectory] };
+    return { skillPaths: [skillDirectory] };
   });
 
   pi.on("before_agent_start", (event) => {

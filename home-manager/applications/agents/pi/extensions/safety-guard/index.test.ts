@@ -25,9 +25,33 @@ describe("safety guard", () => {
     ).toBeUndefined();
   });
 
+  test("allows safe temporary cleanup before a complex shell pipeline", async () => {
+    const { handler } = setup();
+    const command =
+      "rm -rf /tmp/e2elogs && mkdir /tmp/e2elogs; jq -r '.[]' /tmp/jobs.json | while read -r id; do echo \"$id\" & done; wait";
+    expect(await handler(event(command), { cwd: "/work/project", hasUI: false })).toBeUndefined();
+  });
+
+  test("still blocks an unsafe deletion in a later complex segment", async () => {
+    const { handler } = setup();
+    const command = "rm -rf /tmp/e2elogs && echo ready; rm -rf ../other";
+    const result = await handler(event(command), { cwd: "/work/project", hasUI: false });
+    expect(result.block).toBeTrue();
+  });
+
   test("hard-blocks critical commands", async () => {
     const { handler } = setup();
     const result = await handler(event("mkfs /dev/sda"), { cwd: "/work/project", hasUI: false });
+    expect(result.block).toBeTrue();
+    expect(result.reason).toContain("CRITICAL");
+  });
+
+  test("guards commands registered for background polling", async () => {
+    const { handler } = setup();
+    const result = await handler(
+      { toolName: "background_poll", input: { command: "mkfs /dev/sda" } },
+      { cwd: "/work/project", hasUI: false },
+    );
     expect(result.block).toBeTrue();
     expect(result.reason).toContain("CRITICAL");
   });
@@ -39,6 +63,55 @@ describe("safety guard", () => {
       block: true,
       reason: "Recursive delete (rm -r) blocked (non-interactive mode)",
     });
+  });
+
+  test("guards destructive Git, container, package, and database operations", async () => {
+    const { handler } = setup();
+    const ctx = { cwd: "/work/project", hasUI: false };
+
+    for (const command of [
+      "git push --force origin main",
+      "docker system prune -af",
+      "npm uninstall important-package",
+      'psql -c "DROP TABLE users"',
+    ]) {
+      const result = await handler(event(command), ctx);
+      expect(result.block, command).toBeTrue();
+    }
+  });
+
+  test("guards protected file reads, writes, and edits", async () => {
+    const { handler } = setup();
+    const ctx = { cwd: "/work/project", hasUI: false };
+
+    for (const toolName of ["read", "write", "edit"]) {
+      const result = await handler({ toolName, input: { path: ".env" } }, ctx);
+      expect(result.block, toolName).toBeTrue();
+      expect(result.reason).toContain(`Protected file ${toolName}`);
+    }
+
+    expect(
+      await handler({ toolName: "read", input: { path: ".env.example" } }, ctx),
+    ).toBeUndefined();
+  });
+
+  test("never allows root deletion even in an interactive session", async () => {
+    const { handler } = setup();
+    let confirmed = false;
+    const result = await handler(event("rm -rf /"), {
+      cwd: "/work/project",
+      hasUI: true,
+      ui: {
+        notify: () => undefined,
+        confirm: async () => {
+          confirmed = true;
+          return true;
+        },
+      },
+    });
+
+    expect(result.reason).toContain("CRITICAL");
+    expect(confirmed).toBeFalse();
   });
 
   test("reports blocked state while awaiting confirmation", async () => {

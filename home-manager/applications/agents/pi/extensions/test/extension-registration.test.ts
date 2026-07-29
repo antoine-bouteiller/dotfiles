@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import askUser from "../ask-user/index.js";
 import backgroundPoll from "../background-poll/index.js";
 import claudeCode from "../claude-code/index.js";
+import commentChecker from "../comment-checker/index.js";
 import footer from "../footer/index.js";
 import hashline from "../hashline/index.js";
 import herdrAgentState from "../herdr-agent-state.js";
@@ -20,6 +21,7 @@ const entrypoints = {
   askUser,
   backgroundPoll,
   claudeCode,
+  commentChecker,
   footer,
   hashline,
   herdrAgentState,
@@ -62,6 +64,7 @@ describe("extension entrypoints", () => {
       askUser,
       backgroundPoll,
       claudeCode,
+      commentChecker,
       footer,
       hashline,
       mcp,

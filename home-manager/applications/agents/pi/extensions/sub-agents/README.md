@@ -4,17 +4,11 @@ Codex-shaped, session-scoped subagents for [Pi](https://github.com/earendil-work
 
 Requires Pi 0.80.4 or newer and Node.js 22.19 or newer.
 
-## Install
+## Dotfiles deployment
 
-```bash
-pi install npm:@ogulcancelik/pi-codex-subagents
-```
+This extension is maintained directly in this dotfiles repository; it is not an npm package. The Home Manager agent module links the repository's `home-manager/applications/agents/pi/extensions` directory to `~/.pi/agent/extensions`, so Pi loads this source tree in place.
 
-For local development:
-
-```bash
-pi install /absolute/path/to/pi-extensions/packages/pi-codex-subagents
-```
+Enable the Pi agent configuration and apply the Home Manager generation in the usual way for these dotfiles. There is no separate `pi install` step. Dependencies for all local Pi extensions are managed from the shared `home-manager/applications/agents/pi/extensions` workspace.
 
 ## Tools
 

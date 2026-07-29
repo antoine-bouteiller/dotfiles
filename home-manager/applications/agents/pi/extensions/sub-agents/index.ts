@@ -12,6 +12,7 @@ import {
   getAgentDefinitionsDescription,
   type AgentCompletionEvent,
   type AgentInfo,
+  type AgentManagerOptions,
   type ThinkingLevel,
   writeFullToolOutput,
 } from "./core.js";
@@ -82,7 +83,7 @@ function runtimeLabel(info: AgentInfo): string {
   return formatDuration(end - start);
 }
 
-export default function (pi: ExtensionAPI) {
+export default function (pi: ExtensionAPI, managerOptions: AgentManagerOptions = {}) {
   const widgetKey = "pi-codex-subagents";
   const completionMessageType = "pi-codex-subagent-completion";
   let cachedSkills: Array<{ name: string; description: string; filePath: string }> = [];
@@ -153,6 +154,7 @@ export default function (pi: ExtensionAPI) {
   };
 
   const manager = new AgentManager({
+    ...managerOptions,
     onActivityChange: (event) => {
       if (!isCurrentSession(event.parentSessionId)) return;
       if (event.active) activeAgents.add(event.agentName);

@@ -28,6 +28,10 @@ interface CommandFrontmatter {
   description: string;
 }
 
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 async function discoverMarkdownFiles(root: string): Promise<MarkdownFile[]> {
   const files: MarkdownFile[] = [];
   const visitedDirectories = new Set<string>();
@@ -132,15 +136,55 @@ export function parseCommandFrontmatter(content: string): CommandFrontmatter {
   return { body, description: description.slice(0, 1024) };
 }
 
+function commandLogicalName(relativePath: string): string {
+  return relativePath.slice(0, -extname(relativePath).length);
+}
+
 function commandSkillName(relativePath: string): string {
-  const withoutExtension = relativePath.slice(0, -extname(relativePath).length);
-  const normalized = withoutExtension
+  const normalized = commandLogicalName(relativePath)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64)
     .replace(/-+$/g, "");
   return normalized || "claude-command";
+}
+
+interface NamedCommand {
+  command: MarkdownFile;
+  name: string;
+}
+
+function addNumericSuffix(name: string, suffix: number): string {
+  const ending = `-${suffix}`;
+  return `${name.slice(0, 64 - ending.length).replace(/-+$/g, "")}${ending}`;
+}
+
+function resolveCommandNames(commandsByLogicalName: Map<string, MarkdownFile>): NamedCommand[] {
+  const commands = [...commandsByLogicalName]
+    .map(([logicalName, command]) => ({
+      baseName: commandSkillName(command.relativePath),
+      command,
+      logicalName,
+    }))
+    .sort((left, right) => compareText(left.logicalName, right.logicalName));
+  const reservedBaseNames = new Set(commands.map(({ baseName }) => baseName));
+  const claimedBaseNames = new Set<string>();
+  const usedNames = new Set<string>();
+
+  return commands.map(({ baseName, command }) => {
+    let name = baseName;
+    if (claimedBaseNames.has(baseName)) {
+      let suffix = 2;
+      do {
+        name = addNumericSuffix(baseName, suffix++);
+      } while (reservedBaseNames.has(name) || usedNames.has(name));
+    } else {
+      claimedBaseNames.add(baseName);
+    }
+    usedNames.add(name);
+    return { command, name };
+  });
 }
 
 function formatCommandSkill(name: string, command: CommandFrontmatter): string {
@@ -193,10 +237,31 @@ async function readProjectRules(rulesDirectory: string): Promise<Rule[]> {
   return rules;
 }
 
-export default function claudeCodeExtension(pi: ExtensionAPI) {
+export interface ClaudeCodeEnvironment {
+  homeDirectory: string;
+  temporaryDirectory: string;
+}
+
+export default function claudeCodeExtension(
+  pi: ExtensionAPI,
+  environment: ClaudeCodeEnvironment = {
+    homeDirectory: homedir(),
+    temporaryDirectory: tmpdir(),
+  },
+) {
   let generatedSkillDirectory: string | undefined;
   let globalRules: GlobalRules = { inline: "", scoped: [] };
   let projectRules: Rule[] = [];
+  let discoveryQueue: Promise<void> = Promise.resolve();
+
+  function serializeDiscovery<T>(operation: () => Promise<T>): Promise<T> {
+    const result = discoveryQueue.then(operation);
+    discoveryQueue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
 
   async function cleanup(): Promise<void> {
     if (!generatedSkillDirectory) return;
@@ -206,43 +271,60 @@ export default function claudeCodeExtension(pi: ExtensionAPI) {
   }
 
   pi.on("session_start", async (_event, ctx) => {
-    globalRules = await readGlobalRules(join(homedir(), ".claude", "rules"));
+    globalRules = await readGlobalRules(join(environment.homeDirectory, ".claude", "rules"));
     projectRules = ctx.isProjectTrusted()
       ? await readProjectRules(join(ctx.cwd, ".claude", "rules"))
       : [];
   });
 
-  pi.on("resources_discover", async (event, ctx) => {
-    await cleanup();
+  pi.on("resources_discover", (event, ctx) =>
+    serializeDiscovery(async () => {
+      await cleanup();
 
-    // Project commands intentionally override user commands with the same skill name.
-    const commandsByName = new Map<string, MarkdownFile>();
-    for (const command of await discoverMarkdownFiles(join(homedir(), ".claude", "commands"))) {
-      commandsByName.set(commandSkillName(command.relativePath), command);
-    }
-
-    if (ctx.isProjectTrusted()) {
-      for (const command of await discoverMarkdownFiles(join(event.cwd, ".claude", "commands"))) {
-        commandsByName.set(commandSkillName(command.relativePath), command);
+      // An identical relative command path denotes the same Claude command, so the
+      // project definition intentionally replaces the user definition. Distinct paths
+      // that happen to normalize to the same skill name are retained and disambiguated.
+      const commandsByLogicalName = new Map<string, MarkdownFile>();
+      for (const command of await discoverMarkdownFiles(
+        join(environment.homeDirectory, ".claude", "commands"),
+      )) {
+        commandsByLogicalName.set(commandLogicalName(command.relativePath), command);
       }
-    }
 
-    if (commandsByName.size === 0) return;
+      if (ctx.isProjectTrusted()) {
+        for (const command of await discoverMarkdownFiles(join(event.cwd, ".claude", "commands"))) {
+          commandsByLogicalName.set(commandLogicalName(command.relativePath), command);
+        }
+      }
 
-    const skillDirectory = await mkdtemp(join(tmpdir(), "pi-claude-command-skills-"));
-    generatedSkillDirectory = skillDirectory;
+      if (commandsByLogicalName.size === 0) return;
 
-    await Promise.all(
-      [...commandsByName].map(async ([name, command]) => {
-        const destination = join(skillDirectory, name);
-        await mkdir(destination, { recursive: true });
-        const parsed = parseCommandFrontmatter(await readFile(command.path, "utf8"));
-        await writeFile(join(destination, "SKILL.md"), formatCommandSkill(name, parsed), "utf8");
-      }),
-    );
+      const skillDirectory = await mkdtemp(
+        join(environment.temporaryDirectory, "pi-claude-command-skills-"),
+      );
 
-    return { skillPaths: [skillDirectory] };
-  });
+      try {
+        await Promise.all(
+          resolveCommandNames(commandsByLogicalName).map(async ({ name, command }) => {
+            const destination = join(skillDirectory, name);
+            await mkdir(destination, { recursive: true });
+            const parsed = parseCommandFrontmatter(await readFile(command.path, "utf8"));
+            await writeFile(
+              join(destination, "SKILL.md"),
+              formatCommandSkill(name, parsed),
+              "utf8",
+            );
+          }),
+        );
+      } catch (error) {
+        await rm(skillDirectory, { force: true, recursive: true });
+        throw error;
+      }
+
+      generatedSkillDirectory = skillDirectory;
+      return { skillPaths: [skillDirectory] };
+    }),
+  );
 
   pi.on("before_agent_start", (event) => {
     let addition = "";
@@ -271,5 +353,5 @@ export default function claudeCodeExtension(pi: ExtensionAPI) {
     return { systemPrompt: event.systemPrompt + addition };
   });
 
-  pi.on("session_shutdown", cleanup);
+  pi.on("session_shutdown", () => serializeDiscovery(cleanup));
 }

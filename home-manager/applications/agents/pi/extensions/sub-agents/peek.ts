@@ -18,6 +18,7 @@ import * as fs from "node:fs";
 import * as net from "node:net";
 import { getSocketPath, isPeekActive, type AgentInfo } from "./core.js";
 
+// oxlint-disable-next-line no-control-regex -- OSC 133 terminal markers contain ESC and BEL.
 const OSC133_PROMPT_MARKER_RE = /\x1b\]133;[ABC]\x07/g;
 
 function stripPromptMarkers(lines: string[]): string[] {
@@ -31,7 +32,7 @@ export class SubagentPeekOverlay {
   private sessionManager: SessionManager | null = null;
   private lastFileSize = 0;
   private readonly chatContainer = new Container();
-  private scrollOffset = 0;
+  private scrollOffset = Number.MAX_SAFE_INTEGER;
   private followMode = true;
   private socket: net.Socket | null = null;
   private socketBuffer = "";
@@ -55,7 +56,7 @@ export class SubagentPeekOverlay {
     this.modelName = info.modelId || info.model;
     this.loadSession();
     this.rebuildChat();
-    this.connectSocket();
+    if (isPeekActive(info.id)) this.connectSocket();
     this.pollInterval = setInterval(() => this.poll(), 200);
   }
 
@@ -382,7 +383,8 @@ export class SubagentPeekOverlay {
   }
 
   render(width: number): string[] {
-    const innerWidth = Math.max(20, width - 2);
+    if (width <= 1) return [truncateToWidth("╴", Math.max(0, width), "")];
+    const innerWidth = Math.max(0, width - 2);
     const title = ` ${this.info.taskName} `;
     const modelTag = this.modelName ? `[${truncateToWidth(this.modelName, 18)}] ` : "";
     const statusIcon = { thinking: "◐", streaming: "●", tool: "◑", done: "✓" }[this.status];
@@ -393,15 +395,22 @@ export class SubagentPeekOverlay {
       done: "success",
     }[this.status];
     const statusText = ` ${statusIcon} ${this.status} `;
-    const headerWidth = visibleWidth(title) + visibleWidth(modelTag) + visibleWidth(statusText);
-    const lines = [
-      this.theme.fg("border", "╭") +
-        this.theme.fg("accent", title) +
-        this.theme.fg("dim", modelTag) +
-        this.theme.fg("border", "─".repeat(Math.max(0, innerWidth - headerWidth))) +
-        this.theme.fg(statusColor as any, statusText) +
-        this.theme.fg("border", "╮"),
-    ];
+    const statusWidth = visibleWidth(statusText);
+    let headerContent: string;
+    if (statusWidth <= innerWidth) {
+      const leftWidth = innerWidth - statusWidth;
+      const left = truncateToWidth(`${title}${modelTag}`, leftWidth, "");
+      headerContent =
+        this.theme.fg("accent", left) +
+        this.theme.fg("border", "─".repeat(Math.max(0, leftWidth - visibleWidth(left)))) +
+        this.theme.fg(statusColor as any, statusText);
+    } else {
+      headerContent = this.theme.fg(
+        statusColor as any,
+        truncateToWidth(statusText, innerWidth, ""),
+      );
+    }
+    const lines = [this.theme.fg("border", "╭") + headerContent + this.theme.fg("border", "╮")];
 
     let contentLines: string[];
     if (this.cachedLines && this.cachedWidth === innerWidth) contentLines = this.cachedLines;
@@ -417,12 +426,9 @@ export class SubagentPeekOverlay {
     this.scrollOffset = Math.min(this.scrollOffset, maxScroll);
     const visible = contentLines.slice(this.scrollOffset, this.scrollOffset + maxVisible);
     for (const line of visible) {
-      const padded = line + " ".repeat(Math.max(0, innerWidth - visibleWidth(line)));
-      lines.push(
-        this.theme.fg("border", "│") +
-          truncateToWidth(padded, innerWidth) +
-          this.theme.fg("border", "│"),
-      );
+      const clipped = truncateToWidth(line, innerWidth, "");
+      const padded = clipped + " ".repeat(Math.max(0, innerWidth - visibleWidth(clipped)));
+      lines.push(this.theme.fg("border", "│") + padded + this.theme.fg("border", "│"));
     }
     for (let index = visible.length; index < maxVisible; index++) {
       lines.push(
@@ -436,10 +442,11 @@ export class SubagentPeekOverlay {
     const followIcon = this.followMode ? this.theme.fg("success", "●") : this.theme.fg("dim", "○");
     lines.push(this.theme.fg("border", "├" + "─".repeat(innerWidth) + "┤"));
     const footer = ` ${scrollInfo} ${followIcon} │ ←/→ agent │ j/k scroll │ g/G top/end │ q close `;
+    const clippedFooter = truncateToWidth(footer, innerWidth, "");
     lines.push(
       this.theme.fg("border", "│") +
-        this.theme.fg("dim", footer) +
-        " ".repeat(Math.max(0, innerWidth - visibleWidth(footer))) +
+        this.theme.fg("dim", clippedFooter) +
+        " ".repeat(Math.max(0, innerWidth - visibleWidth(clippedFooter))) +
         this.theme.fg("border", "│"),
     );
     lines.push(this.theme.fg("border", "╰" + "─".repeat(innerWidth) + "╯"));

@@ -18,8 +18,8 @@ export interface DangerousPattern {
 export const CRITICAL_PATTERNS: DangerousPattern[] = [
   {
     pattern:
-      /(?:^|[;&|(\n])\s*(?:(?:command|sudo)\s+|env(?:\s+[A-Za-z_]\w*=[^\s]+)*\s+)?(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\b(?:command|exec|sudo)\b[^\n;&|]*\b(?:rm|rmdir|unlink)\b|\b(?:bash|fish|ksh|sh|zsh)\s+-c\s+['"][^'"]*\b(?:rm|rmdir|unlink)\b|\b(?:do|then)\s+(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\bfind\b[^\n;&|]*(?:-delete\b|-exec\s+rm\b)|\bxargs\b[^\n;&|]*\brm\b/i,
-    label: "Shell deletion is disabled; use the safe_rm tool instead",
+      /(?:^|[;&|(\n])\s*(?:(?:(?:\/(?:usr\/)?bin\/)?(?:busybox|command|env|exec|nice|nohup|sudo|timeout)\b[^\n;&|]*?\s+)+)?(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\b(?:bash|fish|ksh|sh|zsh)\s+-c\s+['"][^'"]*\b(?:rm|rmdir|unlink)\b|\b(?:do|then)\s+(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\bfind\b[^\n;&|]*(?:-delete\b|-exec\s+rm\b)|\bxargs\b[^\n;&|]*\brm\b/i,
+    label: "Recognized shell deletion is disabled; use the self-validating safe_rm tool instead",
     category: "filesystem",
     severity: "critical",
   },
@@ -158,14 +158,14 @@ const HIGH_PATTERNS: DangerousPattern[] = [
     severity: "high",
   },
   {
-    pattern: /\bDROP\s+(?:DATABASE|INDEX|SCHEMA|TABLE)\b|\bTRUNCATE\s+(?:TABLE\s+)?[\w.`"\[\]-]+/i,
+    pattern: /\bDROP\s+(?:DATABASE|INDEX|SCHEMA|TABLE)\b|\bTRUNCATE\s+(?:TABLE\s+)?[\w.`"[\]-]+/i,
     label: "Destructive SQL schema operation",
     category: "database",
     severity: "high",
   },
   {
     pattern:
-      /\bDELETE\s+FROM\b(?:(?!\bWHERE\b|;)[\s\S])*(?:;|$)|\bUPDATE\s+[\w.`"\[\]-]+\s+SET\b(?:(?!\bWHERE\b|;)[\s\S])*(?:;|$)/i,
+      /\bDELETE\s+FROM\b(?:(?!\bWHERE\b|;)[\s\S])*(?:;|$)|\bUPDATE\s+[\w.`"[\]-]+\s+SET\b(?:(?!\bWHERE\b|;)[\s\S])*(?:;|$)/i,
     label: "Unscoped SQL data mutation",
     category: "database",
     severity: "high",
@@ -186,18 +186,6 @@ const HIGH_PATTERNS: DangerousPattern[] = [
 ];
 
 export const ALL_PATTERNS = [...CRITICAL_PATTERNS, ...HIGH_PATTERNS];
-
-export const PUBLIC_ENV_FILENAMES = new Set([".env.example", ".env.sample", ".env.template"]);
-
-export const PROTECTED_PATH_PATTERNS = [
-  /(^|\/)\.ssh(\/|$)/,
-  /(^|\/)(?:\.env(?:\..+)?|\.envrc|\.git-credentials|\.netrc|\.npmrc|\.pypirc|auth\.json)$/,
-  /(^|\/)id_(?:ed25519|rsa)(?:\.pub)?$/,
-  /(^|\/)\.aws\/(?:config|credentials)$/,
-  /(^|\/)\.kube\/config$/,
-  /(^|\/)\.config\/(?:gcloud(?:\/|$)|gh\/hosts\.yml$)/,
-  /\.(?:kdbx|key|p12|pem)$/,
-];
 
 export const COMMAND_EXCERPT_CONTEXT_LINES = 2;
 export const COMMAND_EXCERPT_MAX_LENGTH = 240;

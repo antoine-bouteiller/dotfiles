@@ -1,11 +1,78 @@
 import type { ProviderQuota } from "./state";
 import { progressBar } from "./render";
 
-export async function fetchAnthropicQuota(): Promise<ProviderQuota | null> {
-  const token = process.env.ANTHROPIC_OAUTH_TOKEN;
+export type QuotaFetcher = (signal: AbortSignal) => Promise<ProviderQuota | null>;
+
+type TimerHandle = ReturnType<typeof setInterval>;
+
+interface AnthropicQuotaPollerOptions {
+  refreshMs: number;
+  fetchQuota?: QuotaFetcher;
+  schedule?: (callback: () => void, delay: number) => TimerHandle;
+  cancel?: (timer: TimerHandle) => void;
+}
+
+/** Polls one request at a time and prevents an old session's result from being published. */
+export class AnthropicQuotaPoller {
+  private readonly fetchQuota: QuotaFetcher;
+  private readonly onQuota: (quota: ProviderQuota | null) => void;
+  private readonly refreshMs: number;
+  private readonly schedule: (callback: () => void, delay: number) => TimerHandle;
+  private readonly cancel: (timer: TimerHandle) => void;
+  private generation = 0;
+  private timer: TimerHandle | undefined;
+  private request: AbortController | undefined;
+
+  constructor(
+    onQuota: (quota: ProviderQuota | null) => void,
+    options: AnthropicQuotaPollerOptions,
+  ) {
+    this.onQuota = onQuota;
+    this.refreshMs = options.refreshMs;
+    this.fetchQuota = options.fetchQuota ?? ((signal) => fetchAnthropicQuota(signal));
+    this.schedule = options.schedule ?? setInterval;
+    this.cancel = options.cancel ?? clearInterval;
+  }
+
+  start() {
+    this.stop();
+    const generation = this.generation;
+    void this.refresh(generation);
+    this.timer = this.schedule(() => void this.refresh(generation), this.refreshMs);
+  }
+
+  stop() {
+    this.generation += 1;
+    if (this.timer !== undefined) this.cancel(this.timer);
+    this.timer = undefined;
+    this.request?.abort();
+    this.request = undefined;
+  }
+
+  private async refresh(generation: number) {
+    if (generation !== this.generation || this.request) return;
+    const request = new AbortController();
+    this.request = request;
+    try {
+      const quota = await this.fetchQuota(request.signal);
+      if (generation === this.generation && !request.signal.aborted) this.onQuota(quota);
+    } catch {
+      // A stopped poll normally rejects when its AbortSignal is handled by fetch.
+    } finally {
+      if (this.request === request) this.request = undefined;
+    }
+  }
+}
+
+export async function fetchAnthropicQuota(
+  signal?: AbortSignal,
+  fetchImpl: typeof fetch = globalThis.fetch,
+  token = process.env.ANTHROPIC_OAUTH_TOKEN,
+): Promise<ProviderQuota | null> {
   if (!token) return null;
   try {
-    const response = await fetch("https://api.anthropic.com/api/oauth/usage", {
+    const response = await fetchImpl("https://api.anthropic.com/api/oauth/usage", {
+      signal,
       headers: { Authorization: `Bearer ${token}`, "anthropic-beta": "oauth-2025-04-20" },
     });
     if (!response.ok) return null;

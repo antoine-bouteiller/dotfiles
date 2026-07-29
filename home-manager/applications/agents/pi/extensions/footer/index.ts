@@ -26,37 +26,32 @@ import {
   RESET,
 } from "./render";
 import { fetchGitInfo } from "./git";
-import { fetchAnthropicQuota, quotaFromHeaders } from "./provider";
+import { AnthropicQuotaPoller, quotaFromHeaders, type QuotaFetcher } from "./provider";
 
 const ANTHROPIC_QUOTA_REFRESH_MS = 15_000;
 
-export default function footer(pi: ExtensionAPI) {
+interface FooterDependencies {
+  fetchAnthropicQuota?: QuotaFetcher;
+}
+
+export default function footer(pi: ExtensionAPI, dependencies: FooterDependencies = {}) {
   let title = "pi";
   let modelInfo: ModelInfoState = emptyModelInfoState();
   let gitInfo: GitInfoState = emptyGitInfoState();
   let providerQuota: ProviderQuota | null = null;
-  let anthropicQuotaTimer: ReturnType<typeof setInterval> | undefined;
   let activeTui: DashboardTui | undefined;
   let requestRender: (() => void) | undefined;
   let themeRemovalTimers: Array<ReturnType<typeof setTimeout>> = [];
-  async function refreshAnthropicQuota() {
-    providerQuota = await fetchAnthropicQuota();
-    requestRender?.();
-  }
-
-  function stopAnthropicQuotaRefresh() {
-    if (anthropicQuotaTimer) clearInterval(anthropicQuotaTimer);
-    anthropicQuotaTimer = undefined;
-  }
-
-  function startAnthropicQuotaRefresh() {
-    stopAnthropicQuotaRefresh();
-    void refreshAnthropicQuota();
-    anthropicQuotaTimer = setInterval(
-      () => void refreshAnthropicQuota(),
-      ANTHROPIC_QUOTA_REFRESH_MS,
-    );
-  }
+  const anthropicQuota = new AnthropicQuotaPoller(
+    (quota) => {
+      providerQuota = quota;
+      requestRender?.();
+    },
+    {
+      refreshMs: ANTHROPIC_QUOTA_REFRESH_MS,
+      fetchQuota: dependencies.fetchAnthropicQuota,
+    },
+  );
 
   async function refreshGit() {
     gitInfo = await fetchGitInfo(pi);
@@ -148,14 +143,14 @@ export default function footer(pi: ExtensionAPI) {
   }
 
   pi.on("session_start", (_event, ctx) => {
+    anthropicQuota.stop();
     title = formatDirectory(ctx.cwd);
     modelInfo = emptyModelInfoState();
     gitInfo = emptyGitInfoState();
     providerQuota = null;
     install(ctx);
     if (ctx.mode !== "tui") refreshModel(ctx);
-    if (ctx.model?.provider === "anthropic") startAnthropicQuotaRefresh();
-    else stopAnthropicQuotaRefresh();
+    if (ctx.mode === "tui" && ctx.model?.provider === "anthropic") anthropicQuota.start();
   });
   pi.on("model_select", (event, ctx) => {
     modelInfo = {
@@ -165,13 +160,11 @@ export default function footer(pi: ExtensionAPI) {
       thinking: event.model.reasoning ? pi.getThinkingLevel() : "off",
       contextWindow: event.model.contextWindow,
     };
+    providerQuota = null;
+    anthropicQuota.stop();
     refreshModel(ctx);
     void refreshGit();
-    if (event.model.provider === "anthropic") startAnthropicQuotaRefresh();
-    else {
-      stopAnthropicQuotaRefresh();
-      providerQuota = null;
-    }
+    if (ctx.mode === "tui" && event.model.provider === "anthropic") anthropicQuota.start();
   });
   pi.on("thinking_level_select", (event) => {
     modelInfo = { ...modelInfo, thinking: event.level };
@@ -193,7 +186,7 @@ export default function footer(pi: ExtensionAPI) {
     if (activeTui) scheduleThemeRemoval(activeTui);
   });
   pi.on("session_shutdown", (_event, ctx) => {
-    stopAnthropicQuotaRefresh();
+    anthropicQuota.stop();
     for (const timer of themeRemovalTimers) clearTimeout(timer);
     themeRemovalTimers = [];
     activeTui = undefined;

@@ -3,18 +3,10 @@ import { mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { createFakePi } from "../test-utils/fake-pi";
-import claudeCodeExtension, {
-  formatRulePointer,
-  parseCommandFrontmatter,
-  parseRuleFrontmatter,
-} from "./index";
+import claudeCodeExtension, { parseCommandFrontmatter } from "./index";
 
 interface DiscoveryResult {
   skillPaths: string[];
-}
-
-interface PromptResult {
-  systemPrompt: string;
 }
 
 const fixtureRoots = new Set<string>();
@@ -76,24 +68,6 @@ async function pathExists(path: string): Promise<boolean> {
 }
 
 describe("Claude Code compatibility", () => {
-  test("parses inline and list path scopes", () => {
-    expect(parseRuleFrontmatter("---\npaths: [src/**, 'test/**']\n---\nRule")).toEqual({
-      body: "Rule",
-      paths: ["src/**", "test/**"],
-    });
-    expect(parseRuleFrontmatter('---\npaths:\n  - src/**\n  - "docs/**"\n---\nRule')).toEqual({
-      body: "Rule",
-      paths: ["src/**", "docs/**"],
-    });
-  });
-
-  test("leaves rules without frontmatter untouched", () => {
-    expect(parseRuleFrontmatter("Always test changes.")).toEqual({
-      body: "Always test changes.",
-      paths: [],
-    });
-  });
-
   test("converts command metadata and derives a fallback description", () => {
     expect(parseCommandFrontmatter("---\ndescription: 'Review this diff'\n---\nDo it")).toEqual({
       body: "Do it",
@@ -104,58 +78,30 @@ describe("Claude Code compatibility", () => {
     );
   });
 
-  test("formats scoped rule pointers", () => {
-    expect(formatRulePointer("typescript.md", ["src/**/*.ts"])).toBe(
-      "- .claude/rules/typescript.md — applies when working on: src/**/*.ts",
-    );
-  });
-
-  test("discovers project commands and rules only for trusted projects", async () => {
+  test("discovers project commands only for trusted projects", async () => {
     const fixture = await createFixture();
     await Promise.all([
       writeFixture(join(fixture.homeDirectory, ".claude/commands/deploy.md"), "User deploy"),
-      writeFixture(join(fixture.homeDirectory, ".claude/rules/global.md"), "Global guidance"),
       writeFixture(join(fixture.projectDirectory, ".claude/commands/deploy.md"), "Project deploy"),
       writeFixture(
         join(fixture.projectDirectory, ".claude/commands/project-only.md"),
         "Project only",
       ),
-      writeFixture(join(fixture.projectDirectory, ".claude/rules/project.md"), "Project guidance"),
     ]);
-
-    const untrustedContext = fixture.context(false);
-    await fixture.invoke("session_start", {}, untrustedContext);
-    const untrustedPrompt = await fixture.invoke<PromptResult>(
-      "before_agent_start",
-      { systemPrompt: "Base" },
-      untrustedContext,
-    );
-    expect(untrustedPrompt.systemPrompt).toContain("Global guidance");
-    expect(untrustedPrompt.systemPrompt).not.toContain("Project Rules");
 
     const untrustedResult = await fixture.invoke<DiscoveryResult>(
       "resources_discover",
       { cwd: fixture.projectDirectory },
-      untrustedContext,
+      fixture.context(false),
     );
     const untrustedSkills = await generatedSkills(untrustedResult.skillPaths[0]);
     expect([...untrustedSkills.keys()]).toEqual(["deploy"]);
     expect(untrustedSkills.get("deploy")).toContain("User deploy");
 
-    const trustedContext = fixture.context(true);
-    await fixture.invoke("session_start", {}, trustedContext);
-    const trustedPrompt = await fixture.invoke<PromptResult>(
-      "before_agent_start",
-      { systemPrompt: "Base" },
-      trustedContext,
-    );
-    expect(trustedPrompt.systemPrompt).toContain("Project Rules");
-    expect(trustedPrompt.systemPrompt).toContain(".claude/rules/project.md");
-
     const trustedResult = await fixture.invoke<DiscoveryResult>(
       "resources_discover",
       { cwd: fixture.projectDirectory },
-      trustedContext,
+      fixture.context(true),
     );
     const trustedSkills = await generatedSkills(trustedResult.skillPaths[0]);
     expect([...trustedSkills.keys()]).toEqual(["deploy", "project-only"]);

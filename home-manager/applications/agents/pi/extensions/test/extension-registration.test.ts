@@ -10,6 +10,7 @@ import hashline from "../hashline/index.js";
 import herdrAgentState from "../herdr-agent-state.js";
 import mcp from "../mcp/index.js";
 import rtk from "../rtk.js";
+import rules from "../rules/index.js";
 import safeRm from "../safe-rm/index.js";
 import safetyGuard from "../safety-guard/index.js";
 import subagents from "../sub-agents/index.js";
@@ -24,6 +25,7 @@ const entrypoints = {
   herdrAgentState,
   mcp,
   rtk,
+  rules,
   safeRm,
   safetyGuard,
   subagents,
@@ -63,6 +65,7 @@ describe("extension entrypoints", () => {
       footer,
       hashline,
       mcp,
+      rules,
       safeRm,
       safetyGuard,
     ]) {
@@ -80,6 +83,7 @@ describe("extension entrypoints", () => {
     expect(fixture.state.handlers.has("session_start")).toBeTrue();
     expect(fixture.state.handlers.has("session_shutdown")).toBeTrue();
     expect(fixture.state.handlers.has("tool_call")).toBeTrue();
+    expect(fixture.state.handlers.has("tool_result")).toBeTrue();
   });
 });
 

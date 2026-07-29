@@ -19,7 +19,9 @@ bun run check
 ## Layout
 
 - Each first-party extension uses `<name>/index.ts` as its entrypoint.
-- `mcp/` provides one deliberately narrow, lazy MCP gateway backed only by `~/.config/mcp/mcp.json`. It supports stdio and HTTP/SSE tools plus automatic loopback OAuth, with reusable credentials stored in macOS Keychain; it opens no connections during startup.
+- `claude-code/` converts global and trusted-project `.claude/commands/` files into temporary Pi skills.
+- `rules/` loads recursive `.md` and `.mdc` rules from `.claude/rules/` and `.agents/rules/`, both in the user home and trusted projects; unscoped rules are static and path-scoped rules are injected after matching file-tool results.
+- `mcp/` provides one deliberately narrow, lazy MCP gateway backed only by `~/.config/mcp/mcp.json`. It supports stdio and HTTP/SSE tools plus automatic loopback OAuth through `/mcp-auth`, with reusable credentials stored in macOS Keychain; it opens no connections during startup.
 - Cohesive implementation modules and colocated tests stay inside that extension directory.
 - `shared/` contains reusable implementation modules and deliberately has no `index.ts`.
 - `test-utils/` contains shared typed fakes.

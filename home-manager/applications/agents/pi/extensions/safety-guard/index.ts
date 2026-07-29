@@ -1,132 +1,14 @@
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import {
   ALL_PATTERNS,
   COMMAND_EXCERPT_CONTEXT_LINES,
   COMMAND_EXCERPT_MAX_LENGTH,
-  HIGH_RM_PATTERNS,
   PROTECTED_PATH_PATTERNS,
   PUBLIC_ENV_FILENAMES,
   SAFETY_STATUS_KEY,
 } from "./constants";
-
-function parseShellWords(command: string): string[] | undefined {
-  if (/[;&|<>`$()\r\n{}]/.test(command)) return undefined;
-
-  const words: string[] = [];
-  let word = "";
-  let quote: "'" | '"' | undefined;
-  let escaped = false;
-
-  for (const char of command.trim()) {
-    if (escaped) {
-      word += char;
-      escaped = false;
-    } else if (char === "\\" && quote !== "'") {
-      escaped = true;
-    } else if (quote) {
-      if (char === quote) quote = undefined;
-      else word += char;
-    } else if (char === "'" || char === '"') {
-      quote = char;
-    } else if (/\s/.test(char)) {
-      if (word) {
-        words.push(word);
-        word = "";
-      }
-    } else {
-      word += char;
-    }
-  }
-
-  if (escaped || quote) return undefined;
-  if (word) words.push(word);
-  return words;
-}
-
-function isDescendant(root: string, candidate: string): boolean {
-  const pathFromRoot = relative(root, candidate);
-  return (
-    pathFromRoot !== "" &&
-    pathFromRoot !== ".." &&
-    !pathFromRoot.startsWith(`..${sep}`) &&
-    !isAbsolute(pathFromRoot)
-  );
-}
-
-function isSafeRmCommand(command: string, cwd: string): boolean {
-  const words = parseShellWords(command);
-  if (!words || words[0] !== "rm") return false;
-
-  let hasForceOrRecursive = false;
-  let parsingOptions = true;
-  const targets: string[] = [];
-
-  for (const word of words.slice(1)) {
-    if (parsingOptions && word === "--") {
-      parsingOptions = false;
-    } else if (parsingOptions && word.startsWith("--")) {
-      if (word === "--force" || word === "--recursive") hasForceOrRecursive = true;
-    } else if (parsingOptions && /^-[^-]/.test(word)) {
-      if (/[fRr]/.test(word.slice(1))) hasForceOrRecursive = true;
-    } else {
-      targets.push(word);
-    }
-  }
-
-  if (!hasForceOrRecursive || targets.length === 0) return false;
-
-  const allowedRoots = [resolve(cwd), resolve("/tmp")];
-  return targets.every((target) => {
-    if (target.startsWith("~")) return false;
-    const resolvedTarget = resolve(cwd, target);
-    return allowedRoots.some((root) => isDescendant(root, resolvedTarget));
-  });
-}
-
-function areDestructiveRmCommandsSafe(command: string, cwd: string): boolean {
-  const commands = command.split("&&");
-  if (commands.some((shellCommand) => shellCommand.trim() === "")) return false;
-
-  let foundDestructiveRm = false;
-  for (const shellCommand of commands) {
-    if (!HIGH_RM_PATTERNS.some(({ pattern }) => pattern.test(shellCommand))) continue;
-    foundDestructiveRm = true;
-    if (!isSafeRmCommand(shellCommand, cwd)) return false;
-  }
-
-  return foundDestructiveRm;
-}
-
-function omitSafeGitMessageCleanups(command: string): string {
-  return command.replace(
-    /(^|[;&|\n])\s*gitdir=\$\(git rev-parse --git-dir\)\s*;\s*rm\s+-f\s+"\$gitdir"\/COMMIT_EDITMSG\*\s+"\$gitdir"\/MERGE_MSG\s*;?(?=\s*(?:[;&|\n]|$))/g,
-    "$1",
-  );
-}
-
-function omitSafeFindTargetCleanups(command: string, cwd: string): string {
-  return command.replace(
-    /(^|[;&|\n])\s*(?:\/usr\/bin\/)?find\s+(.+?)\s+-type\s+d\s+-name\s+(?:target|'target'|"target")\s+-prune\s+-exec\s+rm\s+-rf\s+\{\}\s+\+(?=\s*(?:[;&|\n]|$))/g,
-    (match, separator: string, rawRoots: string) => {
-      const roots = parseShellWords(rawRoots);
-      if (
-        !roots ||
-        roots.length === 0 ||
-        roots.some(
-          (root) =>
-            root.startsWith("-") ||
-            root.startsWith("~") ||
-            !isDescendant(resolve(cwd), resolve(cwd, root)),
-        )
-      ) {
-        return match;
-      }
-      return separator;
-    },
-  );
-}
 
 function commandExcerpt(command: string, pattern: RegExp): string {
   const lines = command.split(/\r?\n/);
@@ -187,21 +69,8 @@ export default function safetyGuard(pi: ExtensionAPI) {
     }
 
     if (command !== undefined) {
-      const commandToCheck = omitSafeFindTargetCleanups(
-        omitSafeGitMessageCleanups(command),
-        ctx.cwd,
-      );
-      const hasOnlySafeDestructiveRm = areDestructiveRmCommandsSafe(commandToCheck, ctx.cwd);
-
       for (const rule of ALL_PATTERNS) {
-        if (!rule.pattern.test(commandToCheck)) continue;
-        if (
-          hasOnlySafeDestructiveRm &&
-          HIGH_RM_PATTERNS.some(({ pattern }) => pattern === rule.pattern)
-        ) {
-          continue;
-        }
-
+        if (!rule.pattern.test(command)) continue;
         if (rule.severity === "critical") {
           if (ctx.hasUI) ctx.ui.notify(`🚫 Blocked: ${rule.label}`, "error");
           return {

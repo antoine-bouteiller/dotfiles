@@ -17,6 +17,13 @@ export interface DangerousPattern {
 
 export const CRITICAL_PATTERNS: DangerousPattern[] = [
   {
+    pattern:
+      /(?:^|[;&|(\n])\s*(?:(?:command|sudo)\s+|env(?:\s+[A-Za-z_]\w*=[^\s]+)*\s+)?(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\b(?:command|exec|sudo)\b[^\n;&|]*\b(?:rm|rmdir|unlink)\b|\b(?:bash|fish|ksh|sh|zsh)\s+-c\s+['"][^'"]*\b(?:rm|rmdir|unlink)\b|\b(?:do|then)\s+(?:\/(?:usr\/)?bin\/)?(?:rm|rmdir|unlink)\b|\bfind\b[^\n;&|]*(?:-delete\b|-exec\s+rm\b)|\bxargs\b[^\n;&|]*\brm\b/i,
+    label: "Shell deletion is disabled; use the safe_rm tool instead",
+    category: "filesystem",
+    severity: "critical",
+  },
+  {
     pattern: />\s*\/dev\/(?:disk|hd|nvme|sd|vd)[^\s;&|]*/i,
     label: "Write to raw disk device",
     category: "filesystem",
@@ -42,18 +49,6 @@ export const CRITICAL_PATTERNS: DangerousPattern[] = [
     severity: "critical",
   },
   {
-    pattern: /\brm\s+(?:(?:-[^\s]+|--(?:force|recursive))\s+)*--?\s+\/(?:\s|$|[;&|])/i,
-    label: "Delete root filesystem",
-    category: "filesystem",
-    severity: "critical",
-  },
-  {
-    pattern: /\brm\s+(?:(?:-[^\s]+|--(?:force|recursive))\s+)*\/(?:\s|$|[;&|])/i,
-    label: "Delete root filesystem",
-    category: "filesystem",
-    severity: "critical",
-  },
-  {
     pattern: /\b(?:halt|poweroff|reboot|shutdown)\b/i,
     label: "System shutdown/reboot",
     category: "system",
@@ -67,35 +62,7 @@ export const CRITICAL_PATTERNS: DangerousPattern[] = [
   },
 ];
 
-export const HIGH_RM_PATTERNS: DangerousPattern[] = [
-  {
-    pattern: /\brm\s+(?:-[a-z]*r[a-z]*\s+|--recursive\s+)/i,
-    label: "Recursive delete (rm -r)",
-    category: "filesystem",
-    severity: "high",
-  },
-  {
-    pattern: /\brm\s+(?:-[a-z]*f[a-z]*\s+|--force\s+)/i,
-    label: "Force delete (rm -f)",
-    category: "filesystem",
-    severity: "high",
-  },
-];
-
 const HIGH_PATTERNS: DangerousPattern[] = [
-  ...HIGH_RM_PATTERNS,
-  {
-    pattern: /\bfind\b[^\n;&|]*(?:-delete\b|-exec\s+rm\b)/i,
-    label: "Destructive find operation",
-    category: "filesystem",
-    severity: "high",
-  },
-  {
-    pattern: /\bxargs\b[^\n;&|]*\brm\b/i,
-    label: "xargs delete",
-    category: "filesystem",
-    severity: "high",
-  },
   {
     pattern: /\b(?:shred\b|truncate\s+-s\s+0\b|dd\b)/i,
     label: "Destructive file operation",

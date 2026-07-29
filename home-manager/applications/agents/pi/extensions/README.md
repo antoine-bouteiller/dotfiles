@@ -19,6 +19,7 @@ bun run check
 ## Layout
 
 - Each first-party extension uses `<name>/index.ts` as its entrypoint.
+- `mcp/` provides one deliberately narrow, lazy MCP gateway backed only by `~/.config/mcp/mcp.json`. It supports stdio and HTTP/SSE tools plus automatic loopback OAuth, with reusable credentials stored in macOS Keychain; it opens no connections during startup.
 - Cohesive implementation modules and colocated tests stay inside that extension directory.
 - `shared/` contains reusable implementation modules and deliberately has no `index.ts`.
 - `test-utils/` contains shared typed fakes.

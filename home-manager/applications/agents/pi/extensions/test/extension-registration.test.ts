@@ -8,6 +8,7 @@ import claudeCode from "../claude-code/index.js";
 import footer from "../footer/index.js";
 import hashline from "../hashline/index.js";
 import herdrAgentState from "../herdr-agent-state.js";
+import mcp from "../mcp/index.js";
 import rtk from "../rtk.js";
 import safeRm from "../safe-rm/index.js";
 import safetyGuard from "../safety-guard/index.js";
@@ -21,6 +22,7 @@ const entrypoints = {
   footer,
   hashline,
   herdrAgentState,
+  mcp,
   rtk,
   safeRm,
   safetyGuard,
@@ -60,6 +62,7 @@ describe("extension entrypoints", () => {
       claudeCode,
       footer,
       hashline,
+      mcp,
       safeRm,
       safetyGuard,
     ]) {
@@ -71,6 +74,7 @@ describe("extension entrypoints", () => {
       "background_poll",
       "hashline_read",
       "hashline_write",
+      "mcp",
       "safe_rm",
     ]);
     expect(fixture.state.handlers.has("session_start")).toBeTrue();

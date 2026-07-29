@@ -19,6 +19,7 @@ bun run check
 ## Layout
 
 - Each first-party extension uses `<name>/index.ts` as its entrypoint.
+- `comment-checker/` runs the installed `comment-checker` binary after successful writes and edits, appending any warning to the tool result.
 - `claude-code/` converts global and trusted-project `.claude/commands/` files into temporary Pi skills.
 - `rules/` loads recursive `.md` and `.mdc` rules from `.claude/rules/` and `.agents/rules/`, both in the user home and trusted projects; unscoped rules are static and path-scoped rules are injected after matching file-tool results.
 - `mcp/` provides one deliberately narrow, lazy MCP gateway backed only by `~/.config/mcp/mcp.json`. It supports stdio and HTTP/SSE tools plus automatic loopback OAuth through `/mcp-auth`, with reusable credentials stored in macOS Keychain; it opens no connections during startup.

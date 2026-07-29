@@ -1,5 +1,79 @@
-import { describe, expect, test } from "bun:test";
-import { formatRulePointer, parseCommandFrontmatter, parseRuleFrontmatter } from "./index";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { createFakePi } from "../test-utils/fake-pi";
+import claudeCodeExtension, {
+  formatRulePointer,
+  parseCommandFrontmatter,
+  parseRuleFrontmatter,
+} from "./index";
+
+interface DiscoveryResult {
+  skillPaths: string[];
+}
+
+interface PromptResult {
+  systemPrompt: string;
+}
+
+const fixtureRoots = new Set<string>();
+
+afterEach(async () => {
+  await Promise.all([...fixtureRoots].map((root) => rm(root, { force: true, recursive: true })));
+  fixtureRoots.clear();
+});
+
+async function writeFixture(path: string, content: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, content, "utf8");
+}
+
+async function createFixture() {
+  const root = await mkdtemp(join(tmpdir(), "pi-claude-code-test-"));
+  fixtureRoots.add(root);
+  const homeDirectory = join(root, "home");
+  const projectDirectory = join(root, "project");
+  const temporaryDirectory = join(root, "temp");
+  await Promise.all([
+    mkdir(homeDirectory, { recursive: true }),
+    mkdir(projectDirectory, { recursive: true }),
+    mkdir(temporaryDirectory, { recursive: true }),
+  ]);
+
+  const fakePi = createFakePi();
+  claudeCodeExtension(fakePi.pi, { homeDirectory, temporaryDirectory });
+
+  const context = (trusted: boolean) => ({
+    cwd: projectDirectory,
+    isProjectTrusted: () => trusted,
+  });
+  const invoke = async <Result>(name: string, event: unknown, eventContext: unknown) =>
+    (await fakePi.emit(name, event, eventContext))[0] as Result;
+
+  return { homeDirectory, projectDirectory, context, invoke };
+}
+
+async function generatedSkills(skillDirectory: string): Promise<Map<string, string>> {
+  const names = (await readdir(skillDirectory)).sort();
+  return new Map(
+    await Promise.all(
+      names.map(
+        async (name) =>
+          [name, await readFile(join(skillDirectory, name, "SKILL.md"), "utf8")] as const,
+      ),
+    ),
+  );
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 describe("Claude Code compatibility", () => {
   test("parses inline and list path scopes", () => {
@@ -34,5 +108,185 @@ describe("Claude Code compatibility", () => {
     expect(formatRulePointer("typescript.md", ["src/**/*.ts"])).toBe(
       "- .claude/rules/typescript.md — applies when working on: src/**/*.ts",
     );
+  });
+
+  test("discovers project commands and rules only for trusted projects", async () => {
+    const fixture = await createFixture();
+    await Promise.all([
+      writeFixture(join(fixture.homeDirectory, ".claude/commands/deploy.md"), "User deploy"),
+      writeFixture(join(fixture.homeDirectory, ".claude/rules/global.md"), "Global guidance"),
+      writeFixture(join(fixture.projectDirectory, ".claude/commands/deploy.md"), "Project deploy"),
+      writeFixture(
+        join(fixture.projectDirectory, ".claude/commands/project-only.md"),
+        "Project only",
+      ),
+      writeFixture(join(fixture.projectDirectory, ".claude/rules/project.md"), "Project guidance"),
+    ]);
+
+    const untrustedContext = fixture.context(false);
+    await fixture.invoke("session_start", {}, untrustedContext);
+    const untrustedPrompt = await fixture.invoke<PromptResult>(
+      "before_agent_start",
+      { systemPrompt: "Base" },
+      untrustedContext,
+    );
+    expect(untrustedPrompt.systemPrompt).toContain("Global guidance");
+    expect(untrustedPrompt.systemPrompt).not.toContain("Project Rules");
+
+    const untrustedResult = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      untrustedContext,
+    );
+    const untrustedSkills = await generatedSkills(untrustedResult.skillPaths[0]);
+    expect([...untrustedSkills.keys()]).toEqual(["deploy"]);
+    expect(untrustedSkills.get("deploy")).toContain("User deploy");
+
+    const trustedContext = fixture.context(true);
+    await fixture.invoke("session_start", {}, trustedContext);
+    const trustedPrompt = await fixture.invoke<PromptResult>(
+      "before_agent_start",
+      { systemPrompt: "Base" },
+      trustedContext,
+    );
+    expect(trustedPrompt.systemPrompt).toContain("Project Rules");
+    expect(trustedPrompt.systemPrompt).toContain(".claude/rules/project.md");
+
+    const trustedResult = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      trustedContext,
+    );
+    const trustedSkills = await generatedSkills(trustedResult.skillPaths[0]);
+    expect([...trustedSkills.keys()]).toEqual(["deploy", "project-only"]);
+    expect(trustedSkills.get("deploy")).toContain("Project deploy");
+    expect(trustedSkills.get("deploy")).not.toContain("User deploy");
+  });
+
+  test("retains normalized name collisions deterministically, including long names", async () => {
+    const fixture = await createFixture();
+    const commandsDirectory = join(fixture.homeDirectory, ".claude/commands");
+    const longPrefix = "a".repeat(70);
+    await Promise.all([
+      writeFixture(join(commandsDirectory, "foo-bar.md"), "User hyphen"),
+      writeFixture(join(commandsDirectory, "foo-bar-2.md"), "Reserved suffix"),
+      writeFixture(join(commandsDirectory, "foo_bar.md"), "Underscore"),
+      writeFixture(join(commandsDirectory, `${longPrefix}-one.md`), "Long one"),
+      writeFixture(join(commandsDirectory, `${longPrefix}-two.md`), "Long two"),
+      writeFixture(join(fixture.projectDirectory, ".claude/commands/foo-bar.md"), "Project hyphen"),
+    ]);
+
+    const result = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      fixture.context(true),
+    );
+    const skills = await generatedSkills(result.skillPaths[0]);
+    const names = [...skills.keys()];
+
+    expect(names).toHaveLength(5);
+    expect(names).toContain("foo-bar");
+    expect(names).toContain("foo-bar-2");
+    expect(names).toContain("foo-bar-3");
+    expect(skills.get("foo-bar")).toContain("Project hyphen");
+    expect(skills.get("foo-bar")).not.toContain("User hyphen");
+    expect(skills.get("foo-bar-2")).toContain("Reserved suffix");
+    expect(skills.get("foo-bar-3")).toContain("Underscore");
+
+    const longNames = names.filter((name) => name.startsWith("a"));
+    expect(longNames).toHaveLength(2);
+    expect(new Set(longNames).size).toBe(2);
+    expect(longNames.every((name) => name.length <= 64)).toBeTrue();
+    expect(longNames.map((name) => skills.get(name)).join("\n")).toContain("Long one");
+    expect(longNames.map((name) => skills.get(name)).join("\n")).toContain("Long two");
+
+    const repeatedResult = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      fixture.context(true),
+    );
+    expect([...(await generatedSkills(repeatedResult.skillPaths[0])).keys()]).toEqual(names);
+  });
+
+  test("follows command symlinks and stops directory cycles safely", async () => {
+    const fixture = await createFixture();
+    const commandsDirectory = join(fixture.homeDirectory, ".claude/commands");
+    const outsideDirectory = join(fixture.homeDirectory, "outside");
+    await Promise.all([
+      writeFixture(join(commandsDirectory, "safe.md"), "Safe command"),
+      writeFixture(join(outsideDirectory, "escaped.md"), "Escaped command"),
+    ]);
+    await Promise.all([
+      symlink(join(commandsDirectory, "safe.md"), join(commandsDirectory, "alias.md"), "file"),
+      symlink(commandsDirectory, join(commandsDirectory, "cycle"), "dir"),
+      symlink(outsideDirectory, join(commandsDirectory, "escape"), "dir"),
+      symlink(join(outsideDirectory, "missing.md"), join(commandsDirectory, "missing.md"), "file"),
+    ]);
+
+    const result = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      fixture.context(false),
+    );
+    const skills = await generatedSkills(result.skillPaths[0]);
+    expect([...skills.keys()]).toEqual(["alias", "escape-escaped", "safe"]);
+    expect(skills.get("alias")).toContain("Safe command");
+    expect(skills.get("escape-escaped")).toContain("Escaped command");
+    expect(skills.get("safe")).toContain("Safe command");
+  });
+
+  test("cleans replaced generated skills and removes the active directory on shutdown", async () => {
+    const fixture = await createFixture();
+    await writeFixture(join(fixture.homeDirectory, ".claude/commands/clean.md"), "Clean me");
+    const context = fixture.context(false);
+
+    const firstResult = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      context,
+    );
+    const firstDirectory = firstResult.skillPaths[0];
+    expect(await pathExists(firstDirectory)).toBeTrue();
+
+    const secondResult = await fixture.invoke<DiscoveryResult>(
+      "resources_discover",
+      { cwd: fixture.projectDirectory },
+      context,
+    );
+    const secondDirectory = secondResult.skillPaths[0];
+    expect(secondDirectory).not.toBe(firstDirectory);
+    expect(await pathExists(firstDirectory)).toBeFalse();
+    expect(await pathExists(secondDirectory)).toBeTrue();
+
+    await fixture.invoke("session_shutdown", {}, context);
+    expect(await pathExists(secondDirectory)).toBeFalse();
+  });
+
+  test("serializes concurrent discovery and cleans every superseded directory", async () => {
+    const fixture = await createFixture();
+    await writeFixture(join(fixture.homeDirectory, ".claude/commands/concurrent.md"), "Run once");
+    const context = fixture.context(false);
+
+    const [firstResult, secondResult] = await Promise.all([
+      fixture.invoke<DiscoveryResult>(
+        "resources_discover",
+        { cwd: fixture.projectDirectory },
+        context,
+      ),
+      fixture.invoke<DiscoveryResult>(
+        "resources_discover",
+        { cwd: fixture.projectDirectory },
+        context,
+      ),
+    ]);
+    const firstDirectory = firstResult.skillPaths[0];
+    const secondDirectory = secondResult.skillPaths[0];
+
+    expect(firstDirectory).not.toBe(secondDirectory);
+    expect(await pathExists(firstDirectory)).toBeFalse();
+    expect(await pathExists(secondDirectory)).toBeTrue();
+
+    await fixture.invoke("session_shutdown", {}, context);
+    expect(await pathExists(secondDirectory)).toBeFalse();
   });
 });

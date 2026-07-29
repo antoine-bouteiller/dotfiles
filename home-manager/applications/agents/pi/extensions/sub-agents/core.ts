@@ -1,12 +1,21 @@
-import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { StringDecoder } from "node:string_decoder";
 import * as fs from "node:fs";
 import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { CONFIG_DIR_NAME, getAgentDir } from "@earendil-works/pi-coding-agent";
+import {
+  inspectProcess,
+  ownershipMatches,
+  processAlive,
+  processOwnerIsActive,
+  type ProcessSnapshot,
+} from "./process-ownership.js";
+import { consumeFirstMatchingMailboxEvent, RpcJsonlDecoder } from "./rpc.js";
+
+export { consumeFirstMatchingMailboxEvent, RpcJsonlDecoder } from "./rpc.js";
 
 export const PACKAGE_BASENAME = "pi-codex-subagents";
 export const SUBAGENT_DIR = path.join(getAgentDir(), PACKAGE_BASENAME);
@@ -171,6 +180,15 @@ export interface AgentActivityEvent {
 export interface AgentManagerOptions {
   onActivityChange?: (event: AgentActivityEvent) => void;
   onUnclaimedCompletion?: (event: AgentCompletionEvent) => void;
+  /** Override the child Pi executable for embedding and tests. */
+  piCommand?: {
+    command: string;
+    prefixArgs?: string[];
+  };
+  /** Additional environment entries passed only to child Pi processes. */
+  childEnv?: NodeJS.ProcessEnv;
+  /** Test hook invoked after a dead lock is inspected but before its instance is revalidated. */
+  beforeReclaimTaskLockRemoval?: (lockFile: string) => void;
 }
 
 interface Waiter {
@@ -340,12 +358,10 @@ function pruneScope(directory: string, cutoff: number): void {
     const lockFile = path.join(directory, entry.name);
     try {
       if (fs.statSync(lockFile).mtimeMs >= cutoff) continue;
-      const owner = JSON.parse(fs.readFileSync(lockFile, "utf8")) as { pid?: number };
-      if (typeof owner.pid === "number" && processAlive(owner.pid)) continue;
-    } catch {}
-    try {
-      fs.rmSync(lockFile, { force: true });
-    } catch {}
+    } catch {
+      continue;
+    }
+    reclaimDeadTaskLock(lockFile);
   }
 
   try {
@@ -421,6 +437,90 @@ function normalizeTaskName(name: string): string {
     );
   }
   return normalized;
+}
+
+function taskLockFile(parentSessionId: string, taskName: string): string {
+  return path.join(scopeDir(parentSessionId), `.task-${taskStorageKey(taskName)}.lock`);
+}
+
+function taskLockIsActive(parentSessionId: string, taskName: string): boolean {
+  try {
+    const owner = JSON.parse(fs.readFileSync(taskLockFile(parentSessionId, taskName), "utf8")) as {
+      pid?: number;
+      processIdentity?: string;
+    };
+    return processOwnerIsActive(owner);
+  } catch {
+    return false;
+  }
+}
+
+interface TaskLockOwner {
+  pid?: number;
+  processIdentity?: string;
+  token?: string;
+}
+
+function parseTaskLockOwner(content: string): TaskLockOwner {
+  try {
+    return JSON.parse(content) as TaskLockOwner;
+  } catch {
+    return {};
+  }
+}
+
+function sameFileInstance(first: fs.Stats, second: fs.Stats): boolean {
+  return first.dev === second.dev && first.ino === second.ino;
+}
+
+function reclaimDeadTaskLock(
+  lockFile: string,
+  beforeRevalidate?: (lockFile: string) => void,
+): boolean {
+  let inspectedFd: number | undefined;
+  let currentFd: number | undefined;
+  try {
+    // Keep the inspected instance open, then reopen the pathname immediately before unlinking.
+    // Comparing both file identity and content prevents deleting a replacement lock that won a
+    // race after the dead owner's record was read.
+    inspectedFd = fs.openSync(lockFile, "r");
+    const inspectedStat = fs.fstatSync(inspectedFd);
+    const inspectedContent = fs.readFileSync(inspectedFd, "utf8");
+    const owner = parseTaskLockOwner(inspectedContent);
+    if (processOwnerIsActive(owner)) return false;
+
+    beforeRevalidate?.(lockFile);
+
+    currentFd = fs.openSync(lockFile, "r");
+    const currentStat = fs.fstatSync(currentFd);
+    const currentContent = fs.readFileSync(currentFd, "utf8");
+    if (!sameFileInstance(inspectedStat, currentStat) || inspectedContent !== currentContent)
+      return false;
+    fs.unlinkSync(lockFile);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    if (currentFd !== undefined) fs.closeSync(currentFd);
+    if (inspectedFd !== undefined) fs.closeSync(inspectedFd);
+  }
+}
+
+function releaseTaskLock(lockFile: string, ownedFd: number, token: string): void {
+  let currentFd: number | undefined;
+  try {
+    const ownedStat = fs.fstatSync(ownedFd);
+    currentFd = fs.openSync(lockFile, "r");
+    const currentStat = fs.fstatSync(currentFd);
+    const currentOwner = parseTaskLockOwner(fs.readFileSync(currentFd, "utf8"));
+    if (sameFileInstance(ownedStat, currentStat) && currentOwner.token === token)
+      fs.unlinkSync(lockFile);
+  } catch {
+    // A missing or replaced pathname is no longer this caller's lock to release.
+  } finally {
+    if (currentFd !== undefined) fs.closeSync(currentFd);
+    fs.closeSync(ownedFd);
+  }
 }
 
 function saveInfo(info: AgentInfo): void {
@@ -679,79 +779,6 @@ function markerPath(agentId: string, kind: "active" | "peek"): string {
   return path.join(SOCKET_DIR, `${agentId}.${kind}.json`);
 }
 
-function processAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error: any) {
-    return error?.code === "EPERM";
-  }
-}
-
-interface ProcessSnapshot {
-  identity: string;
-  tokenMatches?: boolean;
-}
-
-function hashIdentity(value: string | Buffer): string {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-function inspectProcess(pid: number, token?: string): ProcessSnapshot | undefined {
-  if (!Number.isSafeInteger(pid) || pid <= 0 || !processAlive(pid)) return undefined;
-  try {
-    if (process.platform === "linux") {
-      const stat = fs.readFileSync(`/proc/${pid}/stat`, "utf8");
-      const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ");
-      const startTicks = fields[19];
-      const commandLine = fs.readFileSync(`/proc/${pid}/cmdline`);
-      if (!startTicks || !commandLine.length) return undefined;
-      const environment = token ? fs.readFileSync(`/proc/${pid}/environ`) : undefined;
-      return {
-        identity: `linux:${startTicks}:${hashIdentity(commandLine)}`,
-        ...(token
-          ? {
-              tokenMatches:
-                environment?.includes(Buffer.from(`PI_SUBAGENT_OWNER_TOKEN=${token}\0`)) ?? false,
-            }
-          : {}),
-      };
-    }
-    if (process.platform === "win32") {
-      const script = `$p=Get-CimInstance Win32_Process -Filter "ProcessId = ${pid}"; if ($null -ne $p) { [Console]::Out.Write($p.CreationDate.ToUniversalTime().Ticks.ToString() + [char]0 + $p.CommandLine) }`;
-      const result = spawnSync(
-        "powershell.exe",
-        ["-NoProfile", "-NonInteractive", "-Command", script],
-        { encoding: "utf8", timeout: 3000 },
-      );
-      const output = result.status === 0 ? result.stdout : "";
-      return output ? { identity: `windows:${hashIdentity(output)}` } : undefined;
-    }
-    // Darwin does not reliably expose another process's environment through ps, even to its parent.
-    const canVerifyToken = process.platform !== "darwin";
-    const result = spawnSync(
-      "ps",
-      [canVerifyToken ? "eww" : "ww", "-p", String(pid), "-o", "lstart=", "-o", "command="],
-      { encoding: "utf8", timeout: 3000 },
-    );
-    const output = result.status === 0 ? result.stdout.trim() : "";
-    if (!output) return undefined;
-    return {
-      identity: `unix:${hashIdentity(output)}`,
-      ...(token && canVerifyToken
-        ? { tokenMatches: output.includes(`PI_SUBAGENT_OWNER_TOKEN=${token}`) }
-        : {}),
-    };
-  } catch {
-    return undefined;
-  }
-}
-
-function ownershipMatches(ownership: ChildProcessOwnership): boolean {
-  const snapshot = inspectProcess(ownership.pid, ownership.token);
-  return snapshot?.identity === ownership.processIdentity && snapshot.tokenMatches !== false;
-}
-
 function markActive(agentId: string, kind: "active" | "peek", marker: PeekMarker): void {
   fs.writeFileSync(markerPath(agentId, kind), JSON.stringify(marker, null, 2));
 }
@@ -960,33 +987,6 @@ class EventBroadcaster {
   }
 }
 
-export class RpcJsonlDecoder {
-  private readonly decoder = new StringDecoder("utf8");
-  private buffer = "";
-
-  push(chunk: Buffer | string): string[] {
-    this.buffer += typeof chunk === "string" ? chunk : this.decoder.write(chunk);
-    const lines: string[] = [];
-    while (true) {
-      const index = this.buffer.indexOf("\n");
-      if (index === -1) break;
-      let line = this.buffer.slice(0, index);
-      this.buffer = this.buffer.slice(index + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      lines.push(line);
-    }
-    return lines;
-  }
-
-  end(): string[] {
-    this.buffer += this.decoder.end();
-    if (!this.buffer) return [];
-    const line = this.buffer.endsWith("\r") ? this.buffer.slice(0, -1) : this.buffer;
-    this.buffer = "";
-    return [line];
-  }
-}
-
 function extractTextFromMessage(message: any): string {
   const content = message?.content;
   if (typeof content === "string") return content;
@@ -1005,7 +1005,11 @@ function previewText(text: string | undefined, maxLength = 180): string | null {
     : `${normalized.slice(0, Math.max(0, maxLength - 1))}…`;
 }
 
-function getPiCommand(): { command: string; prefixArgs: string[] } {
+function getPiCommand(override?: AgentManagerOptions["piCommand"]): {
+  command: string;
+  prefixArgs: string[];
+} {
+  if (override) return { command: override.command, prefixArgs: override.prefixArgs ?? [] };
   if (process.env.PI_SUBAGENT_PI_BIN)
     return { command: process.env.PI_SUBAGENT_PI_BIN, prefixArgs: [] };
   const currentEntry = process.argv[1];
@@ -1020,18 +1024,6 @@ function canonicalAgentName(target: string): string {
 
 function targetMatches(event: AgentCompletionEvent, targets?: Set<string>): boolean {
   return !targets || targets.has(event.agentName);
-}
-
-export function consumeFirstMatchingMailboxEvent(
-  events: AgentCompletionEvent[],
-  parentSessionId: string,
-  targets?: Set<string>,
-): AgentCompletionEvent | undefined {
-  const index = events.findIndex(
-    (event) => event.parentSessionId === parentSessionId && targetMatches(event, targets),
-  );
-  if (index === -1) return undefined;
-  return events.splice(index, 1)[0];
 }
 
 export class AgentManager {
@@ -1138,7 +1130,19 @@ export class AgentManager {
   private async reconcilePersistedChildren(): Promise<void> {
     for (const info of readAllInfos()) {
       const ownership = info.childProcess;
-      if (!ownership) continue;
+      if (!ownership) {
+        if (info.status === "starting" && !taskLockIsActive(info.parentSessionId, info.taskName)) {
+          reclaimDeadTaskLock(
+            taskLockFile(info.parentSessionId, info.taskName),
+            this.options.beforeReclaimTaskLockRemoval,
+          );
+          info.status = "interrupted";
+          info.lastActivity = Date.now();
+          saveInfo(info);
+          this.notifyStatusChange(info);
+        }
+        continue;
+      }
       try {
         if (!ownershipMatches(ownership)) {
           if (info.status === "starting" || info.status === "running") {
@@ -1194,17 +1198,34 @@ export class AgentManager {
     const directory = scopeDir(params.parentSessionId);
     ensurePrivateDir(directory, true);
 
-    const lockFile = path.join(directory, `.task-${taskStorageKey(taskName)}.lock`);
+    const lockFile = taskLockFile(params.parentSessionId, taskName);
+    const lockToken = randomUUID();
     let lock: number | undefined;
     try {
-      try {
-        lock = fs.openSync(lockFile, "wx");
-        fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, createdAt: Date.now() }));
-      } catch (error: any) {
-        if (error?.code === "EEXIST")
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          lock = fs.openSync(lockFile, "wx");
+          fs.writeFileSync(
+            lock,
+            JSON.stringify({
+              pid: process.pid,
+              processIdentity: this.ownerProcessIdentity,
+              token: lockToken,
+              createdAt: Date.now(),
+            }),
+          );
+          break;
+        } catch (error: any) {
+          if (error?.code !== "EEXIST") throw error;
+          if (
+            attempt === 0 &&
+            reclaimDeadTaskLock(lockFile, this.options.beforeReclaimTaskLockRemoval)
+          )
+            continue;
           throw new Error(`Agent ${taskName} is already being created.`);
-        throw error;
+        }
       }
+      if (lock === undefined) throw new Error(`Unable to lock agent ${taskName} for creation.`);
       if (readScopeInfos(params.parentSessionId).some((info) => info.taskName === taskName)) {
         throw new Error(
           `Agent ${taskName} already exists in this parent session. Use a new task_name.`,
@@ -1248,12 +1269,7 @@ export class AgentManager {
       await this.startLiveAgent(info, prompt, params.message);
       return { task_name: info.canonicalName, nickname: null };
     } finally {
-      if (lock !== undefined) {
-        fs.closeSync(lock);
-        try {
-          fs.unlinkSync(lockFile);
-        } catch {}
-      }
+      if (lock !== undefined) releaseTaskLock(lockFile, lock, lockToken);
     }
   }
 
@@ -1269,7 +1285,7 @@ export class AgentManager {
     const logger = new SessionLogger(info.logFile);
     const broadcaster = new EventBroadcaster(info.id);
     broadcaster.start();
-    const launch = getPiCommand();
+    const launch = getPiCommand(this.options.piCommand);
     const args = [
       ...launch.prefixArgs,
       "--mode",
@@ -1301,7 +1317,11 @@ export class AgentManager {
     const proc = spawn(launch.command, args, {
       cwd: info.cwd,
       stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, PI_SUBAGENT_OWNER_TOKEN: childToken },
+      env: {
+        ...process.env,
+        ...this.options.childEnv,
+        PI_SUBAGENT_OWNER_TOKEN: childToken,
+      },
       detached: process.platform !== "win32",
     });
     let resolveExit!: () => void;
@@ -1398,14 +1418,19 @@ export class AgentManager {
 
     try {
       if (!proc.pid) throw new Error("Child Pi process did not provide a PID.");
-      await this.sendCommand(live, { type: "get_state" }, DEFAULT_STARTUP_TIMEOUT_MS);
       let snapshot: ProcessSnapshot | undefined;
-      for (let attempt = 0; attempt < 20 && !snapshot; attempt++) {
-        snapshot = inspectProcess(proc.pid, childToken);
-        if (!snapshot || snapshot.tokenMatches === false) await delay(10);
+      for (let attempt = 0; attempt < 20; attempt++) {
+        const candidate = inspectProcess(proc.pid, childToken);
+        if (candidate && candidate.tokenMatches !== false) {
+          snapshot = candidate;
+          break;
+        }
+        await delay(10);
       }
       if (!snapshot || snapshot.tokenMatches === false)
         throw new Error("Unable to verify child Pi process ownership.");
+      // Persist ownership before the first RPC round trip. If this process crashes while
+      // the child is starting, the next manager can identify and terminate the orphan.
       info.childProcess = {
         pid: proc.pid,
         processIdentity: snapshot.identity,
@@ -1415,6 +1440,7 @@ export class AgentManager {
         startedAt: Date.now(),
       };
       saveInfo(info);
+      await this.sendCommand(live, { type: "get_state" }, DEFAULT_STARTUP_TIMEOUT_MS);
       if (initialMessage) await this.prompt(live, initialMessage, displayMessage);
       return live;
     } catch (error) {

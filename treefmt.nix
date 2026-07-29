@@ -15,6 +15,6 @@
   settings.formatter.renovate-config-validator = {
     command = "${pkgs.renovate}/bin/renovate-config-validator";
     options = ["--strict"];
-    includes = ["renovate.json"];
+    includes = ["renovate.json5"];
   };
 }

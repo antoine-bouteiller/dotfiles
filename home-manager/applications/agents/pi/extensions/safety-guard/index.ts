@@ -1,14 +1,12 @@
-import { resolve } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import {
   ALL_PATTERNS,
   COMMAND_EXCERPT_CONTEXT_LINES,
   COMMAND_EXCERPT_MAX_LENGTH,
-  PROTECTED_PATH_PATTERNS,
-  PUBLIC_ENV_FILENAMES,
   SAFETY_STATUS_KEY,
 } from "./constants";
+import { isProtectedPath } from "../shared/protected-paths";
 
 function commandExcerpt(command: string, pattern: RegExp): string {
   const lines = command.split(/\r?\n/);
@@ -30,14 +28,6 @@ function commandExcerpt(command: string, pattern: RegExp): string {
       return `${marker} ${lineNumber}: ${displayed}`;
     })
     .join("\n");
-}
-
-function isProtectedPath(targetPath: string, cwd: string): boolean {
-  const normalized = resolve(cwd, targetPath).replaceAll("\\", "/").toLowerCase();
-  const basename = normalized.slice(normalized.lastIndexOf("/") + 1);
-  if (PUBLIC_ENV_FILENAMES.has(basename)) return false;
-
-  return PROTECTED_PATH_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 async function confirmRisk(
@@ -69,13 +59,16 @@ export default function safetyGuard(pi: ExtensionAPI) {
     }
 
     if (command !== undefined) {
+      // This scanner catches common command spellings for UX and policy
+      // guidance. It is intentionally not presented as a shell parser or
+      // sandbox; destructive custom tools must enforce safety themselves.
       for (const rule of ALL_PATTERNS) {
         if (!rule.pattern.test(command)) continue;
         if (rule.severity === "critical") {
           if (ctx.hasUI) ctx.ui.notify(`🚫 Blocked: ${rule.label}`, "error");
           return {
             block: true,
-            reason: `CRITICAL: ${rule.label} — command is never allowed`,
+            reason: `CRITICAL (best-effort command policy): ${rule.label} — recognized command blocked`,
           };
         }
 
@@ -105,7 +98,7 @@ export default function safetyGuard(pi: ExtensionAPI) {
     if (
       protectedOperation === undefined ||
       protectedPath === undefined ||
-      !isProtectedPath(protectedPath, ctx.cwd)
+      !(await isProtectedPath(protectedPath, ctx.cwd))
     ) {
       return undefined;
     }

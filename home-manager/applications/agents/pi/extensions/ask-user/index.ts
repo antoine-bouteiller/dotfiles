@@ -14,7 +14,11 @@ import {
   matchesKey,
   Text,
   truncateToWidth,
+  visibleWidth,
+  wrapTextWithAnsi,
+  type Component,
   type EditorTheme,
+  type Focusable,
 } from "@earendil-works/pi-tui";
 import { Type, type Static } from "typebox";
 import {
@@ -72,29 +76,6 @@ interface DisplayOption {
   isOther?: boolean;
 }
 
-function wrapText(text: string, width: number): string[] {
-  const lines: string[] = [];
-  for (const paragraph of text.split("\n")) {
-    const words = paragraph.split(/\s+/).filter(Boolean);
-    if (words.length === 0) {
-      lines.push("");
-      continue;
-    }
-    let current = "";
-    for (const word of words) {
-      const candidate = current ? `${current} ${word}` : word;
-      if (candidate.length > width && current) {
-        lines.push(current);
-        current = word;
-      } else {
-        current = candidate;
-      }
-    }
-    if (current) lines.push(current);
-  }
-  return lines;
-}
-
 export default function askUser(pi: ExtensionAPI) {
   pi.registerTool({
     name: "ask_user",
@@ -140,6 +121,7 @@ export default function askUser(pi: ExtensionAPI) {
           let optionIndex = 0;
           let editMode = false;
           let cachedLines: string[] | undefined;
+          let cachedWidth: number | undefined;
 
           let settled = false;
 
@@ -182,6 +164,7 @@ export default function askUser(pi: ExtensionAPI) {
 
           function refresh() {
             cachedLines = undefined;
+            cachedWidth = undefined;
             tui.requestRender();
           }
 
@@ -241,18 +224,23 @@ export default function askUser(pi: ExtensionAPI) {
           }
 
           function render(width: number): string[] {
-            if (cachedLines) return cachedLines;
+            const renderWidth = Math.max(1, Math.floor(width));
+            if (cachedLines && cachedWidth === renderWidth) return cachedLines;
 
             const lines: string[] = [];
-            const add = (s: string) => lines.push(truncateToWidth(s, width));
+            const add = (s: string) => lines.push(truncateToWidth(s, renderWidth));
+            const addWrapped = (text: string, indent: string, style: (value: string) => string) => {
+              const safeIndent = visibleWidth(indent) < renderWidth ? indent : "";
+              const contentWidth = Math.max(1, renderWidth - visibleWidth(safeIndent));
+              for (const line of wrapTextWithAnsi(text, contentWidth)) {
+                add(safeIndent + style(line));
+              }
+            };
 
             const title = " Question ";
-            add(
-              theme.fg("accent", `─${title}${"─".repeat(Math.max(0, width - title.length - 1))}`),
-            );
-            for (const line of wrapText(params.question, Math.max(10, width - 2))) {
-              add(` ${theme.fg("text", theme.bold(line))}`);
-            }
+            const ruleWidth = Math.max(0, renderWidth - visibleWidth(title) - 1);
+            add(theme.fg("accent", `─${title}${"─".repeat(ruleWidth)}`));
+            addWrapped(params.question, " ", (line) => theme.fg("text", theme.bold(line)));
             lines.push("");
 
             for (let i = 0; i < allOptions.length; i++) {
@@ -261,23 +249,23 @@ export default function askUser(pi: ExtensionAPI) {
               const prefix = selected ? theme.fg("accent", " ❯ ") : "   ";
               const marker = opt.isOther ? "✎" : `${i + 1}.`;
               const label = `${marker} ${opt.label}`;
+              const color =
+                selected || (opt.isOther && editMode) ? "accent" : opt.isOther ? "muted" : "text";
 
-              if (selected || (opt.isOther && editMode)) {
-                add(prefix + theme.fg("accent", label));
-              } else {
-                add(prefix + theme.fg(opt.isOther ? "muted" : "text", label));
-              }
+              addWrapped(label, prefix, (line) => theme.fg(color, line));
 
               if (opt.description) {
-                add(`      ${theme.fg("muted", opt.description)}`);
+                addWrapped(opt.description, "      ", (line) => theme.fg("muted", line));
               }
             }
 
             if (editMode) {
               lines.push("");
               add(theme.fg("muted", " Your answer:"));
-              for (const line of editor.render(width - 2)) {
-                add(` ${line}`);
+              const editorIndent = renderWidth > 1 ? " " : "";
+              const editorWidth = Math.max(1, renderWidth - visibleWidth(editorIndent));
+              for (const line of editor.render(editorWidth)) {
+                add(editorIndent + line);
               }
             }
 
@@ -292,28 +280,41 @@ export default function askUser(pi: ExtensionAPI) {
                 ),
               );
             }
-            add(theme.fg("accent", "─".repeat(width)));
+            add(theme.fg("accent", "─".repeat(renderWidth)));
 
             cachedLines = lines;
+            cachedWidth = renderWidth;
             return lines;
           }
 
+          let focused = false;
           return {
+            get focused() {
+              return focused;
+            },
+            set focused(value: boolean) {
+              focused = value;
+              editor.focused = value;
+              cachedLines = undefined;
+              cachedWidth = undefined;
+            },
             render,
             invalidate: () => {
               cachedLines = undefined;
+              cachedWidth = undefined;
             },
             handleInput,
             dispose: () => {
               uiSignal?.removeEventListener("abort", cancel);
             },
-          };
+          } satisfies Component & Focusable & { dispose(): void };
         });
 
       const result = await showQuestion(signal ?? undefined);
 
       if (!result) {
-        return reply(buildAskUserResultMessage({ kind: "dismissed" }));
+        const kind = signal?.aborted ? "cancelled" : "dismissed";
+        return reply(buildAskUserResultMessage({ kind }));
       }
 
       if (result.wasCustom) {

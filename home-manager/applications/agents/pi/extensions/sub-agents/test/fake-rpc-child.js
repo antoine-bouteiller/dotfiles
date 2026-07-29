@@ -20,7 +20,10 @@ const input = readline.createInterface({ input: process.stdin });
 input.on("line", (line) => {
   const command = JSON.parse(line);
   if (command.type === "get_state") {
-    send({ type: "response", id: command.id, success: true, data: {} });
+    const delay = Number(process.env.PI_SUBAGENT_TEST_GET_STATE_DELAY_MS || 0);
+    if (delay > 0)
+      setTimeout(() => send({ type: "response", id: command.id, success: true, data: {} }), delay);
+    else send({ type: "response", id: command.id, success: true, data: {} });
     return;
   }
   if (command.type === "prompt") {

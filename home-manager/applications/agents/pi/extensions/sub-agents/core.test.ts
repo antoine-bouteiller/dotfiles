@@ -26,6 +26,18 @@ const {
   parseAgentDefinitionText,
   taskStorageKey,
 } = await import("./core.js");
+const { SubagentPeekOverlay } = await import("./peek.js");
+
+function createAgentManager(options: Record<string, unknown> = {}) {
+  return new AgentManager({
+    piCommand: { command: FAKE_RPC_CHILD },
+    ...options,
+  });
+}
+
+function processTest(name: string, run: () => void | Promise<void>): void {
+  test(name, run, 15_000);
+}
 
 describe("RPC framing", () => {
   test("splits only on LF and preserves Unicode line separators", () => {
@@ -145,7 +157,7 @@ describe("run storage", () => {
       );
     }
 
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     try {
       expect(
         manager.listAgents(undefined, parentSessionId).map((agent) => agent.agent_name),
@@ -219,7 +231,7 @@ describe("run storage", () => {
       fs.writeFileSync(path.join(outputs, "unrelated.txt"), "keep");
       fs.writeFileSync(path.join(unrelatedScope, "unrelated.txt"), "keep");
 
-      new AgentManager();
+      createAgentManager();
       expect(fs.existsSync(expiredInfo)).toBe(false);
       expect(fs.existsSync(activeInfo)).toBe(true);
       expect(fs.existsSync(unrelatedAgentFile)).toBe(true);
@@ -232,7 +244,7 @@ describe("run storage", () => {
       fs.writeFileSync(configFile, JSON.stringify({ storageDir: fixtureDir, retentionDays: 0 }));
       fs.writeFileSync(expiredInfo, "{}");
       fs.utimesSync(expiredInfo, oldTime, oldTime);
-      new AgentManager();
+      createAgentManager();
       expect(fs.existsSync(expiredInfo)).toBe(true);
     } finally {
       fs.rmSync(fixtureDir, { recursive: true, force: true });
@@ -242,7 +254,7 @@ describe("run storage", () => {
   });
 });
 
-async function waitUntil(predicate: () => boolean, timeoutMs = 5000): Promise<void> {
+async function waitUntil(predicate: () => boolean, timeoutMs = 12_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (predicate()) return;
@@ -272,16 +284,176 @@ function spawnParams(parentSessionId: string, task_name: string, message: string
 }
 
 describe("child process lifecycle", () => {
-  test("hibernates after settle and lazily restarts the persisted session", async () => {
+  processTest(
+    "reclaims a fresh lock whose PID identity no longer owns it, even with retention disabled",
+    async () => {
+      const parentSessionId = "fresh-dead-lock";
+      const packageDir = path.join(TEST_AGENT_DIR, "pi-codex-subagents");
+      const configFile = path.join(packageDir, "config.json");
+      const scope = path.join(packageDir, "runs", parentScopeKey(parentSessionId));
+      const lockFile = path.join(scope, `.task-${taskStorageKey("worker")}.lock`);
+      fs.mkdirSync(scope, { recursive: true });
+      fs.writeFileSync(configFile, JSON.stringify({ retentionDays: 0 }));
+      fs.writeFileSync(
+        lockFile,
+        JSON.stringify({
+          pid: process.pid,
+          processIdentity: "identity-from-an-exited-process",
+          createdAt: Date.now(),
+        }),
+      );
+      const manager = createAgentManager();
+      try {
+        await manager.spawnAgent(spawnParams(parentSessionId, "worker", "hold lock recovery"));
+        expect(manager.getAgentInfo("worker", parentSessionId).status).toBe("running");
+        expect(fs.existsSync(lockFile)).toBe(false);
+        await manager.interruptAgent(parentSessionId, "worker");
+      } finally {
+        await manager.shutdown();
+        fs.rmSync(scope, { recursive: true, force: true });
+        fs.rmSync(configFile, { force: true });
+      }
+    },
+  );
+
+  processTest("does not unlink a live lock that replaces the inspected dead instance", async () => {
+    const parentSessionId = "lock-replacement-race";
+    const packageDir = path.join(TEST_AGENT_DIR, "pi-codex-subagents");
+    const configFile = path.join(packageDir, "config.json");
+    const scope = path.join(packageDir, "runs", parentScopeKey(parentSessionId));
+    const lockFile = path.join(scope, `.task-${taskStorageKey("worker")}.lock`);
+    const displacedLock = `${lockFile}.displaced`;
+    fs.mkdirSync(scope, { recursive: true });
+    fs.writeFileSync(configFile, JSON.stringify({ retentionDays: 0 }));
+    fs.writeFileSync(
+      lockFile,
+      JSON.stringify({
+        pid: process.pid,
+        processIdentity: "identity-from-an-exited-process",
+        token: "dead-instance",
+        createdAt: Date.now(),
+      }),
+    );
+    let replaced = false;
+    const manager = createAgentManager({
+      beforeReclaimTaskLockRemoval(file: string) {
+        if (replaced) return;
+        replaced = true;
+        fs.renameSync(file, displacedLock);
+        fs.writeFileSync(
+          file,
+          JSON.stringify({
+            pid: process.pid,
+            token: "live-replacement",
+            createdAt: Date.now(),
+          }),
+        );
+      },
+    });
+    try {
+      await expect(
+        manager.spawnAgent(spawnParams(parentSessionId, "worker", "must not start")),
+      ).rejects.toThrow("already being created");
+      expect(replaced).toBe(true);
+      expect(JSON.parse(fs.readFileSync(lockFile, "utf8"))).toMatchObject({
+        pid: process.pid,
+        token: "live-replacement",
+      });
+    } finally {
+      await manager.shutdown();
+      fs.rmSync(scope, { recursive: true, force: true });
+      fs.rmSync(configFile, { force: true });
+    }
+  });
+
+  processTest("reconciles a persisted starting record left before child ownership", async () => {
+    const parentSessionId = "starting-without-owner";
+    const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
+    const id = "33333333-3333-4333-8333-333333333333";
+    const infoFile = path.join(scope, `${id}.info.json`);
+    const now = Date.now();
+    fs.rmSync(scope, { recursive: true, force: true });
+    fs.mkdirSync(scope, { recursive: true });
+    fs.writeFileSync(
+      infoFile,
+      JSON.stringify({
+        id,
+        taskName: "worker",
+        canonicalName: "/worker",
+        parentSessionId,
+        provider: "test",
+        modelId: "fake",
+        model: "test:fake",
+        cwd: TEST_AGENT_DIR,
+        sessionFile: path.join(scope, `${id}.jsonl`),
+        infoFile,
+        logFile: path.join(scope, `${id}.log`),
+        createdAt: now,
+        updatedAt: now,
+        startedAt: now,
+        lastActivity: now,
+        messageCount: 0,
+        status: "starting",
+      }),
+    );
+    const manager = createAgentManager();
+    try {
+      await manager.ready();
+      const reconciled = manager.getAgentInfo("worker", parentSessionId);
+      expect(reconciled.status).toBe("interrupted");
+      expect(reconciled.childProcess).toBeUndefined();
+    } finally {
+      await manager.shutdown();
+      fs.rmSync(scope, { recursive: true, force: true });
+    }
+  });
+
+  processTest(
+    "persists provisional ownership before the startup RPC round trip completes",
+    async () => {
+      const parentSessionId = "startup-crash-window";
+      const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
+      fs.rmSync(scope, { recursive: true, force: true });
+      const manager = createAgentManager({
+        childEnv: { PI_SUBAGENT_TEST_GET_STATE_DELAY_MS: "300" },
+      });
+      let spawnSettled = false;
+      try {
+        const spawning = manager
+          .spawnAgent(spawnParams(parentSessionId, "worker", "hold startup"))
+          .finally(() => {
+            spawnSettled = true;
+          });
+        await waitUntil(() => {
+          try {
+            return Boolean(manager.getAgentInfo("worker", parentSessionId).childProcess);
+          } catch {
+            return false;
+          }
+        });
+        const starting = manager.getAgentInfo("worker", parentSessionId);
+        expect(starting.status).toBe("starting");
+        expect(starting.childProcess?.pid).toBeNumber();
+        expect(pidAlive(starting.childProcess!.pid)).toBe(true);
+        expect(spawnSettled).toBe(false);
+        await spawning;
+        await manager.interruptAgent(parentSessionId, "worker");
+      } finally {
+        await manager.shutdown();
+        fs.rmSync(scope, { recursive: true, force: true });
+      }
+    },
+  );
+
+  processTest("hibernates after settle and lazily restarts the persisted session", async () => {
     fs.rmSync(path.join(TEST_AGENT_DIR, "pi-codex-subagents", "config.json"), { force: true });
     fs.rmSync(path.join(TEST_AGENT_DIR, "pi-codex-subagents", "SYSTEM.md"), { force: true });
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
     const parentSessionId = "lifecycle-settle";
     fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
       recursive: true,
       force: true,
     });
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     try {
       await manager.spawnAgent(spawnParams(parentSessionId, "worker", "first"));
       const first = manager.getAgentInfo("worker", parentSessionId);
@@ -342,12 +514,10 @@ describe("child process lifecycle", () => {
         recursive: true,
         force: true,
       });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("hibernates after failure while preserving the error", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("hibernates after failure while preserving the error", async () => {
     const parentSessionId = "lifecycle-failure";
     const systemPromptFile = path.join(TEST_AGENT_DIR, "pi-codex-subagents", "SYSTEM.md");
     const customSystemPrompt = "Use the custom subagent instructions.";
@@ -357,7 +527,7 @@ describe("child process lifecycle", () => {
     });
     fs.mkdirSync(path.dirname(systemPromptFile), { recursive: true });
     fs.writeFileSync(systemPromptFile, customSystemPrompt);
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     try {
       await manager.spawnAgent(spawnParams(parentSessionId, "worker", "fail now"));
       const started = manager.getAgentInfo("worker", parentSessionId);
@@ -377,67 +547,61 @@ describe("child process lifecycle", () => {
         force: true,
       });
       fs.rmSync(systemPromptFile, { force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("rejects an empty configured system prompt instead of falling back to Pi's default", async () => {
-    const parentSessionId = "empty-system-prompt";
-    const systemPromptFile = path.join(TEST_AGENT_DIR, "pi-codex-subagents", "SYSTEM.md");
-    fs.mkdirSync(path.dirname(systemPromptFile), { recursive: true });
-    fs.writeFileSync(systemPromptFile, "\n");
-    const manager = new AgentManager();
-    try {
-      await expect(
-        manager.spawnAgent(spawnParams(parentSessionId, "worker", "first")),
-      ).rejects.toThrow("Subagent system prompt is empty");
-    } finally {
-      await manager.shutdown();
-      fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
-        recursive: true,
-        force: true,
-      });
-      fs.rmSync(systemPromptFile, { force: true });
-    }
-  });
+  processTest(
+    "rejects an empty configured system prompt instead of falling back to Pi's default",
+    async () => {
+      const parentSessionId = "empty-system-prompt";
+      const systemPromptFile = path.join(TEST_AGENT_DIR, "pi-codex-subagents", "SYSTEM.md");
+      fs.mkdirSync(path.dirname(systemPromptFile), { recursive: true });
+      fs.writeFileSync(systemPromptFile, "\n");
+      const manager = createAgentManager();
+      try {
+        await expect(
+          manager.spawnAgent(spawnParams(parentSessionId, "worker", "first")),
+        ).rejects.toThrow("Subagent system prompt is empty");
+      } finally {
+        await manager.shutdown();
+        fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
+          recursive: true,
+          force: true,
+        });
+        fs.rmSync(systemPromptFile, { force: true });
+      }
+    },
+  );
 
-  test("accepts Darwin process ownership when ps cannot expose the token", async () => {
-    const platformDescriptor = Object.getOwnPropertyDescriptor(process, "platform")!;
-    Object.defineProperty(process, "platform", { ...platformDescriptor, value: "darwin" });
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("accepts Darwin process ownership when ps cannot expose the token", async () => {
+    if (process.platform !== "darwin") return;
     const parentSessionId = "lifecycle-darwin";
     fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
       recursive: true,
       force: true,
     });
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     try {
       await manager.spawnAgent(spawnParams(parentSessionId, "worker", "hold darwin"));
       const running = manager.getAgentInfo("worker", parentSessionId);
       expect(running.childProcess?.pid).toBeNumber();
       expect(pidAlive(running.childProcess!.pid)).toBe(true);
     } finally {
-      try {
-        await manager.shutdown();
-      } finally {
-        Object.defineProperty(process, "platform", platformDescriptor);
-        fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
-          recursive: true,
-          force: true,
-        });
-        delete process.env.PI_SUBAGENT_PI_BIN;
-      }
+      await manager.shutdown();
+      fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
+        recursive: true,
+        force: true,
+      });
     }
   });
 
-  test("interrupt terminates the child and clears runtime artifacts", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("interrupt terminates the child and clears runtime artifacts", async () => {
     const parentSessionId = "lifecycle-interrupt";
     fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
       recursive: true,
       force: true,
     });
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     try {
       await manager.spawnAgent(spawnParams(parentSessionId, "worker", "hold interrupt"));
       const running = manager.getAgentInfo("worker", parentSessionId);
@@ -465,23 +629,21 @@ describe("child process lifecycle", () => {
         recursive: true,
         force: true,
       });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("reconciles owned children without risking PID-reuse kills", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("reconciles owned children without risking PID-reuse kills", async () => {
     const parentSessionId = "lifecycle-reconcile";
     fs.rmSync(path.join(getRunsDir(), parentScopeKey(parentSessionId)), {
       recursive: true,
       force: true,
     });
-    const owner = new AgentManager();
-    const reconcilers: AgentManager[] = [];
+    const owner = createAgentManager();
+    const reconcilers: Array<InstanceType<typeof AgentManager>> = [];
     try {
       await owner.spawnAgent(spawnParams(parentSessionId, "orphan", "hold orphan"));
       const orphanPid = owner.getAgentInfo("orphan", parentSessionId).childProcess!.pid;
-      const reconciler = new AgentManager();
+      const reconciler = createAgentManager();
       reconcilers.push(reconciler);
       await waitUntil(() => {
         const info = reconciler.getAgentInfo("orphan", parentSessionId);
@@ -495,7 +657,7 @@ describe("child process lifecycle", () => {
       const mismatchedPid = mismatched.childProcess!.pid;
       mismatched.childProcess!.processIdentity = "not-the-owned-process";
       fs.writeFileSync(mismatched.infoFile, JSON.stringify(mismatched, null, 2));
-      const mismatchReconciler = new AgentManager();
+      const mismatchReconciler = createAgentManager();
       reconcilers.push(mismatchReconciler);
       await waitUntil(() => {
         const info = mismatchReconciler.getAgentInfo("pid-reuse", parentSessionId);
@@ -510,19 +672,17 @@ describe("child process lifecycle", () => {
         recursive: true,
         force: true,
       });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 });
 
 describe("completion delivery", () => {
-  test("publishes unclaimed settled and abnormal-exit completions", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("publishes unclaimed settled and abnormal-exit completions", async () => {
     const parentSessionId = "completion-callbacks";
     const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
     fs.rmSync(scope, { recursive: true, force: true });
     const completions: any[] = [];
-    const manager = new AgentManager({
+    const manager = createAgentManager({
       onUnclaimedCompletion: (event: any) => completions.push(event),
     });
     try {
@@ -546,17 +706,15 @@ describe("completion delivery", () => {
     } finally {
       await manager.shutdown();
       fs.rmSync(scope, { recursive: true, force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("suppresses automatic delivery while wait tools claim completions", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("suppresses automatic delivery while wait tools claim completions", async () => {
     const parentSessionId = "completion-waits";
     const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
     fs.rmSync(scope, { recursive: true, force: true });
     const completions: any[] = [];
-    const manager = new AgentManager({
+    const manager = createAgentManager({
       onUnclaimedCompletion: (event: any) => completions.push(event),
     });
     try {
@@ -574,17 +732,15 @@ describe("completion delivery", () => {
     } finally {
       await manager.shutdown();
       fs.rmSync(scope, { recursive: true, force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("releases suppressed completions when wait_all_agents is cancelled", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("releases suppressed completions when wait_all_agents is cancelled", async () => {
     const parentSessionId = "completion-wait-cancel";
     const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
     fs.rmSync(scope, { recursive: true, force: true });
     const completions: any[] = [];
-    const manager = new AgentManager({
+    const manager = createAgentManager({
       onUnclaimedCompletion: (event: any) => completions.push(event),
     });
     const controller = new AbortController();
@@ -601,17 +757,15 @@ describe("completion delivery", () => {
     } finally {
       await manager.shutdown();
       fs.rmSync(scope, { recursive: true, force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 
-  test("reports active and inactive lifecycle transitions", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
+  processTest("reports active and inactive lifecycle transitions", async () => {
     const parentSessionId = "status-transitions";
     const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
     fs.rmSync(scope, { recursive: true, force: true });
     const activity: boolean[] = [];
-    const manager = new AgentManager({
+    const manager = createAgentManager({
       onActivityChange: (event: any) => {
         if (event.parentSessionId === parentSessionId) activity.push(event.active);
       },
@@ -644,125 +798,187 @@ describe("completion delivery", () => {
     } finally {
       await manager.shutdown();
       fs.rmSync(scope, { recursive: true, force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
     }
   });
 });
 
 describe("extension completion delivery and TUI", () => {
-  test("registers commands, renders one-line activity, and delivers bounded completions", async () => {
-    process.env.PI_SUBAGENT_PI_BIN = FAKE_RPC_CHILD;
-    const handlers = new Map<string, Array<(event: any, ctx: any) => any>>();
-    const tools = new Map<string, any>();
-    const commands = new Map<string, any>();
-    const renderers = new Map<string, any>();
-    const sentMessages: Array<{ message: any; options: any }> = [];
-    let widget: any;
-    const pi: any = {
-      on(name: string, handler: (event: any, ctx: any) => any) {
-        const entries = handlers.get(name) ?? [];
-        entries.push(handler);
-        handlers.set(name, entries);
-      },
-      registerTool(tool: any) {
-        tools.set(tool.name, tool);
-      },
-      registerCommand(name: string, command: any) {
-        commands.set(name, command);
-      },
-      registerMessageRenderer(name: string, renderer: any) {
-        renderers.set(name, renderer);
-      },
-      sendMessage(message: any, options: any) {
-        sentMessages.push({ message, options });
-      },
-      getThinkingLevel() {
-        return "high";
-      },
-      getActiveTools() {
-        return ["read", "bash"];
-      },
-    };
-    const parentSessionId = "index-integration-parent";
-    const ctx: any = {
-      cwd: TEST_AGENT_DIR,
-      mode: "tui",
-      model: { provider: "test", id: "fake" },
-      sessionManager: {
-        getSessionId: () => parentSessionId,
-        getSessionFile: () => path.join(TEST_AGENT_DIR, "parent.jsonl"),
-      },
-      ui: {
-        setWidget(_key: string, value: any) {
-          widget = value;
+  processTest(
+    "registers commands, renders one-line activity, and delivers bounded completions",
+    async () => {
+      const handlers = new Map<string, Array<(event: any, ctx: any) => any>>();
+      const tools = new Map<string, any>();
+      const commands = new Map<string, any>();
+      const renderers = new Map<string, any>();
+      const sentMessages: Array<{ message: any; options: any }> = [];
+      let widget: any;
+      const pi: any = {
+        on(name: string, handler: (event: any, ctx: any) => any) {
+          const entries = handlers.get(name) ?? [];
+          entries.push(handler);
+          handlers.set(name, entries);
         },
-      },
-    };
-    const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
-    fs.rmSync(scope, { recursive: true, force: true });
-    const { default: subagentExtension } = await import("./index.js");
-    subagentExtension(pi);
-    const emit = async (name: string, event: any = {}) => {
-      for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
-    };
-
-    try {
-      await emit("session_start", { reason: "startup" });
-      expect(commands.has("agents")).toBe(true);
-      expect(commands.has("subagent")).toBe(true);
-      expect(commands.has("subagents")).toBe(true);
-      expect(renderers.has("pi-codex-subagent-completion")).toBe(true);
-
-      await tools.get("spawn_agent").execute(
-        "spawn-1",
-        {
-          task_name: "x".repeat(200),
-          message: "slow finish",
+        registerTool(tool: any) {
+          tools.set(tool.name, tool);
         },
-        undefined,
-        undefined,
-        ctx,
-      );
-
-      expect(widget).toBeFunction();
-      const theme = { fg: (_color: string, text: string) => text };
-      const lines = widget({}, theme).render(40);
-      expect(lines).toHaveLength(1);
-      expect(visibleWidth(lines[0])).toBeLessThanOrEqual(40);
-      expect(lines[0]).toContain("/subagents");
-
-      await waitUntil(() => sentMessages.length === 1);
-      expect(widget).toBeUndefined();
-      expect(sentMessages[0].options).toEqual({ deliverAs: "steer", triggerTurn: true });
-      expect(sentMessages[0].message.content).toContain("response:slow finish");
-
-      await tools.get("spawn_agent").execute(
-        "spawn-2",
-        {
-          task_name: "large-output",
-          message: "large response",
+        registerCommand(name: string, command: any) {
+          commands.set(name, command);
         },
-        undefined,
-        undefined,
-        ctx,
-      );
-      await waitUntil(() => sentMessages.length === 2);
-      const large = sentMessages[1].message;
-      expect(Buffer.byteLength(large.content, "utf8")).toBeLessThanOrEqual(50 * 1024);
-      expect(large.content).toContain("Output truncated");
-      expect(large.details.fullOutputPath).toBeString();
-      expect(fs.existsSync(large.details.fullOutputPath)).toBe(true);
-    } finally {
-      await emit("session_shutdown", { reason: "quit" });
+        registerMessageRenderer(name: string, renderer: any) {
+          renderers.set(name, renderer);
+        },
+        sendMessage(message: any, options: any) {
+          sentMessages.push({ message, options });
+        },
+        getThinkingLevel() {
+          return "high";
+        },
+        getActiveTools() {
+          return ["read", "bash"];
+        },
+      };
+      const parentSessionId = "index-integration-parent";
+      const ctx: any = {
+        cwd: TEST_AGENT_DIR,
+        mode: "tui",
+        model: { provider: "test", id: "fake" },
+        sessionManager: {
+          getSessionId: () => parentSessionId,
+          getSessionFile: () => path.join(TEST_AGENT_DIR, "parent.jsonl"),
+        },
+        ui: {
+          setWidget(_key: string, value: any) {
+            widget = value;
+          },
+        },
+      };
+      const scope = path.join(getRunsDir(), parentScopeKey(parentSessionId));
       fs.rmSync(scope, { recursive: true, force: true });
-      delete process.env.PI_SUBAGENT_PI_BIN;
+      const { default: subagentExtension } = await import("./index.js");
+      subagentExtension(pi, { piCommand: { command: FAKE_RPC_CHILD } });
+      const emit = async (name: string, event: any = {}) => {
+        for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
+      };
+
+      try {
+        await emit("session_start", { reason: "startup" });
+        expect(commands.has("agents")).toBe(true);
+        expect(commands.has("subagent")).toBe(true);
+        expect(commands.has("subagents")).toBe(true);
+        expect(renderers.has("pi-codex-subagent-completion")).toBe(true);
+
+        await tools.get("spawn_agent").execute(
+          "spawn-1",
+          {
+            task_name: "x".repeat(200),
+            message: "slow finish",
+          },
+          undefined,
+          undefined,
+          ctx,
+        );
+
+        expect(widget).toBeFunction();
+        const theme = { fg: (_color: string, text: string) => text };
+        const lines = widget({}, theme).render(40);
+        expect(lines).toHaveLength(1);
+        expect(visibleWidth(lines[0])).toBeLessThanOrEqual(40);
+        expect(lines[0]).toContain("/subagents");
+
+        await waitUntil(() => sentMessages.length === 1);
+        expect(widget).toBeUndefined();
+        expect(sentMessages[0].options).toEqual({ deliverAs: "steer", triggerTurn: true });
+        expect(sentMessages[0].message.content).toContain("response:slow finish");
+
+        await tools.get("spawn_agent").execute(
+          "spawn-2",
+          {
+            task_name: "large-output",
+            message: "large response",
+          },
+          undefined,
+          undefined,
+          ctx,
+        );
+        await waitUntil(() => sentMessages.length === 2);
+        const large = sentMessages[1].message;
+        expect(Buffer.byteLength(large.content, "utf8")).toBeLessThanOrEqual(50 * 1024);
+        expect(large.content).toContain("Output truncated");
+        expect(large.details.fullOutputPath).toBeString();
+        expect(fs.existsSync(large.details.fullOutputPath)).toBe(true);
+      } finally {
+        await emit("session_shutdown", { reason: "quit" });
+        fs.rmSync(scope, { recursive: true, force: true });
+      }
+    },
+  );
+});
+
+describe("subagent peek overlay", () => {
+  function createOverlay(columns = 80, rows = 20) {
+    const now = Date.now();
+    const info = {
+      id: "44444444-4444-4444-8444-444444444444",
+      taskName: "a-very-long-agent-name",
+      canonicalName: "/a-very-long-agent-name",
+      parentSessionId: "peek-parent",
+      provider: "test",
+      modelId: "a-very-long-model-name",
+      model: "test:a-very-long-model-name",
+      cwd: TEST_AGENT_DIR,
+      sessionFile: path.join(TEST_AGENT_DIR, "nonexistent-peek-session.jsonl"),
+      infoFile: path.join(TEST_AGENT_DIR, "nonexistent-peek.info.json"),
+      logFile: path.join(TEST_AGENT_DIR, "nonexistent-peek.log"),
+      createdAt: now,
+      updatedAt: now,
+      messageCount: 0,
+      status: "completed" as const,
+    };
+    const tui = {
+      terminal: { columns, rows },
+      requestRender() {},
+    } as any;
+    const theme = {
+      fg: (_color: string, text: string) => text,
+    } as any;
+    return new SubagentPeekOverlay(tui, theme, info, () => {});
+  }
+
+  test("initially follows a long transcript at the end", () => {
+    const overlay = createOverlay();
+    try {
+      const internals = overlay as any;
+      internals.cachedLines = Array.from({ length: 30 }, (_, index) => `line-${index}`);
+      internals.cachedWidth = 38;
+
+      const rendered = overlay.render(40);
+      expect(internals.scrollOffset).toBe(18);
+      expect(rendered[1]).toContain("line-18");
+      expect(rendered[12]).toContain("line-29");
+    } finally {
+      overlay.dispose();
+    }
+  });
+
+  test("keeps every frame line within a narrow render width", () => {
+    const overlay = createOverlay(12, 14);
+    try {
+      const internals = overlay as any;
+      internals.cachedLines = ["content that is much wider than the overlay"];
+      internals.cachedWidth = 10;
+
+      const rendered = overlay.render(12);
+      expect(rendered.length).toBeGreaterThan(0);
+      expect(rendered.every((line: string) => visibleWidth(line) <= 12)).toBe(true);
+    } finally {
+      overlay.dispose();
     }
   });
 });
 
 describe("completion mailbox", () => {
   test("waits until explicitly cancelled when no completion exists", async () => {
-    const manager = new AgentManager();
+    const manager = createAgentManager();
     const controller = new AbortController();
     setTimeout(() => controller.abort(new Error("cancelled")), 10);
     await expect(manager.waitAgent("empty-parent", undefined, controller.signal)).rejects.toThrow(

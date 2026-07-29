@@ -239,9 +239,7 @@ export class KeychainOAuthProvider implements OAuthClientProvider {
 
   state(): string {
     if (!this.options.interactive || !this.options.state) {
-      throw new UnauthorizedError(
-        'OAuth authorization requires mcp({ action: "auth-start", server: "..." })',
-      );
+      throw new UnauthorizedError("OAuth authorization requires /mcp-auth <server>");
     }
     return this.options.state;
   }
@@ -280,7 +278,7 @@ export class KeychainOAuthProvider implements OAuthClientProvider {
 
   async redirectToAuthorization(authorizationUrl: URL): Promise<void> {
     if (!this.options.interactive || !this.options.openUrl) {
-      throw new UnauthorizedError('OAuth authorization is required; use mcp action "auth-start"');
+      throw new UnauthorizedError("OAuth authorization is required; use /mcp-auth <server>");
     }
     await this.options.openUrl(authorizationUrl.href, this.options.signal);
   }

@@ -158,7 +158,7 @@ describe("Keychain OAuth provider", () => {
       store: new MemoryStore(),
     });
     await expect(provider.redirectToAuthorization(new URL("https://auth.test"))).rejects.toThrow(
-      "auth-start",
+      "/mcp-auth",
     );
 
     const state = createOAuthState();

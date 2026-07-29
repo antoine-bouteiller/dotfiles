@@ -128,7 +128,7 @@ function safeOperationError(error: unknown, operation: string, server: string): 
   }
   if (isAuthorizationFailure(error)) {
     return new Error(
-      `Authentication is required for MCP server ${JSON.stringify(server)}; use action "auth-start".`,
+      `Authentication is required for MCP server ${JSON.stringify(server)}; run /mcp-auth ${server}.`,
     );
   }
   const message = errorMessage(error);
@@ -164,7 +164,7 @@ function isAuthorizationFailure(error: unknown): boolean {
     error instanceof UnauthorizedError ||
     (error instanceof StreamableHTTPError && (error.code === 401 || error.code === 403)) ||
     (error instanceof Error &&
-      /unauthori[sz]ed|auth-start|authentication is required/i.test(error.message))
+      /unauthori[sz]ed|mcp-auth|authentication is required/i.test(error.message))
   );
 }
 
@@ -306,6 +306,18 @@ export class McpManager {
       status: runtime.status,
       ...(runtime.error ? { error: runtime.error } : {}),
     }));
+  }
+
+  oauthServers(): readonly string[] {
+    return [...this.runtimes.values()]
+      .filter(
+        (runtime) =>
+          runtime.status !== "disabled" &&
+          runtime.config.type === "http" &&
+          runtime.config.oauth !== undefined,
+      )
+      .map((runtime) => runtime.name)
+      .sort((left, right) => left.localeCompare(right));
   }
 
   async connect(server: string, options: { signal?: AbortSignal } = {}): Promise<unknown> {

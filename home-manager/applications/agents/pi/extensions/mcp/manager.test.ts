@@ -144,6 +144,7 @@ describe("MCP manager", () => {
       { name: "remote", status: "disconnected" },
       { name: "off", status: "disabled" },
     ]);
+    expect(fixture.manager.oauthServers()).toEqual(["remote"]);
     expect(fixture.calls.clients).toBe(0);
     expect(fixture.calls.connects).toEqual([]);
     expect(fixture.calls.keychainReads).toBe(0);

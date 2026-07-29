@@ -41,6 +41,10 @@ function createHarness(overrides: Partial<McpGatewayManager> = {}) {
         { name: "alpha", status: "connected" },
       ];
     },
+    oauthServers() {
+      calls.push({ method: "oauthServers", values: [] });
+      return ["slack"];
+    },
     async connect(server: string, options?: McpOperationOptions) {
       calls.push({ method: "connect", values: [server, options] });
     },
@@ -110,6 +114,13 @@ function createHarness(overrides: Partial<McpGatewayManager> = {}) {
     return executeTool("call-1", params, signal);
   }
 
+  async function invokeCommand(args = "", commandContext: unknown = context()) {
+    const command = fixture.state.commands.get("mcp-auth");
+    expect(command).toBeDefined();
+    const handler = command?.handler as (args: string, ctx: unknown) => Promise<void>;
+    return handler(args, commandContext);
+  }
+
   return {
     fixture,
     manager,
@@ -118,6 +129,7 @@ function createHarness(overrides: Partial<McpGatewayManager> = {}) {
     dependencies,
     start,
     execute,
+    invokeCommand,
     callbacks: () => callbacks,
     loadCount: () => loadCount,
   };
@@ -135,15 +147,30 @@ function context(statuses?: Array<{ key: string; value: unknown }>) {
   };
 }
 
+function authContext(notifications: Array<{ message: string; level: string }>, selected?: string) {
+  return {
+    hasUI: true,
+    ui: {
+      notify(message: string, level: string) {
+        notifications.push({ message, level });
+      },
+      async select() {
+        return selected;
+      },
+    },
+  };
+}
+
 function callsFor(harness: ReturnType<typeof createHarness>, method: string): RecordedCall[] {
   return harness.calls.filter((call) => call.method === method);
 }
 
 describe("MCP gateway registration and lifecycle", () => {
-  test("registers exactly one gateway tool immediately", () => {
+  test("registers one gateway tool and the MCP auth command immediately", () => {
     const harness = createHarness();
 
     expect([...harness.fixture.state.tools.keys()]).toEqual(["mcp"]);
+    expect([...harness.fixture.state.commands.keys()]).toEqual(["mcp-auth"]);
     expect(harness.fixture.state.handlers.has("session_start")).toBeTrue();
     expect(harness.fixture.state.handlers.has("session_shutdown")).toBeTrue();
     expect(harness.loadCount()).toBe(0);
@@ -287,21 +314,22 @@ describe("MCP gateway registration and lifecycle", () => {
     expect(text.indexOf("fff_a")).toBeLessThan(text.indexOf("fff_z"));
   });
 
-  test("auth-start is the sole auth operation and requires a server", async () => {
+  test("mcp-auth authenticates an explicit server and infers the sole OAuth server", async () => {
     const harness = createHarness();
+    const notifications: Array<{ message: string; level: string }> = [];
     await harness.start();
-    const controller = new AbortController();
 
-    await harness.execute({ action: "auth-start", server: "slack" }, controller.signal);
-    expect(callsFor(harness, "authenticate")[0]?.values).toEqual([
-      "slack",
-      { signal: controller.signal },
+    await harness.invokeCommand(" slack ", authContext(notifications));
+    await harness.invokeCommand("", authContext(notifications));
+
+    expect(callsFor(harness, "authenticate").map((call) => call.values)).toEqual([
+      ["slack", undefined],
+      ["slack", undefined],
     ]);
-
-    await expect(harness.execute({ action: "auth-start" })).rejects.toThrow("requires server");
-    await expect(harness.execute({ action: "auth-complete", server: "slack" })).rejects.toThrow(
-      "manual OAuth completion is not available",
-    );
+    expect(notifications).toEqual([
+      { message: "Authenticated and connected MCP server slack.", level: "info" },
+      { message: "Authenticated and connected MCP server slack.", level: "info" },
+    ]);
   });
 
   test("rejects ambiguous selectors and orphan modifiers before delegation", async () => {

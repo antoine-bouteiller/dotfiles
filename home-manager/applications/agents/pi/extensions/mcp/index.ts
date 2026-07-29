@@ -27,7 +27,6 @@ const McpGatewayParameters = Type.Object({
   search: Type.Optional(Type.String({ description: "Text or regular expression to search for." })),
   regex: Type.Optional(Type.Boolean({ description: "Interpret search as a regular expression." })),
   server: Type.Optional(Type.String({ description: "Limit an operation to one MCP server." })),
-  action: Type.Optional(Type.String({ description: 'The only supported action is "auth-start".' })),
 });
 
 export interface McpServerStatus {
@@ -59,6 +58,7 @@ export interface McpSearchOptions extends McpOperationOptions {
 /** The deliberately small manager surface consumed by the gateway. */
 export interface McpGatewayManager {
   status(): readonly McpServerStatus[] | Promise<readonly McpServerStatus[]>;
+  oauthServers(): readonly string[];
   connect(server: string, options?: McpOperationOptions): Promise<unknown>;
   list(server: string, options?: McpOperationOptions): Promise<readonly McpToolSummary[]>;
   search(query: string, options?: McpSearchOptions): Promise<readonly McpToolSummary[]>;
@@ -158,7 +158,6 @@ function updateUiStatus(ctx: ExtensionContext, update: McpStatusUpdate): void {
 }
 
 function validateSelectors(params: {
-  action?: string;
   tool?: string;
   connect?: string;
   describe?: string;
@@ -168,7 +167,6 @@ function validateSelectors(params: {
   regex?: boolean;
 }): void {
   const selectors = [
-    params.action === undefined ? undefined : "action",
     params.tool === undefined ? undefined : "tool",
     params.connect === undefined ? undefined : "connect",
     params.describe === undefined ? undefined : "describe",
@@ -186,14 +184,6 @@ function validateSelectors(params: {
   }
   if (params.regex !== undefined && params.search === undefined) {
     throw new Error("mcp regex can only be used with search");
-  }
-  if (params.action !== undefined && params.action !== "auth-start") {
-    throw new Error(
-      `Unsupported mcp action ${JSON.stringify(params.action)}. Only "auth-start" is supported; manual OAuth completion is not available.`,
-    );
-  }
-  if (params.action === "auth-start" && !params.server) {
-    throw new Error('mcp action "auth-start" requires server');
   }
 }
 
@@ -227,15 +217,6 @@ export function createMcpExtension<TConfig>(dependencies: McpGatewayDependencies
       async execute(_toolCallId, params, signal) {
         validateSelectors(params);
         const activeManager = await requireManager();
-
-        // Keep this order in sync with the documented gateway precedence.
-        if (params.action === "auth-start") {
-          await activeManager.authenticate(params.server!, { signal });
-          return textResult(
-            `Authenticated and connected MCP server ${params.server}.\nList tools with: mcp({ server: ${JSON.stringify(params.server)} })`,
-            { action: "auth-start", server: params.server },
-          );
-        }
 
         if (params.tool !== undefined) {
           return activeManager.call(params.tool, parseArgs(params.args), {
@@ -326,6 +307,47 @@ export function createMcpExtension<TConfig>(dependencies: McpGatewayDependencies
           })),
           resultsTruncated: servers.length > 30,
         });
+      },
+    });
+
+    pi.registerCommand("mcp-auth", {
+      description: "Authenticate an OAuth-enabled MCP server. Usage: /mcp-auth [server]",
+      getArgumentCompletions(prefix) {
+        if (!manager) return null;
+        const items = manager
+          .oauthServers()
+          .filter((server) => server.startsWith(prefix))
+          .sort((left, right) => left.localeCompare(right))
+          .map((server) => ({ value: server, label: server }));
+        return items.length > 0 ? items : null;
+      },
+      handler: async (args, ctx) => {
+        try {
+          const activeManager = await requireManager();
+          let server = args.trim();
+          if (!server) {
+            const servers = [...activeManager.oauthServers()].sort((left, right) =>
+              left.localeCompare(right),
+            );
+            if (servers.length === 0) {
+              ctx.ui.notify("No OAuth-enabled MCP servers are configured.", "error");
+              return;
+            }
+            if (servers.length === 1) {
+              server = servers[0]!;
+            } else {
+              const selected = await ctx.ui.select("Authenticate MCP server", servers);
+              if (!selected) return;
+              server = selected;
+            }
+          }
+
+          await activeManager.authenticate(server);
+          ctx.ui.notify(`Authenticated and connected MCP server ${server}.`, "info");
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          ctx.ui.notify(reason, "error");
+        }
       },
     });
 

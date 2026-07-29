@@ -38,6 +38,7 @@
 
     brews = [
       "coreutils"
+      "mole"
     ];
 
     casks = [

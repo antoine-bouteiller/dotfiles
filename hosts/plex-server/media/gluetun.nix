@@ -46,7 +46,7 @@
     # Proton VPN WireGuard tunnel. Owns the network namespace shared below.
     gluetun = {
       # renovate: datasource=docker depName=qmcgaw/gluetun
-      image = "qmcgaw/gluetun@sha256:1a5bf4b4820a879cdf8d93d7ef0d2d963af56670c9ebff8981860b6804ebc8ab"; # v3.41.1
+      image = "qmcgaw/gluetun@sha256:280809bc6900ed06d6529ad246499103efb31fd80c6327cbfaf90de0b17c3a99"; # v3.41.2
       autoStart = true;
       environment = {
         VPN_SERVICE_PROVIDER = "protonvpn";

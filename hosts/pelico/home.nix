@@ -39,6 +39,10 @@ in {
         dbx-mcp = {
           command = "dbx-mcp-server";
         };
+        figma = {
+          url = "https://mcp.figma.com/mcp";
+          type = "http";
+        };
       };
     };
     tmux.enable = true;

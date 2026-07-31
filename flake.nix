@@ -131,7 +131,7 @@
         }
     );
 
-    # treefmt (alejandra/deadnix/statix/typos/oxfmt/renovate-validator).
+    # treefmt (alejandra/deadnix/statix/oxfmt/renovate-validator).
     # Run with `nix fmt`; also invoked by the git pre-commit hook.
     formatter = forAllSystems (
       system: (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper

@@ -78,6 +78,7 @@ in {
           anchor_gap = true;
           margin = 8;
           opacity = 0.6;
+          border_radius = 160;
           size = {
             __type = "enum";
             variant = "M";
@@ -99,24 +100,39 @@ in {
               ];
             };
           };
-          autohide = {
-            __type = "optional";
-            value = {
-              handle_size = 4;
-              transition_time = 200;
-              wait_time = 1000;
-            };
+          autohide_behavior = {
+            wait_time = 1000;
+            transition_time = 200;
+            handle_size = 4;
+            unhide_delay = 200;
           };
         }
       ];
 
+      configFile = let
+        # COSMIC 1.5 frosted glass toggles (Appearance & Style); the pinned
+        # cosmic-manager only knows the defunct v1 `is_frosted` bool.
+        frosted = {
+          version = 2;
+          entries = {
+            frosted_system_interface = true;
+            frosted_panel = true;
+            frosted_windows = false;
+            frosted_applets = true;
+          };
+        };
+      in {
+        "com.system76.CosmicPanel.Dock".entries.autohide = lib.mkForce {
+          __type = "enum";
+          variant = "OnOverlap";
+        };
+        "com.system76.CosmicTheme.Dark.Builder" = frosted;
+        "com.system76.CosmicTheme.Light.Builder" = frosted;
+      };
+
       compositor = {
         active_hint = false;
 
-        # COSMIC deserializes input_touchpad as one whole struct; omitting the
-        # required top-level `state` field makes cosmic-comp/cosmic-settings
-        # reject the file and fall back to defaults (i.e. the settings appear to
-        # reset). Mirror the exact struct COSMIC writes itself.
         input_touchpad = {
           state = {
             __type = "enum";

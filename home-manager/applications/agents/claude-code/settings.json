@@ -166,7 +166,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'/Users/antoinebouteiller/.claude/hooks/sonar-secrets/build-scripts/pretool-secrets.sh'",
+            "command": "'~/.claude/hooks/sonar-secrets/build-scripts/pretool-secrets.sh'",
             "timeout": 60
           }
         ]
@@ -188,7 +188,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/Users/antoinebouteiller/.claude/hooks/herdr-agent-state.sh' session",
+            "command": "bash '~/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
         ]
@@ -230,7 +230,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'/Users/antoinebouteiller/.claude/hooks/sonar-secrets/build-scripts/prompt-secrets.sh'",
+            "command": "'~/.claude/hooks/sonar-secrets/build-scripts/prompt-secrets.sh'",
             "timeout": 60
           }
         ]

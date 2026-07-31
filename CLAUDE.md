@@ -7,7 +7,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 
 - **`git add` before applying.** Flakes ignore untracked files — a new `.nix` file is invisible to
   the build until staged. Stage first, then apply.
-- **Format with `nix fmt`.** The flake formatter is treefmt (alejandra, deadnix, statix, typos,
+- **Format with `nix fmt`.** The flake formatter is treefmt (alejandra, deadnix, statix,
   oxfmt, renovate-validator); config in `treefmt.nix`.
 - **The pre-commit hook is `.githooks/pre-commit`,** a tracked bash script running gitleaks +
   treefmt. Enable it once per clone with `git config core.hooksPath .githooks`; it resolves its

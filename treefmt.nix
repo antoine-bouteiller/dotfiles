@@ -5,10 +5,6 @@
     alejandra.enable = true;
     deadnix.enable = true;
     statix.enable = true;
-    typos = {
-      enable = true;
-      excludes = ["*.svg" "hosts/*/secrets/*.yaml"];
-    };
     oxfmt.enable = true;
   };
 

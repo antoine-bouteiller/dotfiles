@@ -50,7 +50,7 @@
     grill-me = "${inputs.mattpocock-skills}/skills/productivity/grill-me";
     grilling = "${inputs.mattpocock-skills}/skills/productivity/grilling";
     writing-great-skills = "${inputs.mattpocock-skills}/skills/productivity/writing-great-skills";
-    tdd = "${inputs.mattpocock-skills}/skills/productivity/tdd";
+    tdd = "${inputs.mattpocock-skills}/skills/engineering/tdd";
     improve = "${inputs.shadcn-improve-skills}/skills/improve";
     ast-grep = "${inputs.ast-grep-skill}/ast-grep/skills/ast-grep";
     outline = "${inputs.ast-grep-skill}/ast-grep/skills/outline";
@@ -86,6 +86,7 @@
   ];
 
   piTopLevelFiles = [
+    "AGENTS.md"
     "themes"
     "node_modules"
     "settings.json"

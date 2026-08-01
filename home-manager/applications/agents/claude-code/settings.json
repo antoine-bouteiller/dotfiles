@@ -272,7 +272,7 @@
     }
   },
   "feedbackSurveyRate": 0,
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,

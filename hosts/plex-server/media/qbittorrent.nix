@@ -14,16 +14,31 @@ in {
     serverConfig = {
       LegalNotice.Accepted = true;
 
-      BitTorrent.Session = {
-        DefaultSavePath = downloadDir;
-        TempPathEnabled = false;
-        Preallocation = true;
-        # Stop seeding as soon as a torrent completes.
-        GlobalMaxRatio = 0;
+      # Delete the .torrent file once it has been handed to the session.
+      Core.AutoDeleteAddedTorrentFile = "IfAdded";
+
+      BitTorrent = {
+        ExcludedFileNamesEnabled = true;
+
+        Session = {
+          DefaultSavePath = downloadDir;
+          Preallocation = true;
+          # Stop seeding as soon as a torrent completes.
+          GlobalMaxRatio = 0;
+          # The proxy only carries TCP, so uTP/UDP would leak outside the tunnel.
+          BTProtocol = "TCP";
+          # Auto torrent management on by default: categories decide the paths.
+          DisableAutoTMMByDefault = false;
+          ExcludedFileNames = "*.rar, *.r[0-9]*, *.exe, *.zip";
+        };
       };
 
-      # No UPnP/NAT-PMP mapping of the torrenting port.
-      Network.PortForwardingEnabled = false;
+      Network = {
+        # No UPnP/NAT-PMP mapping of the torrenting port.
+        PortForwardingEnabled = false;
+        # Resolve hostnames locally rather than through the proxy.
+        Proxy.HostnameLookupEnabled = false;
+      };
 
       Preferences.WebUI = {
         Address = "127.0.0.1";

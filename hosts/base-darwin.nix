@@ -23,6 +23,7 @@
   # `nix run nix-darwin#darwin-uninstaller`.
   documentation.doc.enable = false;
   system.tools.darwin-uninstaller.enable = false;
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   homebrew = {
     enable = true;

@@ -9,6 +9,7 @@ in {
   local.media.seerr = {
     host = "";
     port = config.services.seerr.port;
+    auth = false;
     public = true;
   };
 

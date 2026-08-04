@@ -87,16 +87,6 @@
   "disableClaudeAiConnectors": true,
   "disableBundledSkills": true,
   "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/notify-ghostty.sh"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
@@ -104,10 +94,6 @@
           {
             "type": "command",
             "command": "comment-checker"
-          },
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/strip-ponytail-comments.sh"
           }
         ]
       }
@@ -158,16 +144,6 @@
             "type": "command",
             "command": "~/.claude/hooks/write-peer-review-check.sh",
             "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'~/.claude/hooks/sonar-secrets/build-scripts/pretool-secrets.sh'",
-            "timeout": 60
           }
         ]
       }
@@ -222,16 +198,6 @@
             "type": "command",
             "command": "~/.claude/hooks/user-prompt-check.sh",
             "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'~/.claude/hooks/sonar-secrets/build-scripts/prompt-secrets.sh'",
-            "timeout": 60
           }
         ]
       }

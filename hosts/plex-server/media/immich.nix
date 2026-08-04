@@ -21,6 +21,7 @@ in {
 
   local.media.immich = {
     host = "photo";
+    auth = false;
     port = config.services.immich.port;
     public = true;
   };

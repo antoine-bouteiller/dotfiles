@@ -87,6 +87,7 @@
 
   piTopLevelFiles = [
     "AGENTS.md"
+    "APPEND_SYSTEM.md"
     "themes"
     "node_modules"
     "settings.json"

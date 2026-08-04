@@ -42,6 +42,10 @@ in {
         figma = {
           url = "https://mcp.figma.com/mcp";
           type = "http";
+          "oauth" = {
+            clientName = "Claude Code";
+            scope = "mcp:connect";
+          };
         };
       };
     };

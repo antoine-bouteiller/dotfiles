@@ -14,8 +14,9 @@
       ]
     }
   ],
-  "agent_servers": {},
-  "cli_default_open_behavior": "new_window",
+  "agent": {
+    "enabled": false
+  },
   "project_panel": {
     "dock": "right"
   },
@@ -278,19 +279,6 @@
       "language_servers": [],
       "format_on_save": "off"
     }
-  },
-  "agent": {
-    "dock": "left",
-    "default_model": {
-      "enable_thinking": true,
-      "provider": "google",
-      "model": "gemini-2.5-flash"
-    },
-    "commit_message_model": {
-      "provider": "google",
-      "model": "gemini-2.5-flash"
-    },
-    "model_parameters": []
   },
   "terminal": {
     "font_family": "MesloLGM Nerd Font",

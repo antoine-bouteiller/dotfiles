@@ -5,28 +5,42 @@ description: Research a task and write a phased plan to .plan/<slug>.md without 
 
 # Create a plan
 
-Produce a written plan and stop before implementing. You are designing, not building.
+Produce an implementation-ready plan and stop before implementing. You are designing, not building.
 
 ## 1. Understand the task
 
-Read the request and the code it touches. Resolve every ambiguity now: if scope, approach, or acceptance
-is unclear, ask the user — never assume. Done when you can state the goal and acceptance in one paragraph
-with no open questions.
+Read the request and the code it touches. Identify the in-scope outcomes, non-goals, acceptance criteria,
+constraints, assumptions, and material unknowns. Ask the user about anything that could change architecture,
+scope, data, security, or verification; never silently invent it. Done when the goal and acceptance criteria
+are unambiguous and every assumption is bounded and user-confirmed.
 
 ## 2. Research
 
-Find the files, patterns, and constraints the change depends on. Done when every step you're about to write
-names the real code it acts on (path:line), not a guess.
+Trace the current behavior end to end. Record existing code with `path:line` evidence, affected callers and
+interfaces, project instructions, applicable tests and checks, and the narrowest correct change point. Done
+when every task names real code and runnable verification rather than guesses.
 
-## 3. Write the file
+## 3. Decide
 
-Write `.plan/<slug>.md` in the format below. Break the work into phased steps, each with one verifiable
-outcome. Done when the file exists and a reader could execute it without asking you anything.
+For each non-obvious implementation choice, record `Decision / Rationale / Alternatives rejected`. Justify
+every new dependency, abstraction, or layer and explain why the simpler option is insufficient. Skip ceremonial
+decision records for obvious local edits. Done when an implementer does not need to choose an approach.
 
-## 4. Hand off
+## 4. Write the file
 
-Show the plan path and the step list. Do not implement — that is `implement-plan`'s job. Done when the user
-has the plan and knows to run `implement-plan` to execute it.
+Write `.plan/<slug>.md` using the applicable schema below. Use the single-file shape by default and split only
+when independently verifiable phases contain too much detail for one readable file. Write status as `draft`
+until the readiness gate passes. Done when a reader could execute every task without asking for missing detail.
+
+## 5. Validate readiness
+
+Apply the readiness gate below to the written plan. Fix every failure before handoff, then change status to
+`ready` and append that event to the log. Do not hand off a plan with unresolved material questions.
+
+## 6. Hand off
+
+Report the plan path, acceptance summary, ordered task list, and verification commands. Do not implement — that
+is `implement-plan`'s job. Done when the user has a `ready` plan and knows how to execute and verify it.
 
 ## Plan file format
 
@@ -40,57 +54,204 @@ deliverable — leave it out of commits unless the user says otherwise.
 
 Two shapes:
 
-- **Single file** — `.plan/<slug>.md`. The default; use it for anything one file can hold.
-- **Folder** — `.plan/<slug>/` with a master `index.md` plus one file per phase
-  (`.plan/<slug>/01-tooling.md`, …). Use when the plan is large enough that per-phase detail would
-  bloat a single file. The master `index.md` is the source of truth for status and the step list;
-  each `## Steps` entry points at the phase file that spells out how (`see 01-tooling.md`). Phase
-  files hold the detail; they don't track status — the master does.
+- **Single file** — `.plan/<slug>.md`. The default; use it whenever one file remains readable.
+- **Folder** — `.plan/<slug>/` with `index.md` plus one file per independently verifiable phase
+  (`01-tooling.md`, …). Use only when phase detail would make one file difficult to execute. `index.md` alone
+  owns status, acceptance and task checkboxes, final verification, open questions, and the log. Phase files
+  own task detail and contain no mutable status or checkboxes.
 
-### Template
+Do not generate separate specs, research notes, data models, contracts, quickstarts, task files, progress JSON,
+or other companion artifacts unless the user explicitly requests them.
+
+### Single-file schema
 
 ```markdown
 # <Title>
 
-**Status:** in-progress
-**Goal:** <one paragraph — what and why>
+**Status:** draft | ready | in-progress | blocked | done
+**Goal:** <one paragraph describing the required outcome and why it matters>
+
+## Scope
+
+### In scope
+
+- <observable outcome>
+
+### Non-goals
+
+- <explicit exclusion or `None`>
 
 ## Context
 
-- <relevant files as path:line, constraints, decisions already made>
+- **Current behavior:** <what exists now, including affected callers/interfaces and `path:line` evidence>
+- **Constraints:** <project rules, compatibility, security, data-loss, or platform boundaries; or `None`>
+- **Assumptions:** <bounded, user-confirmed assumptions; or `None`>
 
-## Steps
+## Decisions
 
-- [ ] <imperative step, one verifiable outcome>
-- [ ] <…>
+### D001 — <decision title>
 
-## Detailed implementation
+- **Decision:** <chosen approach>
+- **Rationale:** <why it is the smallest correct choice>
+- **Alternatives rejected:** <credible option and concrete reason; or `None` when no credible alternative exists>
 
-<per-step concrete detail: exact commands, diffs or code sketches against real
-paths, and the verification for each step. An implementer should be able to
-execute from this section alone.>
+## Acceptance criteria
+
+- [ ] **AC001:** <observable, testable outcome>
+- [ ] **AC002:** <observable, testable outcome>
+
+## Implementation
+
+### Phase 1 — <independently verifiable outcome>
+
+**Phase dependencies:** None | <earlier phase names>
+
+- [ ] **T001** <optional `[P]` marker> <imperative task with one checkable outcome>
+  - **Acceptance:** AC001
+  - **Dependencies:** None | TNNN, ...
+  - **Paths:** <exact repository-relative paths; mark new paths `new`>
+  - **Change:** <specific symbols/sections and behavior to add, alter, or remove>
+  - **Preserve:** <important behavior or `None`>
+  - **Verify:** `<runnable command or concrete manual scenario>`
+  - **Expected:** <observable success result>
+
+## Final verification
+
+- `<command or scenario>` → <expected result and acceptance IDs covered>
+
+## Open questions
+
+<material questions that block readiness, or `None`>
 
 ## Log
 
-- <YYYY-MM-DD> <what changed / what was decided>
+- <YYYY-MM-DD> Plan created with status `draft`.
+- <YYYY-MM-DD> Readiness gate passed; status changed to `ready`.
 ```
 
-For the folder shape, the master `index.md` uses the same template; its `## Steps` entries name the
-phase file that carries the detail:
+If no material decision needs a record, write `None.` under `## Decisions` instead of creating `D001`.
+
+### Folder schema
+
+`index.md` is the only status and checkbox authority:
 
 ```markdown
-## Steps
+# <Title>
 
-- [ ] Swap the Vite plugin and deps so `vp dev` boots Solid — see `01-tooling.md`
-- [ ] Port router + root shell to SolidJS — see `02-router.md`
+**Status:** draft | ready | in-progress | blocked | done
+**Goal:** <one paragraph describing the required outcome and why it matters>
+
+## Scope
+
+### In scope
+
+- <observable outcome>
+
+### Non-goals
+
+- <explicit exclusion or `None`>
+
+## Context
+
+- **Current behavior:** <what exists now, including affected callers/interfaces and `path:line` evidence>
+- **Constraints:** <project rules, compatibility, security, data-loss, or platform boundaries; or `None`>
+- **Assumptions:** <bounded, user-confirmed assumptions; or `None`>
+
+## Decisions
+
+<decision records using the single-file shape, or `None`>
+
+## Acceptance criteria
+
+- [ ] **AC001:** <observable, testable outcome>
+
+## Implementation
+
+- [ ] **T001** <optional `[P]` marker> <task outcome; satisfies AC001> — see `01-phase.md#t001-task-title`
+
+## Final verification
+
+- `<command or scenario>` → <expected result and acceptance IDs covered>
+
+## Open questions
+
+<material questions that block readiness, or `None`>
+
+## Log
+
+- <YYYY-MM-DD> Plan created with status `draft`.
+- <YYYY-MM-DD> Readiness gate passed; status changed to `ready`.
+```
+
+Each linked phase file contains one or more repeatable task blocks but no status or checkboxes. Task IDs are
+globally unique and each block has exactly one matching `index.md` entry:
+
+```markdown
+# Phase 1 — <independently verifiable outcome>
+
+**Plan:** `index.md`
+**Phase dependencies:** None | <earlier phase names>
+
+## T001 — <task title>
+
+- **Acceptance:** AC001
+- **Dependencies:** None | TNNN, ...
+- **Paths:** <exact repository-relative paths; mark new paths `new`>
+- **Change:** <specific behavior to add, alter, or remove>
+- **Preserve:** <important behavior or `None`>
+- **Verify:** `<runnable command or concrete manual scenario>`
+- **Expected:** <observable success result>
 ```
 
 ### Rules
 
-- One step = one checkable outcome. A step you can't tell done-from-not-done is vague — sharpen or split it.
-- `## Detailed implementation` carries the how: real commands, code sketches, diffs. In the folder
-  shape it lives in the phase files instead of the master.
-- `Status:` stays `in-progress` until every step is `[x]`, then `done`. In the folder shape, status
-  lives only in the master `index.md`.
-- **The file is the state.** Tick `- [ ]` → `- [x]` the moment a step's outcome holds, and append a Log line
-  for any decision or deviation. Anything true about the plan that isn't written down is lost when the session ends.
+- Required sections appear exactly once and in the shown order. Use `None` rather than deleting a required
+  field or section. A folder's `index.md` and phase files each follow their complete schema above.
+- New plans begin as `draft`; handoff is allowed only after the readiness gate passes and status becomes
+  `ready`. Before implementation begins, change status to `in-progress`. Log the reason for every `blocked`
+  transition. Change status to `done` only after every task and acceptance criterion is checked and final
+  verification succeeds.
+- IDs are stable and sequential within their namespace: `D001`, `AC001`, `T001`. Never renumber an existing
+  ID during implementation; append new IDs and explain amendments in `Log`. Every referenced ID must exist.
+- Every acceptance criterion describes observable behavior or an inspectable artifact, not an implementation
+  action, and is referenced by at least one task and by final verification.
+- Every task has one checkable outcome, references at least one acceptance criterion, names exact
+  repository-relative paths, and includes dependencies, verification, and its expected result.
+- Omit `[P]` unless a task has no incomplete dependency and its write paths do not overlap another parallel
+  task. Encode shared-file and API ordering through task dependencies.
+- Existing-code references use `path:line`. Label new paths `new` and identify the existing parent or module
+  that will own them.
+- Use code sketches only to disambiguate a contract or algorithm; do not pre-implement the solution in the plan.
+- Record only decisions that materially affect implementation. Explicitly justify added dependencies,
+  abstractions, or layers.
+- Final verification covers every `AC` ID. Build-only checks are insufficient when runtime or user-visible
+  behavior is affected.
+- `Open questions` may record material blockers while status is `draft` or `blocked`, but must be `None` before
+  status becomes `ready`; ask the user rather than guessing through a material unknown.
+- Single-file plans remain the default. In a folder plan, split only at independently verifiable phase
+  boundaries; `index.md` owns mutable state and phase files never duplicate it. Every index task link resolves
+  to exactly one phase task, and every phase task has exactly one matching index checkbox.
+- **The plan is the state.** Tick tasks and acceptance criteria only when their stated evidence exists. Append
+  every scope, decision, status, or implementation deviation to `Log`.
+
+### Readiness gate
+
+Before changing status from `draft` to `ready`, confirm:
+
+- [ ] Every required section appears exactly once and no unresolved `TODO`, `TBD`, or `NEEDS CLARIFICATION`
+      placeholder remains.
+- [ ] `Open questions` is `None`, and assumptions are bounded and user-confirmed.
+- [ ] `D`, `AC`, and `T` IDs are stable and sequential; every referenced ID exists; and every acceptance
+      criterion maps to at least one task.
+- [ ] Every task names exact paths, dependencies, runnable verification, and expected results.
+- [ ] Task dependencies are existing earlier tasks, never self-references, and agree with phase ordering; the
+      resulting task and phase dependency graphs are acyclic.
+- [ ] Final verification covers every acceptance criterion, including runtime or user-visible checks where
+      applicable.
+- [ ] Every `[P]` task is free of incomplete dependencies and write-path conflicts.
+- [ ] In a folder plan, every index task link and phase task block have exactly one matching counterpart.
+- [ ] Every existing-code reference resolves, and each new path is labeled and attached to an existing owner.
+- [ ] New dependencies, abstractions, and layers are necessary and justified.
+
+If any check fails, keep status `draft` or mark it `blocked`, resolve the issue, and rerun the gate. Change
+status to `ready` only when every check passes.

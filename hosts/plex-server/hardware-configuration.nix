@@ -25,7 +25,10 @@ in {
     "nct6775"
   ];
   boot.extraModulePackages = [];
-  boot.kernelParams = ["reboot=pci"];
+  boot.kernelParams = [
+    "reboot=pci"
+    "ipv6.disable=1"
+  ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
@@ -69,10 +72,9 @@ in {
     }
   ];
 
-  boot.kernel.sysctl = {
-    "net.ipv6.conf.all.disable_ipv6" = 1;
-    "net.ipv6.conf.default.disable_ipv6" = 1;
+  networking.enableIPv6 = false;
 
+  boot.kernel.sysctl = {
     # Smooth disk writeback on the single /mnt/media HDD so qBittorrent's
     # completion fsync() doesn't stall the daemon. Flush early and cap dirty
     # pages low → continuous writeback instead of one bursty flush at 100%.

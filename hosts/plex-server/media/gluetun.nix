@@ -34,11 +34,8 @@
     script = ''
       pid=$(${pkgs.podman}/bin/podman inspect -f '{{.State.Pid}}' gluetun)
       nsip() { ${pkgs.util-linux}/bin/nsenter -t "$pid" -n ${pkgs.iproute2}/bin/ip "$@"; }
-      # IPv4 and IPv6 tailnet ranges both get hijacked by gluetun's rule 101.
       nsip rule del to 100.64.0.0/10 lookup 52 priority 90 2>/dev/null || true
       nsip rule add to 100.64.0.0/10 lookup 52 priority 90
-      nsip -6 rule del to fd7a:115c:a1e0::/48 lookup 52 priority 90 2>/dev/null || true
-      nsip -6 rule add to fd7a:115c:a1e0::/48 lookup 52 priority 90
     '';
   };
 
@@ -64,7 +61,6 @@
         "--device=/dev/net/tun:/dev/net/tun"
         # Exit-node forwarding happens in this netns, so set the sysctls here.
         "--sysctl=net.ipv4.ip_forward=1"
-        "--sysctl=net.ipv6.conf.all.forwarding=1"
       ];
     };
 

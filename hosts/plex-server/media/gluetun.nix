@@ -46,7 +46,7 @@
       environment = {
         VPN_SERVICE_PROVIDER = "protonvpn";
         VPN_TYPE = "wireguard";
-        SERVER_COUNTRIES = "Japan,Netherlands,Poland,Romania,United States";
+        SERVER_COUNTRIES = "Netherlands,Poland,Romania";
         FREE_ONLY = "on";
         # DNS-over-TLS to 1.1.1.1:853 times out in this netns; use plaintext DNS
         # over the tunnel instead (fixes "lookup cloudflare.com: i/o timeout").
@@ -67,7 +67,7 @@
     # Tailscale node sharing gluetun's netns -> all its egress exits via Proton.
     tailscale-exit = {
       # renovate: datasource=docker depName=tailscale/tailscale
-      image = "tailscale/tailscale@sha256:cdf5612ded5be1344f1a704b8c5e53496db97376bb533e5e15f141e48bf60cc0"; # v1.98.10
+      image = "docker.io/tailscale/tailscale@sha256:cdf5612ded5be1344f1a704b8c5e53496db97376bb533e5e15f141e48bf60cc0"; # v1.98.10
       autoStart = true;
       dependsOn = ["gluetun"];
       environment = {

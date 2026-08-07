@@ -20,7 +20,7 @@
       customType: "regex",
       managerFilePatterns: ["/\\.nix$/"],
       matchStrings: [
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*image\\s*=\\s*"[^"@]+@(?<currentDigest>sha256:[a-f0-9]+)";\\s*#\\s*(?<currentValue>\\S+)',
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*image\\s*=\\s*"[^"@]+@(?<currentDigest>sha256:[a-f0-9]{64})";\\s*#\\s*(?<currentValue>\\S+)',
       ],
     },
   ],

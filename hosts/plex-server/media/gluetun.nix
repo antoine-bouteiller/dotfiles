@@ -5,13 +5,11 @@
 }: {
   # podman + oci-containers backend are already enabled by ./byparr.nix.
 
-  # proton/private_key + proton/address come from the Proton WireGuard config.
+  # Gluetun defaults Proton's WireGuard address to IPv4 10.2.0.2/32.
   sops.secrets."proton/private_key" = {};
-  sops.secrets."proton/address" = {};
 
   sops.templates."gluetun.env".content = ''
     WIREGUARD_PRIVATE_KEY=${config.sops.placeholder."proton/private_key"}
-    WIREGUARD_ADDRESSES=${config.sops.placeholder."proton/address"}
   '';
 
   # Bind-mount source for the tailscale node's state; podman won't create it.
@@ -43,7 +41,7 @@
     # Proton VPN WireGuard tunnel. Owns the network namespace shared below.
     gluetun = {
       # renovate: datasource=docker depName=qmcgaw/gluetun
-      image = "qmcgaw/gluetun@sha256:fa19cc76b2af13d57a8d3dc3066f2ada061b1c761b8aecf989b3877c0486e027"; # v3.41.3
+      image = "docker.io/qmcgaw/gluetun@sha256:fa19cc76b2af13d57a8d3dc3066f2ada061b1c761b8aecf989b3877c0486e027"; # v3.41.3
       autoStart = true;
       environment = {
         VPN_SERVICE_PROVIDER = "protonvpn";

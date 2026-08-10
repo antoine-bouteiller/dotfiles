@@ -13,7 +13,11 @@
     "TS_DEBUG_FIREWALL_MODE=nftables"
   ];
 
-  services.tailscale.extraSetFlags = ["--netfilter-mode=nodivert"];
+  # Keep tailnet DNS enabled globally, but do not install it on this IPv4-only host.
+  services.tailscale.extraSetFlags = [
+    "--netfilter-mode=nodivert"
+    "--accept-dns=false"
+  ];
 
   networking.firewall.interfaces.${config.services.tailscale.interfaceName} = {
     allowedTCPPorts = [

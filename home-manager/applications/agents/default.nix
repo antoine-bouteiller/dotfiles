@@ -49,17 +49,10 @@
     resolving-merge-conflicts = "${inputs.mattpocock-skills}/skills/engineering/resolving-merge-conflicts";
     grill-me = "${inputs.mattpocock-skills}/skills/productivity/grill-me";
     grilling = "${inputs.mattpocock-skills}/skills/productivity/grilling";
-    writing-great-skills = "${inputs.mattpocock-skills}/skills/productivity/writing-great-skills";
+    writing-for-agents = "${inputs.mattpocock-skills}/skills/productivity/writing-for-agents";
     tdd = "${inputs.mattpocock-skills}/skills/engineering/tdd";
-    improve = "${inputs.shadcn-improve-skills}/skills/improve";
     ast-grep = "${inputs.ast-grep-skill}/ast-grep/skills/ast-grep";
     outline = "${inputs.ast-grep-skill}/ast-grep/skills/outline";
-    design-taste-frontend = "${inputs.taste-skill}/skills/taste-skill";
-    high-end-visual-design = "${inputs.taste-skill}/skills/soft-skill";
-    redesign-existing-projects = "${inputs.taste-skill}/skills/redesign-skill";
-    review-animations = "${inputs.emilkowalski-skills}/skills/review-animations";
-    find-animation-opportunities = "${inputs.emilkowalski-skills}/skills/find-animation-opportunities";
-    improve-animations = "${inputs.emilkowalski-skills}/skills/improve-animations";
   };
 
   # skill name -> home.file entries for a given target dir (".agents" / ".claude")

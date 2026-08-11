@@ -28,6 +28,10 @@
       url = "github:ogulcancelik/herdr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    hunk = {
+      url = "github:modem-dev/hunk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     meridian.url = "github:rynfar/meridian";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     cosmic-manager = {

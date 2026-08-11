@@ -1,38 +1,38 @@
 // =============================================================================
-// Essential Tabs for Brave
+// Essential Tabs for Helium
 // =============================================================================
 // Simple, reliable pinned tab management.
 // - Base URL lock (pinned tabs can't navigate away from their origin)
 // - Offload cascade (extension icon click offloads pinned tabs)
-// - Smart tab close (last tab resets instead of closing)
 // - Single window mode (optional, toggle via right-click)
 // - Startup offloading (pinned tabs auto-offload on browser launch)
 // =============================================================================
 
-// --- Persistent storage for pinned tab base URLs ---
-// MV3 service workers restart often — we persist to chrome.storage.local
-// so the lock survives restarts.
+// --- Persistent storage for pinned tab URLs ---
+// MV3 service workers restart often — persist both the locked origin and last
+// committed URL so external navigation can restore the pinned tab reliably.
 let pinnedTabBaseUrls = {}; // { tabId: origin }
 let pinnedTabCurrentUrl = {}; // { tabId: last committed in-origin url }
 
 // Load from storage immediately on every service worker wake
 const ready = (async () => {
-  const data = await chrome.storage.local.get("pinnedTabBaseUrls");
-  if (data.pinnedTabBaseUrls) {
-    pinnedTabBaseUrls = data.pinnedTabBaseUrls;
-  }
+  const data = await chrome.storage.local.get(["pinnedTabBaseUrls", "pinnedTabCurrentUrl"]);
+  if (data.pinnedTabBaseUrls) pinnedTabBaseUrls = data.pinnedTabBaseUrls;
+  if (data.pinnedTabCurrentUrl) pinnedTabCurrentUrl = data.pinnedTabCurrentUrl;
+
   // Reconcile with actual tabs
   const tabs = await chrome.tabs.query({ pinned: true });
   const validIds = new Set();
   for (const tab of tabs) {
     validIds.add(String(tab.id));
     if (!pinnedTabBaseUrls[tab.id]) {
-      const url = tab.pendingUrl || tab.url;
-      if (url && url !== "about:blank" && !url.startsWith("chrome://")) {
-        pinnedTabBaseUrls[tab.id] = getOrigin(url);
-      }
+      const url = isTrackableUrl(tab.url) ? tab.url : tab.pendingUrl;
+      if (isTrackableUrl(url)) pinnedTabBaseUrls[tab.id] = getOrigin(url);
     }
-    // Protect non-discarded pinned tabs from Brave's auto-discard
+    if (tab.url && getOrigin(tab.url) === pinnedTabBaseUrls[tab.id]) {
+      pinnedTabCurrentUrl[tab.id] = tab.url;
+    }
+    // Protect non-discarded pinned tabs from Helium's auto-discard
     if (!tab.discarded) {
       chrome.tabs.update(tab.id, { autoDiscardable: false }).catch(() => {});
     }
@@ -41,11 +41,14 @@ const ready = (async () => {
   for (const id of Object.keys(pinnedTabBaseUrls)) {
     if (!validIds.has(id)) delete pinnedTabBaseUrls[id];
   }
-  save();
+  for (const id of Object.keys(pinnedTabCurrentUrl)) {
+    if (!validIds.has(id)) delete pinnedTabCurrentUrl[id];
+  }
+  await save();
 })();
 
 function save() {
-  chrome.storage.local.set({ pinnedTabBaseUrls });
+  return chrome.storage.local.set({ pinnedTabBaseUrls, pinnedTabCurrentUrl });
 }
 
 function getOrigin(url) {
@@ -56,91 +59,35 @@ function getOrigin(url) {
   }
 }
 
-/** Check if a URL is a "new tab" page (blank or chrome://newtab variants) */
-function isNewTabPage(url) {
-  if (!url) return true;
-  return (
-    url === "chrome://newtab/" ||
-    url === "chrome://newtab" ||
-    url === "brave://newtab/" ||
-    url === "brave://newtab" ||
-    url === "about:blank" ||
-    url === ""
-  );
+function isTrackableUrl(url) {
+  return url && url !== "about:blank" && !url.startsWith("chrome://");
 }
 
 // =============================================================================
-// Extension icon click — close / offload / reset
-// =============================================================================
-//
-// FLOW (the user's exact desired behavior):
-//
-// Normal tabs exist → close normally
-// Last normal tab closed → focus moves to pinned tab, new tab created in bg
-//   (this is handled by onRemoved below)
-// On a pinned tab → offload it, cascade to next active pinned tab
-// Last pinned tab → offload it, move to the new tab
-// On the new tab with a URL loaded, all pinned offloaded → RESET to fresh
-//   new tab (clear history) instead of closing
-// On a fresh new tab, all pinned offloaded → do nothing (already fresh)
-//
+// Extension icon click — close normal tabs or offload pinned tabs
 // =============================================================================
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.pinned) {
-    // --- Normal (unpinned) tab ---
-    const unpinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: false });
-
-    if (unpinnedTabs.length <= 1) {
-      // This is the LAST unpinned tab
-      const pinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: true });
-      const allPinnedOffloaded = pinnedTabs.length > 0 && pinnedTabs.every((t) => t.discarded);
-      const noPinnedTabs = pinnedTabs.length === 0;
-
-      if (allPinnedOffloaded || noPinnedTabs) {
-        // All pinned tabs are sleeping (or none exist).
-        // Can't close — would wake a pinned tab or close the window.
-        if (isNewTabPage(tab.url)) {
-          // Already a fresh new tab — do nothing
-          return;
-        }
-        // Has a real URL loaded — reset it to a fresh new tab
-        chrome.tabs.update(tab.id, { url: "chrome://newtab" });
-        return;
-      }
-
-      // There are active pinned tabs. We must switch to one BEFORE closing
-      // this tab, otherwise Chrome will auto-activate an offloaded pinned tab.
-      const activePinned = pinnedTabs.find((t) => !t.discarded);
-      if (activePinned) {
-        await chrome.tabs.update(activePinned.id, { active: true });
-        // Create a background new tab for later use
-        await chrome.tabs.create({ active: false, windowId: tab.windowId });
-        // Now safe to close — Chrome won't pick a random tab
-        chrome.tabs.remove(tab.id);
-        return;
-      }
-    }
     chrome.tabs.remove(tab.id);
-  } else {
-    // --- Pinned tab: offload it, cascade to next ---
-    const pinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: true });
-    const nextActive = pinnedTabs.find((t) => t.id !== tab.id && !t.discarded);
+    return;
+  }
 
-    if (nextActive) {
-      // There's another active pinned tab — move there first, then offload
-      await chrome.tabs.update(nextActive.id, { active: true });
-      discardPinnedTab(tab.id);
+  const pinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: true });
+  const nextActive = pinnedTabs.find((t) => t.id !== tab.id && !t.discarded);
+
+  if (nextActive) {
+    // There's another active pinned tab — move there first, then offload
+    await chrome.tabs.update(nextActive.id, { active: true });
+    discardPinnedTab(tab.id);
+  } else {
+    // No more active pinned tabs — move to an unpinned tab (or create one)
+    const unpinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: false });
+    if (unpinnedTabs.length > 0) {
+      await chrome.tabs.update(unpinnedTabs[0].id, { active: true });
     } else {
-      // No more active pinned tabs — move to an unpinned tab (or create one)
-      const unpinnedTabs = await chrome.tabs.query({ windowId: tab.windowId, pinned: false });
-      if (unpinnedTabs.length > 0) {
-        await chrome.tabs.update(unpinnedTabs[0].id, { active: true });
-      } else {
-        // No unpinned tabs either — create a new tab
-        await chrome.tabs.create({ active: true, windowId: tab.windowId });
-      }
-      discardPinnedTab(tab.id);
+      await chrome.tabs.create({ active: true, windowId: tab.windowId });
     }
+    discardPinnedTab(tab.id);
   }
 });
 
@@ -150,7 +97,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 /**
  * Discard a pinned tab. We must temporarily re-enable autoDiscardable
- * (since we set it to false to block Brave's Memory Saver).
+ * (since we set it to false to block Helium's Memory Saver).
  */
 async function discardPinnedTab(tabId) {
   try {
@@ -163,14 +110,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   await ready;
 
   if (tab.pinned) {
-    // Capture base URL if we don't have it yet
-    const url = tab.pendingUrl || tab.url;
-    if (!pinnedTabBaseUrls[tabId] && url && url !== "about:blank" && !url.startsWith("chrome://")) {
+    // Capture the committed URL as the base if we don't have one yet.
+    const url = isTrackableUrl(tab.url) ? tab.url : tab.pendingUrl;
+    if (!pinnedTabBaseUrls[tabId] && isTrackableUrl(url)) {
       pinnedTabBaseUrls[tabId] = getOrigin(url);
       save();
     }
 
-    // Prevent Brave's Memory Saver from auto-discarding pinned tabs.
+    // Prevent Helium's Memory Saver from auto-discarding pinned tabs.
     // Only our extension should offload them (via discardPinnedTab).
     if (!tab.discarded && changeInfo.status === "complete") {
       chrome.tabs.update(tabId, { autoDiscardable: false }).catch(() => {});
@@ -186,44 +133,23 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // Unpinned — restore normal auto-discard behavior
     chrome.tabs.update(tabId, { autoDiscardable: true }).catch(() => {});
     delete pinnedTabBaseUrls[tabId];
+    delete pinnedTabCurrentUrl[tabId];
     save();
   }
 });
 
-// =============================================================================
-// Handle tab removal — keep a normal tab alive
-// =============================================================================
-// When the last normal tab is closed:
-//   - If there are active pinned tabs → create a background new tab (user stays
-//     on pinned tab)
-//   - If all pinned tabs are offloaded → create an ACTIVE new tab (user lands
-//     there)
-// =============================================================================
-chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
+// Remove state for closed tabs without overriding Helium's close behavior.
+chrome.tabs.onRemoved.addListener((tabId) => {
   delete pinnedTabBaseUrls[tabId];
+  delete pinnedTabCurrentUrl[tabId];
   save();
-
-  if (removeInfo.isWindowClosing) return;
-
-  const windowId = removeInfo.windowId;
-  const remaining = await chrome.tabs.query({ windowId });
-  const hasUnpinned = remaining.some((t) => !t.pinned);
-
-  if (!hasUnpinned && remaining.length > 0) {
-    const hasActive = remaining.some((t) => t.pinned && !t.discarded);
-    chrome.tabs.create({ active: !hasActive, windowId });
-  }
 });
 
 // =============================================================================
 // BASE URL LOCK — the core feature
 // =============================================================================
-// When a pinned tab tries to navigate to a different origin:
-// 1. Open the URL in a new tab
-// 2. Send the pinned tab back with goBack()
-//
-// This is the simplest approach that works reliably in MV3.
-// goBack() preserves the page state in most cases.
+// When a pinned tab tries to navigate to a different origin, open the URL in a
+// new tab and restore the pinned tab to its last committed in-origin URL.
 // =============================================================================
 
 const recentNavs = new Set();
@@ -240,32 +166,29 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (newOrigin === baseOrigin) return;
 
   // Allow browser internal pages
-  if (
-    details.url.startsWith("chrome://") ||
-    details.url.startsWith("chrome-extension://") ||
-    details.url.startsWith("brave://")
-  )
-    return;
+  if (details.url.startsWith("chrome://") || details.url.startsWith("chrome-extension://")) return;
 
-  // Dedup rapid navigations (redirects, double-clicks)
+  // Dedup only destination-tab creation; every event must restore the pinned tab.
   const key = `${tabId}:${details.url}`;
-  if (recentNavs.has(key)) return;
-  recentNavs.add(key);
-  setTimeout(() => recentNavs.delete(key), 2000);
-
-  // Open blocked URL in a new tab
-  chrome.tabs.create({ url: details.url, active: true });
-
-  // Restore the page it was on. goBack() steps past it (blocked nav not yet
-  // committed) and lands on home, so prefer the last committed in-origin URL.
-  const restoreUrl = pinnedTabCurrentUrl[tabId];
-  if (restoreUrl) {
-    chrome.tabs.update(tabId, { url: restoreUrl });
-  } else {
-    chrome.tabs.goBack(tabId).catch(() => {
-      chrome.tabs.update(tabId, { url: baseOrigin + "/" });
-    });
+  const shouldOpenNewTab = !recentNavs.has(key);
+  if (shouldOpenNewTab) {
+    recentNavs.add(key);
+    setTimeout(() => recentNavs.delete(key), 2000);
   }
+
+  const sourceTab = await chrome.tabs.get(tabId);
+  const restoreUrl =
+    [sourceTab.url, pinnedTabCurrentUrl[tabId]].find((url) => getOrigin(url) === baseOrigin) ||
+    `${baseOrigin}/`;
+  const operations = [chrome.tabs.update(tabId, { url: restoreUrl })];
+
+  if (shouldOpenNewTab) {
+    operations.push(
+      chrome.tabs.create({ url: details.url, active: true, windowId: sourceTab.windowId }),
+    );
+  }
+
+  await Promise.allSettled(operations);
 });
 
 chrome.webNavigation.onCommitted.addListener(async (details) => {
@@ -274,6 +197,7 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
   const baseOrigin = pinnedTabBaseUrls[details.tabId];
   if (baseOrigin && getOrigin(details.url) === baseOrigin) {
     pinnedTabCurrentUrl[details.tabId] = details.url;
+    await save();
   }
 });
 
@@ -450,7 +374,7 @@ chrome.windows.onRemoved.addListener((windowId) => {
 // =============================================================================
 
 chrome.runtime.onStartup.addListener(async () => {
-  // Wait a moment for Brave to finish restoring the session
+  // Wait a moment for Helium to finish restoring the session
   setTimeout(async () => {
     const allWindows = await chrome.windows.getAll({ windowTypes: ["normal"], populate: true });
     const mainWindow = allWindows.find((w) => !w.incognito);

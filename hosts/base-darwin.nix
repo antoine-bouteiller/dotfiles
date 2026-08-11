@@ -3,19 +3,6 @@
     ./base.nix
   ];
 
-  system.defaults.CustomUserPreferences = {
-    "com.brave.Browser" = {
-      BraveRewardsDisabled = true;
-      BraveWalletDisabled = true;
-      BraveVPNDisabled = true;
-      BraveAIChatEnabled = false;
-      BraveNewsDisabled = true;
-      BraveTalkDisabled = true;
-      TorDisabled = true;
-      DnsOverHttpsMode = "automatic";
-    };
-  };
-
   # Both the system manual and the uninstaller's embedded system eval build
   # darwin-manual-html, which fails on current nixpkgs (nixos-render-docs
   # dropped --toc-depth; nix-darwin master not yet fixed). Re-enable once

@@ -1,6 +1,6 @@
 {
-  "name": "Essential Tabs for Brave",
-  "description": "Smart pinned tab management — offloading, URL locking, and intelligent tab lifecycle for Brave browser",
+  "name": "Essential Tabs for Helium",
+  "description": "Smart pinned tab management — offloading, URL locking, and intelligent tab lifecycle for Helium browser",
   "version": "1.0.0",
   "manifest_version": 3,
   "permissions": ["tabs", "webNavigation", "contextMenus", "storage"],
@@ -13,7 +13,7 @@
   "action": {},
   "commands": {
     "_execute_action": {
-      "description": "Offload / reset the current tab"
+      "description": "Close or offload the current tab"
     }
   }
 }

@@ -8,6 +8,8 @@
   ];
 
   local.home-manager = {
+    herdr.enable = true;
+    hunk.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;

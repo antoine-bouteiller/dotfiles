@@ -15,6 +15,8 @@ in {
 
   local.home-manager = {
     agents.enable = true;
+    herdr.enable = true;
+    hunk.enable = true;
     tmux.enable = true;
   };
 

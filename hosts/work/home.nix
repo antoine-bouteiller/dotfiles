@@ -14,6 +14,9 @@ in {
 
   local.home-manager = {
     zed.enable = true;
+    ghostty.enable = true;
+    herdr.enable = true;
+    hunk.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;

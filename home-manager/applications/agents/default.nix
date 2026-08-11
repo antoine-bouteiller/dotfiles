@@ -136,7 +136,6 @@ in {
         ast-grep
         vtsls
         jdt-language-server
-        inputs.herdr.packages.${stdenv.hostPlatform.system}.default
       ];
 
       home.file = skillFiles ".agents";

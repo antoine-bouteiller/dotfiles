@@ -51,8 +51,6 @@
     grilling = "${inputs.mattpocock-skills}/skills/productivity/grilling";
     writing-for-agents = "${inputs.mattpocock-skills}/skills/productivity/writing-for-agents";
     tdd = "${inputs.mattpocock-skills}/skills/engineering/tdd";
-    ast-grep = "${inputs.ast-grep-skill}/ast-grep/skills/ast-grep";
-    outline = "${inputs.ast-grep-skill}/ast-grep/skills/outline";
   };
 
   # skill name -> home.file entries for a given target dir (".agents" / ".claude")
@@ -126,7 +124,6 @@ in {
         # Utils
         customPkgs.comment-checker
         (rtk.overrideAttrs (_: {doCheck = false;}))
-        ast-grep
         vtsls
         jdt-language-server
       ];

@@ -63,42 +63,7 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## 5. Codebase Exploration Strategy
-
-**Never run `rg`, `grep`, `ag`, `cat`, `sed`, `head` or `tail` against source files.** Text search over
-code is a last resort, not a default.
-
-**Load LSP before you start exploring.** It is a deferred tool — its schema is not in context at session
-start, so calling it costs `ToolSearch("select:LSP")` first. Pay that once, up front, or the friction
-will silently push you back to `grep` every time.
-
-### Tool by question
-
-| Question                              | Tool                                      | If unavailable  |
-| ------------------------------------- | ----------------------------------------- | --------------- |
-| Who calls / references `X`?           | LSP `findReferences` / `incomingCalls`    | `ast-grep`      |
-| Where is `X` defined? What type?      | LSP `goToDefinition` / `hover`            | `fff` grep      |
-| What symbols does this file export?   | LSP `documentSymbol`                      | `outline` skill |
-| Where in the repo is a symbol named…? | LSP `workspaceSymbol`                     | `fff` grep      |
-| Find a code _shape_ / API misuse      | `ast-grep`                                | LSP             |
-| Which files exist for topic Y?        | `fff` `find_files`                        | `Glob`          |
-| Text/identifier across many files     | `fff` `grep` / `multi_grep`               | `Grep` tool     |
-| File contents                         | `Read` (use `offset`/`limit` for a slice) | —               |
-
-### Rules
-
-- **Never silently fall back to `grep`.** `fff` is an MCP server and _does_ disconnect mid-session. When
-  it drops, go to `ast-grep` or LSP — not to Bash.
-- **Prefer LSP over `fff`/`ast-grep` for anything about symbols.** Only LSP resolves re-exports, aliased
-  imports and type relationships. Grep silently misses them, and mixes code hits with prose hits from
-  `*.md`.
-- Text search _is_ correct for: prose (`*.md`, specs, comments-only sweeps), `node_modules` build output
-  and other unindexed files, and logs. Use the `Grep` tool over Bash `grep` even then.
-- Two tools would both work? Take the more precise one and move on — this is a reflex, not a research
-  project.
-- After ~2 searches you have enough paths. `Read` the code instead of grepping variations.
-
-## 6. RTK — Rust Token Killer
+## 5. RTK — Rust Token Killer
 
 RTK optimizes terminal outputs to save tokens. Standard commands (e.g. `git status`) are automatically hooked — just run them normally.
 

@@ -19,11 +19,9 @@ in {
           (lib.getExe package)
         ];
         EnvironmentVariables = {
-          MERIDIAN_DEBUG = "1";
+          MERIDIAN_NO_FILE_CHANGES = "1";
           MERIDIAN_TELEMETRY_PERSIST = "1";
           MERIDIAN_TELEMETRY_RETENTION_DAYS = "2";
-          # Meridian's structured logger still uses its legacy provider gate.
-          OPENCODE_CLAUDE_PROVIDER_DEBUG = "1";
         };
         KeepAlive = {
           Crashed = true;

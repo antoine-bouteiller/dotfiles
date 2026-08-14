@@ -1,6 +1,6 @@
 ---
 name: writing-plan
-description: Write or edit a phased plan at .plan/<slug>.md — an ordered task list where every task has one goal and one runnable validation — without implementing it. Use when the user wants to plan a feature or change before building, asks to "make a plan", asks to update an existing plan, or when a task is large enough to design before touching code. Replaces built-in plan mode.
+description: Plan a change before building — a phased task list at .plan/<slug>.md where every task has one goal and one runnable validation. Use when asked to make or update a plan, or when a change is large enough to design before touching code. Replaces built-in plan mode.
 ---
 
 # Writing a plan
@@ -47,8 +47,8 @@ append that event to the log. Do not hand off a plan with unresolved material qu
 ## 6. Hand off
 
 Report the plan path, acceptance summary, ordered task list, and verification commands. Do not
-implement — that is `implement-plan`'s job. Done when the user has a `ready` plan and knows how to
-execute and verify it.
+implement — `implement` executes the plan, one reviewed subagent task per commit. Done when the user
+has a `ready` plan and knows how to execute and verify it.
 
 ## Plan file format
 
@@ -61,10 +61,9 @@ deliverable — leave it out of commits unless the user says otherwise.
 Two shapes:
 
 - **Single file** — `.plan/<slug>.md`. The default; use it whenever one file remains readable.
-- **Folder** — `.plan/<slug>/` with `index.md` plus one file per independently verifiable phase
-  (`01-tooling.md`, …). Use only when phase detail would make one file difficult to execute.
-  `index.md` alone owns status, acceptance and task checkboxes, final verification, open questions,
-  and the log. Phase files own task detail and contain no mutable status or checkboxes.
+- **Folder** — `.plan/<slug>/` with `index.md` plus one file per phase. Use only when phase detail
+  would make one file difficult to execute; read [`FOLDER-PLANS.md`](FOLDER-PLANS.md) before writing
+  one.
 
 Do not generate separate specs, research notes, data models, contracts, quickstarts, task files,
 progress JSON, or other companion artifacts unless the user explicitly requests them. The one
@@ -155,52 +154,11 @@ Required sections appear exactly once and in the order shown; write `None` rathe
 IDs are `PREFIX-NNN`, sequential within their namespace (`G`, `NG`, `AC`, `T`, `KD`), never
 renumbered — append new ones and record the amendment in `Log`. Every referenced ID must exist.
 
-### Folder shape
-
-`index.md` follows the same schema and is the only status and checkbox authority. Its
-`## Implementation` collapses each task to one line pointing at the phase file with the detail:
-
-```markdown
-- [ ] **T-001** <optional `[P]` marker> <task outcome; satisfies AC-001> — see `01-phase.md#t-001-task-title`
-```
-
-Each phase file contains task blocks in the shape above but no status or checkboxes:
-
-```markdown
-# Phase 1 — <independently verifiable outcome>
-
-**Plan:** `index.md`
-**Phase dependencies:** None | <earlier phase names>
-
-## T-001 — <task title>
-
-- **Acceptance:** AC-001
-- ... (remaining task fields as above)
-```
-
-Task IDs are globally unique across phase files, and each block has exactly one matching `index.md`
-entry.
-
 ### Visuals
 
-When a task's target shape is hard to state in prose, show it. Pick the smallest view that makes the
-point, place it next to the short text it supports, and keep only the calls, files, props, states, and
-boundaries the implementer needs — a sketch, never a pre-implementation. Use one or two of these, not
-all of them; the same views serve when handing the plan off to the user.
-
-| View                                 | Use for                                                        |
-| ------------------------------------ | -------------------------------------------------------------- |
-| Pseudocode (`text` block)            | logic or an algorithm                                          |
-| Call tree (`text` block)             | runtime control flow                                           |
-| Component tree, annotated with paths | UI structure, plus the state and module boundaries that matter |
-| Shallow file tree with `#` comments  | file responsibility or the shape of a broad refactor           |
-| Mermaid                              | component interaction, sequences, data flow                    |
-| `diff` block                         | what changes when the surrounding shape already exists         |
-| Full code block                      | a mostly-new contract, or a copyable target shape              |
-
-For a visual UI, layout, or state comparison too dense for Mermaid, write one focused HTML file next
-to the plan — matching the product's colors, type, spacing, and components, with real labels and data
-— and open it for the user with `open .plan/<slug>-<description>.html`.
+When a task's target shape is hard to state in prose, show it — read
+`../choosing-visuals/SKILL.md` to pick the view. Plan mockups live beside the plan as
+`.plan/<slug>-<description>.html`.
 
 ### Rules
 
@@ -221,8 +179,7 @@ to the plan — matching the product's colors, type, spacing, and components, wi
   dependencies, abstractions, or layers.
 - Final verification covers every `AC-NNN` ID. Build-only checks are insufficient when runtime or
   user-visible behavior is affected.
-- Single-file plans remain the default. In a folder plan, split only at independently verifiable
-  phase boundaries; `index.md` owns mutable state and phase files never duplicate it.
+- Single-file plans remain the default.
 - **The plan is the state.** Tick tasks and acceptance criteria only when their stated evidence
   exists. Append every scope, decision, status, or implementation deviation to `Log`.
 

@@ -3,6 +3,7 @@ name: publish-draft-review
 description: Create unpublished inline DRAFT review comments on a GitLab merge request diff via the
   GitLab API. Use when a code review has produced findings that should be attached to exact
   diff lines as drafts (not published) so the human can review and submit them in one batch.
+disable-model-invocation: true
 ---
 
 # Publish Draft Review

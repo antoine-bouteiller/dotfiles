@@ -1,6 +1,6 @@
 ---
 name: writing-spec
-description: Write or edit a version-controlled design spec at <slug>.spec.md — problem, key design decisions, principles, non-goals, caveats, components, and detailed design. Use whenever the user asks to write a spec, "spec out" a feature, or amend or update an existing spec for a feature, architecture, or technical choice. Precedes writing-plan.
+description: Write or amend a design spec at <slug>.spec.md — problem, key design decisions, principles, non-goals, caveats, components, detailed design. Use when asked to spec out a feature, architecture, or technical choice, or to amend an existing spec. Precedes writing-plan.
 ---
 
 # Writing a spec
@@ -133,8 +133,6 @@ Per component in §7, whichever of these carry real content:
 - **Error handling** — failure modes and recovery
 - **Examples** — short, illustrative usage
 
-Code examples MUST declare their language.
-
 ## 9. Open Questions
 
 - `[OQ-1]` <unresolved item needing a human decision> — owner: @name
@@ -142,20 +140,8 @@ Code examples MUST declare their language.
 
 ### Visuals
 
-§7 and §8 carry the design's shape, and prose is usually the worst way to show it. Pick the smallest
-view that makes the point, place it next to the short text it supports, and keep only the calls,
-files, props, states, and boundaries a reader needs. Use one or two of these, not all of them — the
-same views serve when explaining the spec back to the user.
-
-| View                                 | Use for                                                        |
-| ------------------------------------ | -------------------------------------------------------------- |
-| Pseudocode (`text` block)            | logic or an algorithm                                          |
-| Call tree (`text` block)             | runtime control flow                                           |
-| Component tree, annotated with paths | UI structure, plus the state and module boundaries that matter |
-| Shallow file tree with `#` comments  | file responsibility or the shape of a broad refactor           |
-| Mermaid                              | component interaction, sequences, data flow                    |
-| `diff` block                         | what changes when the surrounding shape already exists         |
-| Full code block                      | a mostly-new contract, or a copyable target shape              |
+§7 and §8 carry the design's shape; show it rather than describing it — read
+`../choosing-visuals/SKILL.md` to pick the view.
 
 ### Rules
 

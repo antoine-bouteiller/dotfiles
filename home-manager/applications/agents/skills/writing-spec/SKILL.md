@@ -1,6 +1,6 @@
 ---
 name: writing-spec
-description: Write or amend a design spec at <slug>.spec.md — problem, key design decisions, principles, non-goals, caveats, components, detailed design. Use when asked to spec out a feature, architecture, or technical choice, or to amend an existing spec. Precedes writing-plan.
+description: Write or amend a design spec at <slug>.spec.md — problem, key design decisions, principles, non-goals, caveats, components, detailed design, as one file or an umbrella tree of per-component leaves. Use when asked to spec out a feature, architecture, or technical choice, to split a spec across components, or to amend an existing spec. Precedes writing-plan.
 ---
 
 # Writing a spec
@@ -23,18 +23,20 @@ can name the goals that make this worth building.
 Read the code, docs, and existing specs the feature touches. Cite existing behavior with
 `path:line`. Stay read-only. Done when the design fits the codebase that actually exists.
 
-## 3. Resolve and confirm the path
+## 3. Resolve the shape and confirm the path
 
-Derive `<slug>` and resolve the location below, following the repo's convention when it has one.
-**Always confirm the path with the user before writing** — inference is a guess. If the path exists,
-stop and refuse to overwrite. Done when the user has approved an unused path.
+Pick single spec or umbrella tree per the shape rules below, derive `<slug>`, and resolve the
+location, following the repo's convention when it has one. **Always confirm the shape and path with
+the user before writing** — inference is a guess. If the path exists, stop and refuse to overwrite.
+Done when the user has approved a shape and an unused path.
 
 ## 4. Draft the spec
 
 Write the file with `status: draft`. Fill it from what you know; record every reasonable default you
 chose under `## 6. Caveats`. Put choices with no reasonable default — ones that would change scope,
 security, or user experience — in `## 9. Open Questions` rather than guessing. Every `[KD-N]` gets a
-rationale. Done when a reader who has never seen the codebase understands what is being built and
+rationale. For an umbrella tree, write the umbrella first, then each leaf, respecting section
+ownership. Done when a reader who has never seen the codebase understands what is being built and
 why it is built that way.
 
 ## 5. Resolve open questions
@@ -68,6 +70,42 @@ One spec, one file.
 `<slug>` is kebab-case, 2–4 words (`event-store`, `add-oauth-login`). Follow the repo's existing
 convention over these defaults. Never overwrite an existing spec — refuse and let the user choose.
 
+### Shape: single spec or umbrella tree
+
+An **umbrella** is a spec carrying `kind: umbrella` that holds the shared design for the sibling leaf
+specs in its directory; each leaf holds one component's detailed design.
+
+Write a tree when any holds: three or more components with non-trivial detailed design, one
+component's §8 heading past ~200 lines, or components that different people or parallel agents will
+build. Stay single otherwise — under ~300 lines, one component, or components too coupled to
+separate. "This is one write-path, a tree buys nothing" is a successful outcome.
+
+Layout — exactly one umbrella per directory, leaves colocated beside it:
+
+```text
+<module-dir>/spec/
+├── <area>.spec.md          # kind: umbrella
+├── <component-a>.spec.md   # leaf, parent-spec: the umbrella
+└── <sub-area>/
+    ├── <sub-area>.spec.md  # sub-umbrella: kind: umbrella + parent-spec: <area>.spec.md
+    └── <leaf-b>.spec.md
+```
+
+Keep each umbrella to **6 leaves or fewer**; group cohesive leaves under a sub-umbrella beyond that.
+One leaf owns one disjoint write-path — a leaf spanning several modules is too large, a leaf with no
+distinct verification surface folds into a neighbour.
+
+**Section ownership.** The umbrella owns §2 goals, §4 principles, §5 non-goals, the §7 inventory and
+execution order, and any tree-wide `[KD-N]` / `[C-N]`; its §8 stays a pointer table to the leaves. A
+leaf owns its component's §8 plus its own `[KD-N]`, `[C-N]`, and any leaf-scoped `[PI-N]` / `[NG-N]`
+that cites the umbrella item it refines. Goals stay umbrella-level. When a leaf supersedes umbrella
+design, amend the umbrella in the same change: annotate the item (`superseded by <leaf>:[KD-N]`) and
+add a changelog row.
+
+**Links.** `parent-spec:` is the structural up-link and the only field carrying it — leaf to its
+colocated umbrella, sub-umbrella to the umbrella above. `related:` stays informational. The downward
+direction is implicit: `kind: umbrella` plus the §7 inventory plus colocation.
+
 Do not generate companion artifacts (research notes, checklists, task lists, progress files) unless
 the user asks. The quality gate is applied, not written to disk.
 
@@ -79,9 +117,11 @@ frontmatter and needs no heading.
 ```markdown
 ---
 title: <Feature or component name>
+kind: umbrella # umbrella specs only; leaves and single specs omit this field
 status: draft | review | accepted | implemented | amended
 author: <git config user.name>
 date: <YYYY-MM-DD>
+parent-spec: # repo-root-relative path to the umbrella above; omit on a top umbrella or single spec
 related: [] # repo-root-relative paths to peer specs, ADRs, or docs; informational only
 ---
 
@@ -122,6 +162,13 @@ Optional diagram (Mermaid or ASCII), then the inventory:
 | Component   | Module type | Responsibility | Public API surface         |
 | ----------- | ----------- | -------------- | -------------------------- |
 | Event Store | Java lib    | Persist events | `EventStore`, `EventQuery` |
+
+An umbrella adds the leaf execution order, one row per leaf:
+
+| Leaf        | Depends on         | Rationale                  |
+| ----------- | ------------------ | -------------------------- |
+| transport   | —                  | Foundation                 |
+| remote-sync | transport `[KD-2]` | Needs the framing contract |
 
 ## 8. Detailed Design
 
@@ -176,6 +223,8 @@ Before moving `draft` → `review`, confirm:
 - [ ] Every goal in §2 is addressed by something in §3–§8.
 - [ ] Every `[KD-N]` states a real rationale, not a restatement of the choice.
 - [ ] §7 lists every component §8 details, and §8 details every component §7 lists.
+- [ ] Tree: every §7 row has a leaf and every leaf a §7 row; every leaf's `parent-spec:` resolves to
+      its directory's umbrella; each section sits at the level that owns it.
 - [ ] Every `path:line` citation resolves, and every cross-link points at an existing file.
 - [ ] IDs are sequential, unrenumbered, and every reference resolves.
 

@@ -16,22 +16,6 @@
         "type": "github"
       }
     },
-    "ast-grep-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783087819,
-        "narHash": "sha256-awochSE2OupbsmaGx0xc7wHf0ovVMSdtHv4gZAGWOus=",
-        "owner": "ast-grep",
-        "repo": "claude-skill",
-        "rev": "c2a9bc154f4ffe08b25d28d5e852dfac8c0d0d8a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ast-grep",
-        "repo": "claude-skill",
-        "type": "github"
-      }
-    },
     "autoscan": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -179,22 +163,6 @@
         "owner": "LnL7",
         "ref": "master",
         "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
-    "emilkowalski-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1785933188,
-        "narHash": "sha256-ABUbg0Ps28qMZ410msWmwDAhvIQi5qNAL1WkLbw5YA8=",
-        "owner": "emilkowalski",
-        "repo": "skills",
-        "rev": "de33dbed000212b54400a33767d1e4d03654db2a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "emilkowalski",
-        "repo": "skills",
         "type": "github"
       }
     },
@@ -619,11 +587,9 @@
     "root": {
       "inputs": {
         "agent-browser-skill": "agent-browser-skill",
-        "ast-grep-skill": "ast-grep-skill",
         "autoscan": "autoscan",
         "cosmic-manager": "cosmic-manager",
         "darwin": "darwin",
-        "emilkowalski-skills": "emilkowalski-skills",
         "herdr": "herdr",
         "home-manager": "home-manager",
         "hunk": "hunk",
@@ -633,11 +599,8 @@
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "shadcn-improve-skills": "shadcn-improve-skills",
         "sops-nix": "sops-nix",
-        "taste-skill": "taste-skill",
-        "treefmt-nix": "treefmt-nix_4",
-        "vercel-agent-skills": "vercel-agent-skills"
+        "treefmt-nix": "treefmt-nix_4"
       }
     },
     "rust-overlay": {
@@ -658,22 +621,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "shadcn-improve-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1781504319,
-        "narHash": "sha256-m0a1n8xguDI2nooJ856sWPofh+tZI5VvIrVZrQH6XgY=",
-        "owner": "shadcn",
-        "repo": "improve",
-        "rev": "03369ee6d7cafbfcecc4346539b05b3dc0a603bb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "shadcn",
-        "repo": "improve",
         "type": "github"
       }
     },
@@ -739,22 +686,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "taste-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1784822484,
-        "narHash": "sha256-Zt3fC8/63ZHcsFLjNR6/zNykrVkT0QV3SmmCi1dlnJA=",
-        "owner": "leonxlnx",
-        "repo": "taste-skill",
-        "rev": "e988add20dab0fa97d7a76781c48961c8184288e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "leonxlnx",
-        "repo": "taste-skill",
         "type": "github"
       }
     },
@@ -841,22 +772,6 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "vercel-agent-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1784888723,
-        "narHash": "sha256-5i/QesRS+SQ4gDFCyj22uthen90GZsnhT7dQvetRbpA=",
-        "owner": "vercel-labs",
-        "repo": "agent-skills",
-        "rev": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vercel-labs",
-        "repo": "agent-skills",
         "type": "github"
       }
     }

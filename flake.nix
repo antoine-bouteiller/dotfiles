@@ -44,32 +44,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # External Claude Code skills, pinned as non-flake sources.
-    ast-grep-skill = {
-      url = "github:ast-grep/claude-skill";
-      flake = false;
-    };
     agent-browser-skill = {
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
     mattpocock-skills = {
       url = "github:mattpocock/skills";
-      flake = false;
-    };
-    taste-skill = {
-      url = "github:leonxlnx/taste-skill";
-      flake = false;
-    };
-    emilkowalski-skills = {
-      url = "github:emilkowalski/skills";
-      flake = false;
-    };
-    vercel-agent-skills = {
-      url = "github:vercel-labs/agent-skills";
-      flake = false;
-    };
-    shadcn-improve-skills = {
-      url = "github:shadcn/improve";
       flake = false;
     };
   };

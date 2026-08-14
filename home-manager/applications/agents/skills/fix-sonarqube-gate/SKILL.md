@@ -2,6 +2,7 @@
 name: fix-sonarqube-gate
 allowed-tools: Bash(sonar:*), Bash(git:*)
 description: Diagnose and fix a failing SonarQube quality gate on the current branch's merge request — resolves the project + PR, reads the failing conditions, then fixes new violations and coverage gaps. Use when the user says "fix the sonarqube gate", "the sonar quality gate is failing", or after a pipeline reports a red SonarQube check.
+disable-model-invocation: true
 ---
 
 # Fix the SonarQube quality gate

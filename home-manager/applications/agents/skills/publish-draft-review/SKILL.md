@@ -4,6 +4,7 @@ description: Create unpublished inline DRAFT review comments on a GitLab merge r
   GitLab API. Use when a code review has produced findings that should be attached to exact
   diff lines as drafts (not published) so the human can review and submit them in one batch.
   Carries a ready-to-post dataset for Phoenix MR !145 (View360 view-based rework).
+disable-model-invocation: true
 ---
 
 # Publish Draft Review

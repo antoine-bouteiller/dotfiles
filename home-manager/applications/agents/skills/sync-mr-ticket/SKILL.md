@@ -6,6 +6,7 @@ description: Update a GitLab merge request's title + description and the Linear 
   finishing a feature. The MR is found by branch (never assume the !N), and the Linear
   ticket key is derived from the branch name (e.g. phx-118-… → PHX-118).
 allowed-tools: Bash, Read, Grep
+disable-model-invocation: true
 ---
 
 # Sync MR + Linear ticket

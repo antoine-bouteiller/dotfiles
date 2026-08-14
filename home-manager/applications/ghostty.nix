@@ -15,7 +15,6 @@
         then null
         else pkgs.ghostty;
       settings = {
-        keybind = "shift+enter=text:\\x1b\\r";
         shell-integration-features = true;
         theme = "JetBrains Islands Dark";
       };

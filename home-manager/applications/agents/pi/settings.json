@@ -12,6 +12,6 @@
     "anthropic/claude-haiku-4-5"
   ],
   "packages": ["npm:@ff-labs/pi-fff", "git:github.com/antoine-bouteiller/pi-extensions"],
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "medium",
   "tuiMode": "fullscreen"
 }

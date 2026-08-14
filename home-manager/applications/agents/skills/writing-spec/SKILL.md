@@ -1,195 +1,196 @@
 ---
 name: writing-spec
-description: Shared spec-file format and specs/ conventions. Internal helper for create-spec and create-plan, not invoked on its own.
-disable-model-invocation: true
-hidden: true
+description: Write or edit a version-controlled design spec at <slug>.spec.md — problem, key design decisions, principles, non-goals, caveats, components, and detailed design. Use whenever the user asks to write a spec, "spec out" a feature, or amend or update an existing spec for a feature, architecture, or technical choice. Precedes writing-plan.
 ---
 
-# Spec file format
+# Writing a spec
 
-The single source of truth for how specs live on disk. `create-spec` writes specs to this format, and
-`create-plan` mirrors its shape for plan files.
+Produce a spec that records **design intent**: the problem, the decisions taken and why, and the
+shape of the solution. It is a committed document a future reader uses to understand the design —
+not a task list. `writing-plan` turns an accepted spec into an executable plan; do not do its job.
 
-## Location
+**Editing an existing spec:** skip to step 4, amend in place per the rules below — keep IDs stable,
+set `status: amended`, append a `## Changelog` row — then rerun the quality gate.
 
-One spec, one file: `specs/<slug>.spec.md` at the repo root by default, matching an existing convention
-(colocated module specs, another directory) when the repo has one. `<slug>` is kebab-case, 2–4 words, action-noun
-where natural (`add-oauth-login`, `fix-payment-timeout`). Create the directory if absent.
+## 1. Capture the intent
 
-Do not generate companion artifacts — separate checklist files, research notes, data models, contracts,
-quickstarts, task lists, or progress JSON — unless the user explicitly asks. The gate below is applied, not
-written to disk.
+Restate the feature in one paragraph: the problem, who has it, why now. If the user gave a bare
+feature name with no problem behind it, ask what it solves before writing anything. Done when you
+can name the goals that make this worth building.
 
-## Schema
+## 2. Ground it in the repo
+
+Read the code, docs, and existing specs the feature touches. Cite existing behavior with
+`path:line`. Stay read-only. Done when the design fits the codebase that actually exists.
+
+## 3. Resolve and confirm the path
+
+Derive `<slug>` and resolve the location below, following the repo's convention when it has one.
+**Always confirm the path with the user before writing** — inference is a guess. If the path exists,
+stop and refuse to overwrite. Done when the user has approved an unused path.
+
+## 4. Draft the spec
+
+Write the file with `status: draft`. Fill it from what you know; record every reasonable default you
+chose under `## 6. Caveats`. Put choices with no reasonable default — ones that would change scope,
+security, or user experience — in `## 9. Open Questions` rather than guessing. Every `[KD-N]` gets a
+rationale. Done when a reader who has never seen the codebase understands what is being built and
+why it is built that way.
+
+## 5. Resolve open questions
+
+Present each `[OQ-N]` as one numbered question with 2–4 concrete candidate answers and the
+implication of each, using `AskUserQuestion` when available. Ask them together, then fold each
+answer into the relevant section. Done when only questions the user chose to defer remain.
+
+## 6. Validate against the quality gate
+
+Apply the gate below. Fix every failure and re-check, up to three passes; if something still fails,
+leave it in `## 9. Open Questions` and say so plainly rather than declaring the spec ready. Once it
+passes, set `status: review`. Done when the gate passes or the gaps are explicit.
+
+## 7. Hand off
+
+Report the spec path, the goals, the key design decisions, and anything still open. Recommend
+`writing-plan` as the next step, and say plainly that acceptance is the user's call — you do not set
+`status: accepted` yourself. Do not implement, and do not commit unless asked.
+
+## Spec file format
+
+### Location
+
+One spec, one file.
+
+- **Single-module spec** — colocate: `<module-dir>/<slug>.spec.md`.
+- **Cross-cutting spec** — `doc/architecture/specs/<slug>.spec.md`, or the repo's existing spec
+  directory when it has one.
+
+`<slug>` is kebab-case, 2–4 words (`event-store`, `add-oauth-login`). Follow the repo's existing
+convention over these defaults. Never overwrite an existing spec — refuse and let the user choose.
+
+Do not generate companion artifacts (research notes, checklists, task lists, progress files) unless
+the user asks. The quality gate is applied, not written to disk.
+
+### Template
+
+Include every section heading; write `N/A` when a section does not apply. Section 1 is the
+frontmatter and needs no heading.
 
 ```markdown
 ---
-title: <Feature name>
-status: draft | review | accepted | superseded
+title: <Feature or component name>
+status: draft | review | accepted | implemented | amended
 author: <git config user.name>
 date: <YYYY-MM-DD>
 related: [] # repo-root-relative paths to peer specs, ADRs, or docs; informational only
 ---
 
-## Problem
+## 2. Problem Statement
 
-<one to three paragraphs: the problem, who has it, what it costs today, and why now>
+<2–4 sentences: what problem this solves, why now, who is affected. Business context and
+motivation, not implementation detail.>
 
-- **G-001:** <goal — the outcome that makes this feature worth shipping>
+- `[G-1]` <goal>
+- `[G-2]` <goal>
 
-## Scope
+## 3. Key Design Decisions
 
-### In scope
+| Decision             | Choice         | Rationale                          |
+| -------------------- | -------------- | ---------------------------------- |
+| `[KD-1]` Persistence | Event sourcing | Audit trail required by compliance |
 
-- <observable capability this spec covers>
+## 4. Principles & Intents
 
-### Non-goals
+Guiding constraints that shape every subsequent detail; tiebreakers when the design is ambiguous.
 
-- **NG-001:** <explicitly excluded capability, and one clause on why>
+- `[PI-1]` <principle — short name, then one clause of meaning>
 
-## Context
+## 5. Non-Goals
 
-- **Current behavior:** <what exists today, with `path:line` evidence for behavior this feature changes>
-- **Actors:** <the user types or systems that interact with the feature>
+- `[NG-1]` <explicitly excluded capability>
 
-## User stories
+## 6. Caveats
 
-### US-001 — <brief title> (Priority: P1)
+Known limitations, assumptions about external systems, constraints implementers must know.
 
-<the journey in plain language, from the actor's point of view>
+- `[C-1]` <caveat>
 
-- **Why this priority:** <the value delivered, and why it ranks here>
-- **Independent test:** <how this story alone can be exercised and demonstrated>
-- **Acceptance scenarios:**
-  1. **Given** <initial state>, **when** <action>, **then** <observable outcome> — covers FR-001
-  2. **Given** <initial state>, **when** <action>, **then** <observable outcome> — covers FR-002
+## 7. High-Level Components
 
-### US-002 — <brief title> (Priority: P2)
+Optional diagram (Mermaid or ASCII), then the inventory:
 
-<as above; each story is an independently shippable slice>
+| Component   | Module type | Responsibility | Public API surface         |
+| ----------- | ----------- | -------------- | -------------------------- |
+| Event Store | Java lib    | Persist events | `EventStore`, `EventQuery` |
 
-## Requirements
+## 8. Detailed Design
 
-### Functional
+Per component in §7, whichever of these carry real content:
 
-- **FR-001:** The system MUST <specific, testable capability>
-- **FR-002:** <actor> MUST be able to <specific, testable interaction>
+- **Data model / types** — records, enums, sealed hierarchies
+- **API surface** — public methods, events, configuration
+- **Interactions** — how it calls or is called by others
+- **Error handling** — failure modes and recovery
+- **Examples** — short, illustrative usage
 
-### Non-functional
+Code examples MUST declare their language.
 
-- **NFR-001:** <quality attribute the feature must meet — performance, security, privacy, accessibility,
-  compliance — stated as an observable threshold; or `None`>
+## 9. Open Questions
 
-### Key entities
-
-- **<Entity>:** <what it represents, its meaningful attributes and relationships, no storage or type detail;
-  omit this section entirely when the feature involves no new data>
-
-## Edge cases
-
-- **EC-001:** <boundary, failure, or conflict condition> → <required behavior>
-
-## Success criteria
-
-- **SC-001:** <measurable, technology-agnostic outcome, with the metric that decides it>
-
-## Decisions
-
-### KD-001 — <product decision title>
-
-- **Decision:** <chosen product or scope behavior>
-- **Rationale:** <why, in terms of user or business value>
-- **Alternatives rejected:** <credible option and concrete reason; or `None`>
-
-## Assumptions
-
-- <reasonable default chosen because the request did not specify it, or a dependency taken as given>
-
-## Constraints
-
-- <external rule the feature must respect — regulation, contract, platform, existing commitment; or `None`>
-
-## Open questions
-
-<material questions that block acceptance, or `None`>
-
-## Log
-
-- <YYYY-MM-DD> Spec created with status `draft`.
-- <YYYY-MM-DD> Quality gate passed; status changed to `review`.
+- `[OQ-1]` <unresolved item needing a human decision> — owner: @name
 ```
 
-Write `None.` under `## Decisions` when no product decision needs a record. Drop `### Key entities` entirely
-when the feature has no data; keep every other section, using `None` rather than deleting it.
+### Visuals
 
-## Rules
+§7 and §8 carry the design's shape, and prose is usually the worst way to show it. Pick the smallest
+view that makes the point, place it next to the short text it supports, and keep only the calls,
+files, props, states, and boundaries a reader needs. Use one or two of these, not all of them — the
+same views serve when explaining the spec back to the user.
 
-- **Specify what and why, never how.** No languages, frameworks, libraries, APIs, schemas, file paths for new
-  code, or algorithms. A `path:line` citation of existing behavior is context; a chosen implementation is a
-  plan decision. If you cannot state a requirement without naming a technology, the constraint itself is the
-  requirement — say that instead.
-- Write for the person who decides whether to build this, not for the person who builds it. Plain language over
-  jargon.
-- Required sections appear exactly once and in the shown order. IDs are stable and sequential within their
-  namespace (`G-001`, `NG-001`, `US-001`, `FR-001`, `NFR-001`, `EC-001`, `SC-001`, `KD-001`). Never renumber an
-  existing ID; append new ones and record the amendment in `Log`. Every referenced ID must exist.
-- User stories are prioritized `P1`, `P2`, … by value, and each is independently testable — implementing `P1`
-  alone must deliver something demonstrable.
-- Every functional requirement is atomic, testable, and phrased with `MUST`; every one is covered by at least
-  one acceptance scenario or success criterion. Every user story names at least one requirement it exercises.
-- Success criteria are measurable and technology-agnostic: "checkout completes in under 3 minutes",
-  "95% of searches return results within 1 second" — not "API responds in 200ms" or "the cache hit rate exceeds
-  80%". Cover both quantitative outcomes and task-completion or satisfaction measures where they apply.
-- Record only decisions that change product behavior or scope. Route implementation choices to the plan.
-- At most three `[NEEDS CLARIFICATION]` markers, prioritized scope > security/privacy > user experience >
-  detail. Everything else becomes a documented assumption. Do not ask about things with an obvious default —
-  standard retention, ordinary error messaging, conventional platform behavior.
-- New specs begin as `draft` and reach `review` only through the quality gate. Only the user moves a spec to
-  `accepted`; mark a spec `superseded` rather than deleting it, and name its replacement in `related`.
-- **Never overwrite an existing spec.** Refuse, report the existing file, and let the user choose.
+| View                                 | Use for                                                        |
+| ------------------------------------ | -------------------------------------------------------------- |
+| Pseudocode (`text` block)            | logic or an algorithm                                          |
+| Call tree (`text` block)             | runtime control flow                                           |
+| Component tree, annotated with paths | UI structure, plus the state and module boundaries that matter |
+| Shallow file tree with `#` comments  | file responsibility or the shape of a broad refactor           |
+| Mermaid                              | component interaction, sequences, data flow                    |
+| `diff` block                         | what changes when the surrounding shape already exists         |
+| Full code block                      | a mostly-new contract, or a copyable target shape              |
 
-## Quality gate
+### Rules
 
-Before changing status from `draft` to `review`, confirm:
+- `[PREFIX-N]` IDs are sequential within their section, starting at 1: `[G-N]` §2, `[KD-N]` §3,
+  `[PI-N]` §4, `[NG-N]` §5, `[C-N]` §6, `[OQ-N]` §9. Never renumber an existing ID; append new ones,
+  and sub-version amended items (`[KD-3.1]`). Every referenced ID must exist.
+- Record design intent and its rationale — not implementation steps, schedules, or task breakdowns.
+  Sequencing belongs in a plan (`writing-plan`).
+- Every decision states a rationale. A `[KD-N]` without a reason is a defect.
+- Cite existing behavior with `path:line`. Cross-links are repo-root-relative.
+- Keep §8 proportionate: enough for an implementer to build the right thing, no pre-written code.
+- New specs start at `draft` and reach `review` only through the quality gate. Only the user sets
+  `accepted`.
+- Specs are living documents — amend in place, never as a separate amendment file. Set
+  `status: amended` and append a `## Changelog` row:
 
-- [ ] Every required section appears exactly once, and no `TODO`, `TBD`, or `[NEEDS CLARIFICATION]` placeholder
-      remains.
-- [ ] No implementation detail leaked in: no stack, library, API, schema, or algorithm choices.
-- [ ] `Open questions` is `None`, and every assumption is written down and user-confirmed where material.
-- [ ] Each goal is served by at least one user story, and each user story is prioritized, independently
-      testable, and carries at least one `Given/When/Then` scenario.
-- [ ] Each functional requirement is atomic, testable, unambiguous, and covered by an acceptance scenario or
-      success criterion; each non-functional requirement states an observable threshold.
-- [ ] Each success criterion is measurable, technology-agnostic, and stated from the user's or business's point
-      of view.
-- [ ] Scope is bounded: non-goals are explicit, and edge cases name required behavior rather than just asking a
-      question.
-- [ ] IDs are stable and sequential, and every referenced ID exists.
-- [ ] Every `path:line` citation resolves, and the spec is consistent with any related spec it names.
+  ```markdown
+  ## Changelog
 
-If a check fails, keep status `draft`, fix it, and rerun the gate. Change status to `review` only when every
-check passes.
+  | Date       | Amendment         | Sections affected | Reason                             |
+  | ---------- | ----------------- | ----------------- | ---------------------------------- |
+  | 2026-03-15 | Add caching layer | 7, 8.3            | Performance results from load test |
+  ```
 
-## Mirroring this shape in other documents
+- Do not invent numbered items the user did not ask for. Propose them and let the user authorize.
 
-`create-plan` writes plan files rather than specs, but follows this same shape. What carries over:
+### Quality gate
 
-- The YAML frontmatter block and its `title` / `status` / `author` / `date` / `related` fields, with the
-  document's own status vocabulary.
-- These sections, defined exactly as above: `## Problem` (narrative plus `G-NNN` goals), `## Scope`
-  (`### In scope` plus `NG-NNN` non-goals), `## Context`, `## Decisions` (`KD-NNN` records), `## Assumptions`,
-  `## Constraints`, `## Open questions`, `## Log`. A mirroring document may add fields to `## Context` or drop
-  `Actors` when it has none.
-- The ID form and discipline: `PREFIX-NNN`, stable, sequential within its namespace, never renumbered, every
-  reference resolves, amendments recorded in `Log`. A mirroring document adds its own namespaces on top of the
-  shared `G` / `NG` / `KD`.
-- Required sections appear exactly once and in a fixed order; write `None` instead of deleting one. The
-  document's own body sections slot in between `## Context` and `## Decisions`, where a spec puts its
-  requirements.
-- Gate-before-handoff: the document starts at its lowest status and advances only when every check passes;
-  unresolved material questions block advancement.
+Before moving `draft` → `review`, confirm:
 
-What does not carry over: the requirement-bearing sections (`## User stories`, `## Requirements`,
-`## Edge cases`, `## Success criteria`), the spec status vocabulary, the `specs/` location, and the
-"never how" rule — a plan exists precisely to record how. The mirroring document defines its own body
-sections and its own gate additions on top of this one.
+- [ ] Every section heading is present, and no `TBD` or `TODO` placeholder remains outside §9.
+- [ ] Every goal in §2 is addressed by something in §3–§8.
+- [ ] Every `[KD-N]` states a real rationale, not a restatement of the choice.
+- [ ] §7 lists every component §8 details, and §8 details every component §7 lists.
+- [ ] Every `path:line` citation resolves, and every cross-link points at an existing file.
+- [ ] IDs are sequential, unrenumbered, and every reference resolves.
+
+If a check fails, stay `draft`, fix it, rerun the gate.

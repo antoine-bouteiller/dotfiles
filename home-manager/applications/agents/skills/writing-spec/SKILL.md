@@ -20,8 +20,12 @@ can name the goals that make this worth building.
 
 ## 2. Ground it in the repo
 
-Read the code, docs, and existing specs the feature touches. Cite existing behavior with
-`path:line`. Stay read-only. Done when the design fits the codebase that actually exists.
+Read the code, docs, and existing specs the feature touches, then write **greenfield**: the spec
+describes the designed system as it stands once built, in present tense, as though nothing preceded
+it. Grounding shapes the design — which modules exist, which contracts hold, what is feasible — and
+then disappears from the prose. Cite `path:line` for a component the design keeps, an external
+contract it must satisfy, or a constraint a reader would otherwise doubt. Stay read-only. Done when
+the design fits the repo and reads as its own complete account.
 
 ## 3. Resolve the shape and confirm the path
 
@@ -197,6 +201,10 @@ Per component in §7, whichever of these carry real content:
   and sub-version amended items (`[KD-3.1]`). Every referenced ID must exist.
 - Record design intent and its rationale — not implementation steps, schedules, or task breakdowns.
   Sequencing belongs in a plan (`writing-plan`).
+- Stay greenfield: describe the end state. Which code is added, replaced, deleted, kept, or migrated
+  is the plan's judgement, derived by reading the design against the repo — a spec that carries
+  deltas decides it twice and goes stale on the first refactor. An amendment is the one place a spec
+  speaks of change, and only in its `## Changelog` row.
 - Every decision states a rationale. A `[KD-N]` without a reason is a defect.
 - Cite existing behavior with `path:line`. Cross-links are repo-root-relative.
 - Keep §8 proportionate: enough for an implementer to build the right thing, no pre-written code.
@@ -226,6 +234,9 @@ Before moving `draft` → `review`, confirm:
 - [ ] Tree: every §7 row has a leaf and every leaf a §7 row; every leaf's `parent-spec:` resolves to
       its directory's umbrella; each section sits at the level that owns it.
 - [ ] Every `path:line` citation resolves, and every cross-link points at an existing file.
+- [ ] Every statement reads greenfield: the built design in present tense, with no current-state
+      narration, before/after comparison, or migration wording.
+- [ ] Names carry design intent (`the render pipeline`), not authorship history (`the new pipeline`).
 - [ ] IDs are sequential, unrenumbered, and every reference resolves.
 
 If a check fails, stay `draft`, fix it, rerun the gate.

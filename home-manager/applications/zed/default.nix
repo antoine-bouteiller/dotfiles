@@ -12,9 +12,9 @@
       inherit (config.lib.file) mkOutOfStoreSymlink;
       zedDit = "${osConfig.flakePath}/home-manager/applications/zed";
     in {
-      home.packages = lib.optionals (!pkgs.stdenv.isDarwin) [pkgs.zed-editor];
+      home.packages = lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [pkgs.zed-editor];
 
-      programs.zsh.shellAliases = lib.mkIf (!pkgs.stdenv.isDarwin) {
+      programs.zsh.shellAliases = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) {
         zed = "zeditor";
       };
 

@@ -1,4 +1,7 @@
 {
+  "debugger": {
+    "button": false
+  },
   "cli_default_open_behavior": "new_window",
   "ssh_connections": [
     {
@@ -22,9 +25,11 @@
     "dock": "right"
   },
   "outline_panel": {
+    "button": false,
     "dock": "right"
   },
   "collaboration_panel": {
+    "button": false,
     "dock": "right"
   },
   "git_panel": {
@@ -282,6 +287,7 @@
     }
   },
   "terminal": {
+    "button": false,
     "font_family": "MesloLGM Nerd Font",
     "font_size": 12,
     "line_height": {

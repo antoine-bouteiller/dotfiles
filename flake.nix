@@ -48,10 +48,6 @@
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
-    mattpocock-skills = {
-      url = "github:mattpocock/skills";
-      flake = false;
-    };
   };
 
   outputs = {

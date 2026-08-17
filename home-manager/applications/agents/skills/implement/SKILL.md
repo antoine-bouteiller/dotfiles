@@ -2,14 +2,13 @@
 name: implement
 description: "Implement a piece of work based on a plan, spec, or set of tickets."
 disable-model-invocation: true
-model: sonnet
 ---
 
 # Implement
 
 Execute the work by dispatching one small, scoped subagent per task, reviewing each result, and
-committing each task. You coordinate; subagents write code. Your context stays clean for
-coordination.
+committing each coherent unit of work. You coordinate; subagents write code. Your context stays
+clean for coordination.
 
 ## 1. Frame the work
 
@@ -59,12 +58,19 @@ loop.
 
 ## 4. Commit and record
 
-After each approved task: commit, scoped to that task alone, with a message following
-`../conventional-commit/SKILL.md`. When the
-target is a plan, in the same step tick the task and any satisfied acceptance criteria, and append
-the outcome to `Log` — commit range, deviations, deferred findings. **The plan is the state**: it,
-not your memory, is what survives compaction. Reread it after any interruption and resume at the
-first unticked task.
+Commit whole units of work, not tasks. A commit is one **standalone** change: it states one intent,
+leaves the tree building and its tests passing, and reads on its own in the log without the tasks
+around it. Several approved tasks usually make one — a test task and the code that satisfies it, a
+rename and its call sites; one large task can make several. Hold approved tasks until the unit is
+whole, then commit it with a message following `../conventional-commit/SKILL.md`. Commit at the last
+point the unit is whole: before the next task would mix a second intent in, before switching area,
+and before finishing.
+
+When the target is a plan, tick each task and any satisfied acceptance criteria as it is approved,
+and append the outcome to `Log` at each commit — commit range, deviations, deferred findings. **The
+plan is the state**: it, not your memory, is what survives compaction. Reread it after any
+interruption and resume at the first unticked task, with any approved-but-uncommitted work still in
+the worktree.
 
 ## 5. Finish
 

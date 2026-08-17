@@ -378,22 +378,6 @@
         "type": "github"
       }
     },
-    "mattpocock-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1786829059,
-        "narHash": "sha256-QYJScM5FqsN+QsHHo5oJx/1e7YqGxdod/Iv6kpnQZ+o=",
-        "owner": "mattpocock",
-        "repo": "skills",
-        "rev": "068b6e0c62393147daf03530149cdce209c93da8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mattpocock",
-        "repo": "skills",
-        "type": "github"
-      }
-    },
     "meridian": {
       "inputs": {
         "bun2nix": "bun2nix_3",
@@ -593,7 +577,6 @@
         "herdr": "herdr",
         "home-manager": "home-manager",
         "hunk": "hunk",
-        "mattpocock-skills": "mattpocock-skills",
         "meridian": "meridian",
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",

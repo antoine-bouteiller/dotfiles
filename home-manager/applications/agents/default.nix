@@ -46,11 +46,6 @@
   # skills dir so they stay available even without claude-code.
   externalSkills = {
     agent-browser = "${inputs.agent-browser-skill}/skills/agent-browser";
-    resolving-merge-conflicts = "${inputs.mattpocock-skills}/skills/engineering/resolving-merge-conflicts";
-    grill-me = "${inputs.mattpocock-skills}/skills/productivity/grill-me";
-    grilling = "${inputs.mattpocock-skills}/skills/productivity/grilling";
-    writing-for-agents = "${inputs.mattpocock-skills}/skills/productivity/writing-for-agents";
-    tdd = "${inputs.mattpocock-skills}/skills/engineering/tdd";
   };
 
   # skill name -> home.file entries for a given target dir (".agents" / ".claude")

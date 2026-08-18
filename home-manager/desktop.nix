@@ -78,7 +78,7 @@ in {
           anchor_gap = true;
           margin = 8;
           opacity = 0.6;
-          border_radius = 160;
+          border_radius = 24;
           size = {
             __type = "enum";
             variant = "M";

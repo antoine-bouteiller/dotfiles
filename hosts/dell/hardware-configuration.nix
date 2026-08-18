@@ -37,7 +37,7 @@
   };
 
   boot.resumeDevice = "/dev/disk/by-uuid/a5119f39-0ae7-439f-9fb1-1719ddc7fe5e";
-  boot.kernelParams = ["resume_offeset=48320512"];
+  boot.kernelParams = ["resume_offset=48320512"];
 
   swapDevices = [
     {

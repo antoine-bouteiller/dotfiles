@@ -40,6 +40,12 @@
     variant = "azerty";
   };
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
+    priority = 100;
+  };
+
   programs.zsh.enable = true;
   programs.nix-ld.enable = true;
 

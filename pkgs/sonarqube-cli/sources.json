@@ -1,17 +1,17 @@
 {
-  "version": "1.5.0.4158",
+  "version": "1.6.0.4255",
   "platforms": {
     "aarch64-darwin": {
-      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.5.0.4158/macos/sonarqube-cli-1.5.0.4158-macos-arm64.bin",
-      "hash": "sha256-GB32aiW2yrakQo94L+J54BN0CIwfMkD9lG97kdNUV+Y="
+      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.6.0.4255/macos/sonarqube-cli-1.6.0.4255-macos-arm64.bin",
+      "hash": "sha256-X/OdRLCEXkEzNHGOw3zfh2zuqitdOxB285lCb+9i71s="
     },
     "x86_64-linux": {
-      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.5.0.4158/linux/sonarqube-cli-1.5.0.4158-linux-x86-64.bin",
-      "hash": "sha256-29TuICV/cwEK1/iiwlUjcwOe42EK8lJBbm8T9/+RVGA="
+      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.6.0.4255/linux/sonarqube-cli-1.6.0.4255-linux-x86-64.bin",
+      "hash": "sha256-397cnvrCuT0mNLlxsnI0iMzIwwoQ/+1ddgK9uleobWU="
     },
     "aarch64-linux": {
-      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.5.0.4158/linux/sonarqube-cli-1.5.0.4158-linux-arm64.bin",
-      "hash": "sha256-WWAY7AP2KCWI5r3laQRiWkq9DGXD5Nw+Bans0oOBxkQ="
+      "url": "https://binaries.sonarsource.com/Distribution/sonarqube-cli/1.6.0.4255/linux/sonarqube-cli-1.6.0.4255-linux-arm64.bin",
+      "hash": "sha256-483uWjI5lWTTd6dnzj6k/8Pw1WsAdeBJDfshqhROZDM="
     }
   }
 }

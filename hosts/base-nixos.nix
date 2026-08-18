@@ -12,9 +12,8 @@
   networking = {
     networkmanager = {
       enable = true;
-      dns = "none";
+      dns = "systemd-resolved";
     };
-    resolvconf.enable = false;
     hosts = {
       "192.168.1.254" = ["mabbox.bytel.fr"];
     };
@@ -22,10 +21,11 @@
     firewall.enable = true;
   };
 
-  environment.etc."resolv.conf".text = ''
-    nameserver 1.1.1.1
-    nameserver 9.9.9.9
-  '';
+  # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
+  services.resolved = {
+    enable = true;
+    fallbackDns = ["1.1.1.1" "9.9.9.9"];
+  };
 
   boot.loader = {
     systemd-boot = {

@@ -24,7 +24,7 @@
   # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
   services.resolved = {
     enable = true;
-    fallbackDns = ["1.1.1.1" "9.9.9.9"];
+    settings.Resolve.FallbackDNS = ["1.1.1.1" "9.9.9.9"];
   };
 
   boot.loader = {

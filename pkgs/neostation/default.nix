@@ -20,7 +20,7 @@
     inherit (source) hash;
   };
 
-  raw = appimageTools.extractType2 {inherit pname version src;};
+  raw = appimageTools.extract {inherit pname version src;};
 
   # The app stores its data in `$PWD/user-data`, and the stock AppRun cd's to its
   # own (now read-only /nix/store) dir before launching — so first run throws

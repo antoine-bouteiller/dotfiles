@@ -17,6 +17,9 @@
         "nix-command"
         "flakes"
       ];
+      # Keep build-time deps (sources, compilers) so GC doesn't force re-fetching them
+      keep-outputs = true;
+      keep-derivations = true;
       substituters = [
         "https://nix-community.cachix.org"
         "https://cache.nixos.org"

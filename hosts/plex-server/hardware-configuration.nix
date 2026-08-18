@@ -58,12 +58,6 @@ in {
     fsType = "ext4";
   };
 
-  zramSwap = {
-    enable = true;
-    memoryPercent = 50;
-    priority = 100;
-  };
-
   swapDevices = [
     {
       device = "/var/lib/swapfile";

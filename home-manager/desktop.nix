@@ -78,7 +78,11 @@ in {
           anchor_gap = true;
           margin = 8;
           opacity = 0.6;
-          border_radius = 24;
+          # Max half the dock's inner height (size M 48px − 2×4 padding = 40 → 20);
+          # anything larger is a cosmic_corner_radius_layer_v1 radius_too_large
+          # protocol error that crash-loops cosmic-panel. The Appearance "Round"
+          # style writes an unclamped 160 here — this pin overrides it on apply.
+          border_radius = 20;
           size = {
             __type = "enum";
             variant = "M";
@@ -110,15 +114,35 @@ in {
       ];
 
       configFile = let
-        # COSMIC 1.5 frosted glass toggles (Appearance & Style); the pinned
-        # cosmic-manager only knows the defunct v1 `is_frosted` bool.
-        frosted = {
+        # COSMIC 1.5 theme builder entries the pinned cosmic-manager has no
+        # options for: frosted glass toggles (it only knows the defunct v1
+        # `is_frosted` bool) and the Appearance "Round" interface style radii,
+        # captured from what cosmic-settings writes.
+        radius = v: {
+          __type = "tuple";
+          value = [v v v v];
+        };
+        builder = {
           version = 2;
           entries = {
             frosted_system_interface = true;
             frosted_panel = true;
             frosted_windows = false;
             frosted_applets = true;
+            corner_radii = {
+              radius_0 = radius 0.0;
+              radius_xs = radius 4.0;
+              radius_s = radius 8.0;
+              radius_m = radius 16.0;
+              radius_l = radius 32.0;
+              # The "Round" preset writes 160.0. Applets send theme-derived
+              # radii for their own surfaces and cosmic-panel 1.5.0 forwards
+              # them unclamped (inverted skip in commit_wlr), so oversized
+              # values are a radius_too_large protocol error that crash-loops
+              # the panel on startup — the Settings UI only survives because
+              # live surfaces are already full-sized. 40 is verified safe.
+              radius_xl = radius 40.0;
+            };
           };
         };
       in {
@@ -126,8 +150,8 @@ in {
           __type = "enum";
           variant = "OnOverlap";
         };
-        "com.system76.CosmicTheme.Dark.Builder" = frosted;
-        "com.system76.CosmicTheme.Light.Builder" = frosted;
+        "com.system76.CosmicTheme.Dark.Builder" = builder;
+        "com.system76.CosmicTheme.Light.Builder" = builder;
       };
 
       compositor = {

@@ -150,10 +150,11 @@ in {
         };
     })
 
-    # Pi: bun-installed binary (not nix); we only own settings + vendored
-    # extensions via edit-and-go symlinks. ponytail: skip nix packaging, add
-    # when pi ships a nixpkgs derivation.
+    # Pi: nix-packaged prebuilt binary (pkgs/pi); settings + vendored
+    # extensions stay on edit-and-go symlinks.
     (lib.mkIf cfg.pi.enable {
+      home.packages = [customPkgs.pi];
+
       home.file = builtins.listToAttrs (map (name: {
           name = ".pi/agent/${name}";
           value.source = mkOutOfStoreSymlink "${agentsDir}/pi/${name}";

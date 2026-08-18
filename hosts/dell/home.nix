@@ -13,6 +13,7 @@
     agents = {
       enable = true;
       claude-code.enable = true;
+      pi.enable = true;
     };
     tmux.enable = true;
     zed.enable = true;

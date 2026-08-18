@@ -1,4 +1,5 @@
 #!/bin/sh -e
 
-# Clean up old generations (older than 1 day)
-sudo nix-collect-garbage --delete-older-than 1d
+# Clean up old generations (keep the 2 latest)
+sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +2
+sudo nix-collect-garbage

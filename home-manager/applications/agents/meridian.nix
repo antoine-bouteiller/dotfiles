@@ -9,10 +9,25 @@
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   package = inputs.meridian.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in {
-  config = lib.mkIf (cfg.enable && cfg.pi.enable && isDarwin) {
+  config = lib.mkIf (cfg.enable && cfg.pi.enable) {
     home.packages = [package];
 
-    launchd.agents.meridian = {
+    systemd.user.services.meridian = lib.mkIf (!isDarwin) {
+      Unit.Description = "Meridian agent";
+      Service = {
+        ExecStart = lib.getExe package;
+        Environment = [
+          "MERIDIAN_NO_FILE_CHANGES=1"
+          "MERIDIAN_TELEMETRY_PERSIST=1"
+          "MERIDIAN_TELEMETRY_RETENTION_DAYS=2"
+        ];
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      Install.WantedBy = ["default.target"];
+    };
+
+    launchd.agents.meridian = lib.mkIf isDarwin {
       enable = true;
       config = {
         ProgramArguments = [

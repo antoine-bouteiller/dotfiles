@@ -48,7 +48,23 @@ in {
     customPkgs.nearby-file-share
     customPkgs.helium
 
-    plex-desktop
+    # Two COSMIC fixes:
+    # - Qt6's client-side decoration plugin (libbradient) segfaults while building the
+    #   titlebar, killing Plex at startup. COSMIC draws server-side decorations anyway.
+    # - Plex sets its Wayland app_id to tv.plex.Plex, which matches no desktop entry, so
+    #   the dock can't pair the window with an icon. The entry basename must equal app_id.
+    (symlinkJoin {
+      name = "plex-desktop-cosmic";
+      paths = [plex-desktop];
+      nativeBuildInputs = [makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/plex-desktop \
+          --set QT_WAYLAND_DISABLE_WINDOWDECORATION 1
+
+        mv $out/share/applications/plex-desktop.desktop \
+          $out/share/applications/tv.plex.Plex.desktop
+      '';
+    })
     telegram-desktop
     caffeine-ng
   ];

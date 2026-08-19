@@ -34,11 +34,6 @@
     };
     meridian.url = "github:rynfar/meridian";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    cosmic-manager = {
-      url = "github:HeitorAugustoLN/cosmic-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";

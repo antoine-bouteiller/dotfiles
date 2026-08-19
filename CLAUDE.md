@@ -22,7 +22,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 | `nix run .#apply`                    | `darwin-rebuild`/`nixos-rebuild switch` for the current host |
 | `nix run .#update`                   | `nix flake update` + run every package's `update.nu`         |
 | `nix run .#update-claude`            | bump only claude-code to latest release, then `apply`        |
-| `nix run .#clean`                    | GC all but the 2 latest generations                              |
+| `nix run .#clean`                    | GC all but the 2 latest generations                          |
 | `nix build .#checks.<system>.<host>` | dry build a host (CI builds all)                             |
 
 ## Layout

@@ -25,6 +25,15 @@ in {
     pulse.enable = true;
   };
 
+  # nixos-hardware turns on PRIME offload, but offload alone leaves the dGPU powered
+  # (power/control=on, ~2W at idle). Finegrained adds the runtime-PM udev rules so the
+  # card drops to D3cold when unused. powerManagement.enable preserves VRAM across the
+  # suspend/hibernate the lid switch triggers.
+  hardware.nvidia.powerManagement = {
+    enable = true;
+    finegrained = true;
+  };
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;

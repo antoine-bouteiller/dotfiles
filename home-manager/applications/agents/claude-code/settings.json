@@ -168,6 +168,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/home/antoinebouteiller/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

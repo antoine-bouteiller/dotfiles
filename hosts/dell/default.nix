@@ -46,6 +46,9 @@ in {
 
   services.logind.settings.Login.HandleLidSwitch = "hibernate";
 
+  # Lid open resumes via a full boot; skip the systemd-boot picker (hold a key to show it).
+  boot.loader.timeout = 0;
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;

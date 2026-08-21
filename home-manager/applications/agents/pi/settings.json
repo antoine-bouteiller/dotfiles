@@ -11,7 +11,11 @@
     "anthropic/claude-sonnet-5",
     "anthropic/claude-haiku-4-5"
   ],
-  "packages": ["npm:@ff-labs/pi-fff", "git:github.com/antoine-bouteiller/pi-extensions"],
+  "packages": [
+    "npm:@ff-labs/pi-fff",
+    "git:github.com/antoine-bouteiller/pi-extensions",
+    "git:github.com/antoine-bouteiller/plan-viewer"
+  ],
   "defaultThinkingLevel": "medium",
   "tuiMode": "fullscreen"
 }

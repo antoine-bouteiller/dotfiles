@@ -1,6 +1,6 @@
 {...}: {
   imports = [
-    ./vim.nix
+    ./neovim
     ./ghostty.nix
     ./herdr.nix
     ./hunk.nix

@@ -36,8 +36,6 @@
       "_" = "sudo";
       l = "ls";
       cat = "bat";
-      g = "git";
-      vi = "vim";
       ll = "ls -lh";
       la = "ls -lAh";
       ldot = "ls -ld .*";
@@ -48,7 +46,7 @@
       untar = "tar -xf";
       bua = "bup && bcup --greedy && bcn";
       please = "sudo";
-      zshrc = "\${EDITOR:-vim} $HOME/.zshrc";
+      zshrc = "\${EDITOR:-nvim} $HOME/.zshrc";
       zdot = "cd ${osConfig.flakePath}";
     };
 

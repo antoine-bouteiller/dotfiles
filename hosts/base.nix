@@ -46,7 +46,6 @@
     p7zip
 
     # Text and terminal utilities
-    htop
     jq
     ripgrep
     tree
@@ -56,7 +55,6 @@
     # Development tools
     curl
     gh
-    lazygit
     alejandra
     nixd
     ffmpeg

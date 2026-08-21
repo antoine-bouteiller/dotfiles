@@ -306,8 +306,8 @@
   "buffer_font_size": 14,
   "theme": {
     "mode": "system",
-    "light": "Ayu Light",
-    "dark": "Fleet Dark"
+    "light": "Catppuccin Latte",
+    "dark": "Catppuccin Mocha"
   },
   "icon_theme": "Material Icon Theme"
 }

@@ -16,27 +16,10 @@ in {
       source = (pkgs.formats.toml {}).generate "herdr-config" {
         onboarding = false;
         theme = {
-          # JetBrains Islands Dark: https://github.com/mbadolato/iTerm2-Color-Schemes/blob/master/yaml/JetBrains%20Islands%20Dark.yml
-          name = "one-dark";
-          auto_switch = false;
-          custom = {
-            accent = "#548af7";
-            panel_bg = "#191a1c";
-            surface0 = "#2a4371";
-            surface1 = "#2a4371";
-            surface_dim = "#191a1c";
-            overlay0 = "#7a7e85";
-            overlay1 = "#d1d3d9";
-            text = "#bcbec4";
-            subtext0 = "#7a7e85";
-            mauve = "#c77dbb";
-            green = "#6aab73";
-            yellow = "#cf8e6d";
-            red = "#f75464";
-            blue = "#56a8f5";
-            teal = "#2aacb8";
-            peach = "#f0ac81";
-          };
+          name = "catppuccin";
+          auto_switch = true;
+          light_name = "catppuccin-latte";
+          dark_name = "catppuccin";
         };
 
         terminal.new_cwd = "follow";

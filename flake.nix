@@ -32,7 +32,8 @@
       url = "github:modem-dev/hunk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    meridian.url = "github:rynfar/meridian";
+    # Pinned: 1.61+ passthrough checkpointing regresses prompt-cache reuse.
+    meridian.url = "github:rynfar/meridian/8b789e4e491c31ec79737cb18dd9c79666496f20";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";

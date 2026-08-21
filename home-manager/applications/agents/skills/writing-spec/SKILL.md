@@ -39,9 +39,12 @@ Done when the user has approved a shape and an unused path.
 Write the file with `status: draft`. Fill it from what you know; record every reasonable default you
 chose under `## 6. Caveats`. Put choices with no reasonable default — ones that would change scope,
 security, or user experience — in `## 9. Open Questions` rather than guessing. Every `[KD-N]` gets a
-rationale. For an umbrella tree, write the umbrella first, then each leaf, respecting section
-ownership. Done when a reader who has never seen the codebase understands what is being built and
-why it is built that way.
+rationale. For each component, specify concrete types, API contracts, state transitions, invariants,
+failure behavior, and integration boundaries wherever they affect correctness. Include compact code
+examples for non-trivial contracts and flows. For an umbrella tree, write the umbrella first, then
+each leaf, respecting section ownership. Done when a reader who has never seen the codebase
+understands what is being built, why it is built that way, and the contracts an implementation must
+satisfy.
 
 ## 5. Resolve open questions
 
@@ -176,18 +179,56 @@ An umbrella adds the leaf execution order, one row per leaf:
 
 ## 8. Detailed Design
 
-Per component in §7, whichever of these carry real content:
+Give each component in §7 its own subsection. Include whichever dimensions carry real design
+content, with enough precision to implement the contract without inventing behavior:
 
-- **Data model / types** — records, enums, sealed hierarchies
-- **API surface** — public methods, events, configuration
-- **Interactions** — how it calls or is called by others
-- **Error handling** — failure modes and recovery
-- **Examples** — short, illustrative usage
+- **Ownership and boundaries** — owning module, dependencies, and what remains private
+- **Data model / types** — fields, types, required/optional rules, defaults, and invariants
+- **API surface** — exact public signatures, events, configuration, request/response shapes
+- **Control and data flow** — call sequence, state transitions, transactions, concurrency
+- **Error handling** — named failure modes, propagation, retries, recovery, and user-visible outcome
+- **Persistence and migration** — schema, indexes, consistency, compatibility, and rollback boundary
+- **Security and observability** — trust boundaries, authorization, sensitive data, logs, and metrics
+- **Examples** — short code, payload, query, or pseudocode examples for non-trivial contracts and
+  edge cases
 
 ## 9. Open Questions
 
 - `[OQ-1]` <unresolved item needing a human decision> — owner: @name
 ```
+
+### Detailed-design example
+
+Adapt syntax to the repository. Examples pin down contracts and difficult branches; they are not
+complete implementations:
+
+````markdown
+### 8.1 Sync Client
+
+`SyncClient` owns retry policy; callers submit a batch once and receive one final result. The client
+attempts the request once plus `maxRetries`, retries only `429` and `5xx`, honors `Retry-After`, and
+returns the final structured error unchanged when the budget is exhausted.
+
+```ts
+type PushResult = { ok: true; accepted: number } | { ok: false; error: SyncError };
+
+interface SyncClient {
+  push(batch: EventBatch, options?: { maxRetries?: number }): Promise<PushResult>;
+}
+```
+
+The injected `Clock.sleep(ms)` is the retry timing boundary, so tests and callers never depend on
+real timers. A `400` returns immediately; a `503` waits and retries; cancellation interrupts both
+the request and any pending wait.
+
+```text
+push(batch) -> POST /events -> 503 -> sleep(backoff) -> POST /events -> PushResult
+```
+````
+
+Use similarly concrete examples for serialized payloads, database constraints and queries, CLI
+invocations, component state transitions, or protocol exchanges. Include normal, boundary, and
+failure cases when their contracts differ.
 
 ### Visuals
 
@@ -207,7 +248,8 @@ Per component in §7, whichever of these carry real content:
   speaks of change, and only in its `## Changelog` row.
 - Every decision states a rationale. A `[KD-N]` without a reason is a defect.
 - Cite existing behavior with `path:line`. Cross-links are repo-root-relative.
-- Keep §8 proportionate: enough for an implementer to build the right thing, no pre-written code.
+- Keep §8 implementation-ready but bounded: specify contracts, invariants, flows, and failure
+  behavior; illustrate non-trivial details with small code examples rather than complete bodies.
 - New specs start at `draft` and reach `review` only through the quality gate. Only the user sets
   `accepted`.
 - Specs are living documents — amend in place, never as a separate amendment file. Set
@@ -231,6 +273,8 @@ Before moving `draft` → `review`, confirm:
 - [ ] Every goal in §2 is addressed by something in §3–§8.
 - [ ] Every `[KD-N]` states a real rationale, not a restatement of the choice.
 - [ ] §7 lists every component §8 details, and §8 details every component §7 lists.
+- [ ] Each non-trivial component defines its concrete contracts, invariants, flows, and failure
+      behavior, with representative code examples wherever prose would leave implementation choices.
 - [ ] Tree: every §7 row has a leaf and every leaf a §7 row; every leaf's `parent-spec:` resolves to
       its directory's umbrella; each section sits at the level that owns it.
 - [ ] Every `path:line` citation resolves, and every cross-link points at an existing file.

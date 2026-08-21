@@ -52,14 +52,35 @@ in {
         email = lib.mkDefault globals.email;
       };
       init.defaultBranch = "main";
+      alias = {
+        co = "checkout";
+        br = "branch";
+        ci = "commit";
+        st = "status";
+      };
       core = {
         editor = "nvim";
         autocrlf = "input";
       };
+      diff = {
+        algorithm = "histogram";
+        colorMoved = "plain";
+        mnemonicPrefix = true;
+      };
+      commit = {
+        gpgsign = true;
+        verbose = true;
+      };
+      column.ui = "auto";
+      branch.sort = "-committerdate";
+      tag.sort = "-version:refname";
+      rerere = {
+        enabled = true;
+        autoupdate = true;
+      };
       pull.rebase = true;
       push.autoSetupRemote = true;
       rebase.autoStash = true;
-      commit.gpgsign = true;
       gpg.format = "ssh";
       gpg.ssh.allowedSignersFile = allowedSignersFile;
       user.signingkey = signingKeyPath;
@@ -116,5 +137,6 @@ in {
     glg = "git log --stat";
     glog = "git log --oneline --decorate --graph";
     gsh = "git show";
+    gclean = "git fetch -p && for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == \"[gone]\" {sub(\"refs/heads/\", \"\", $1); print $1}'); do git branch -D $branch; done";
   };
 }

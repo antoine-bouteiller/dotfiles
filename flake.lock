@@ -345,16 +345,17 @@
         "systems": "systems_3"
       },
       "locked": {
-        "lastModified": 1787007954,
-        "narHash": "sha256-3ZsHbyAHuUsgCHzkAQAzBxVU0382NCskk+j0BGdRRqU=",
+        "lastModified": 1785833219,
+        "narHash": "sha256-eMbJum9RWmHs++HHVNJjrraG6cMH9XolauYEjJVYZjk=",
         "owner": "rynfar",
         "repo": "meridian",
-        "rev": "950a8e88e630f14c3e88b90881a87a509250ca58",
+        "rev": "8b789e4e491c31ec79737cb18dd9c79666496f20",
         "type": "github"
       },
       "original": {
         "owner": "rynfar",
         "repo": "meridian",
+        "rev": "8b789e4e491c31ec79737cb18dd9c79666496f20",
         "type": "github"
       }
     },

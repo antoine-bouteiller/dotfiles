@@ -24,7 +24,9 @@ goal and acceptance criteria are unambiguous and every assumption is bounded and
 
 Trace the current behavior end to end. Record existing code with `path:line` evidence, affected
 callers and interfaces, project instructions, applicable tests and checks, and the narrowest correct
-change point. Done when every task names real code and runnable verification rather than guesses.
+change point. Inspect the concrete symbols, signatures, data flow, invariants, failure paths, and
+test fixtures each task must preserve or alter. Done when every task names real code and runnable
+verification rather than guesses.
 
 ## 3. Decide
 
@@ -116,6 +118,10 @@ related: [] # repo-root-relative paths; the spec this plan implements, when ther
   - **Dependencies:** None | T-NNN, ...
   - **Paths:** <exact repository-relative paths; mark new paths `new`>
   - **Change:** <specific symbols/sections and behavior to add, alter, or remove>
+  - **Implementation details:** <exact signatures, data flow, invariants, failure behavior, and test
+    seams needed to remove implementation guesswork>
+  - **Code example:** <short representative signature, data shape, call, query, or pseudocode; `None`
+    only when the change is mechanical>
   - **Preserve:** <important behavior or `None`>
   - **Verify:** `<runnable command or concrete manual scenario>`
   - **Expected:** <observable success result>
@@ -154,6 +160,36 @@ Required sections appear exactly once and in the order shown; write `None` rathe
 IDs are `PREFIX-NNN`, sequential within their namespace (`G`, `NG`, `AC`, `T`, `KD`), never
 renumbered — append new ones and record the amendment in `Log`. Every referenced ID must exist.
 
+### Task detail example
+
+Match the repository's language and conventions. Show the contract and difficult branch, not a full
+implementation:
+
+````markdown
+- [ ] **T-002** Add bounded retry handling to the existing sync client
+  - **Acceptance:** AC-002
+  - **Dependencies:** T-001
+  - **Paths:** `src/sync/client.ts`, `src/sync/client.test.ts`
+  - **Change:** Extend `SyncClient.push` and its tests; keep retry policy inside the existing client.
+  - **Implementation details:** Attempt once plus at most `maxRetries`; retry only `429` and `5xx`;
+    honor `Retry-After` before exponential backoff; return the final `SyncError` unchanged after the
+    budget is exhausted. Inject the existing `sleep` seam so tests use no wall-clock delay.
+  - **Code example:**
+
+    ```ts
+    push(batch: EventBatch, options?: { maxRetries?: number }): Promise<PushResult>
+    // 400 -> return immediately; 503 -> sleep -> retry; exhausted -> return final SyncError
+    ```
+
+  - **Preserve:** Authentication headers and the current `PushResult` error contract.
+  - **Verify:** `npm test -- src/sync/client.test.ts`
+  - **Expected:** Retry, non-retryable, and exhausted-budget cases pass without real timers (AC-002).
+````
+
+Use this level of detail for non-trivial logic. For data work, show the migration/query shape and
+rollback boundary; for APIs, show request, response, and error examples; for UI, show state and event
+transitions. Keep examples short enough that implementation still happens in code.
+
 ### Visuals
 
 When a task's target shape is hard to state in prose, show it — read
@@ -169,12 +205,14 @@ When a task's target shape is hard to state in prose, show it — read
 - Every acceptance criterion describes observable behavior or an inspectable artifact, not an
   implementation action, and is referenced by at least one task and by final verification.
 - Every task has one checkable outcome, references at least one acceptance criterion, names exact
-  repository-relative paths, and includes dependencies, verification, and its expected result.
+  repository-relative paths, and includes dependencies, implementation details, verification, and
+  its expected result.
 - Omit `[P]` unless a task has no incomplete dependency and its write paths do not overlap another
   parallel task. Encode shared-file and API ordering through task dependencies.
 - Existing-code references use `path:line`. Label new paths `new` and identify the existing parent or
   module that will own them.
-- Use code sketches only to disambiguate a contract or algorithm; do not pre-implement the solution.
+- Include a compact code example for each non-trivial contract, algorithm, data shape, or integration
+  boundary. Prefer signatures, representative calls, queries, and pseudocode over complete bodies.
 - Record only decisions that materially affect implementation. Explicitly justify added
   dependencies, abstractions, or layers.
 - Final verification covers every `AC-NNN` ID. Build-only checks are insufficient when runtime or
@@ -190,7 +228,8 @@ Before changing status from `draft` to `ready`, confirm:
 - [ ] Every required section is present, and no `TODO`, `TBD`, or placeholder remains.
 - [ ] `Open questions` is `None`, and every assumption is written down and user-confirmed where
       material.
-- [ ] Every task names exact paths, dependencies, runnable verification, and expected results.
+- [ ] Every task names exact paths, dependencies, concrete implementation details, runnable
+      verification, and expected results; non-trivial behavior has a representative code example.
 - [ ] Task dependencies are existing earlier tasks, never self-references, and agree with phase
       ordering; the resulting task and phase dependency graphs are acyclic.
 - [ ] Every goal is served by at least one task, every acceptance criterion maps to at least one

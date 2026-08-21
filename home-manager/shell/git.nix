@@ -53,7 +53,7 @@ in {
       };
       init.defaultBranch = "main";
       core = {
-        editor = "vim";
+        editor = "nvim";
         autocrlf = "input";
       };
       pull.rebase = true;

@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "0.84.2",
-  "theme": "catpuccin-mocha",
+  "theme": "catppuccin-latte/catppuccin-mocha",
   "defaultProvider": "azure-openai-responses",
   "defaultModel": "gpt-5.6-sol",
   "enabledModels": [

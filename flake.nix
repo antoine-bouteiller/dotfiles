@@ -20,10 +20,6 @@
       url = "github:antoine-bouteiller/autoscan";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL/main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     herdr = {
       url = "github:ogulcancelik/herdr";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -144,12 +140,6 @@
         hostname = "antoine-dell";
         system = "x86_64-linux";
         extraModules = [inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia];
-      };
-
-      wsl = mkNixosHost {
-        hostname = "wsl";
-        system = "x86_64-linux";
-        extraModules = [inputs.nixos-wsl.nixosModules.default];
       };
     };
   };

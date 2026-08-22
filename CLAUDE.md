@@ -1,6 +1,6 @@
 # dotfiles — repo conventions
 
-Nix flakes + home-manager, multi-host, cross-platform (nix-darwin on macOS, NixOS on Linux + WSL).
+Nix flakes + home-manager, multi-host, cross-platform (nix-darwin on macOS and NixOS on Linux).
 Secrets via sops-nix. Entry point: `flake.nix`.
 
 ## Critical

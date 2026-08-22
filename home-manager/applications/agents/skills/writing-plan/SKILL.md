@@ -118,8 +118,9 @@ related: [] # repo-root-relative paths; the spec this plan implements, when ther
   - **Dependencies:** None | T-NNN, ...
   - **Paths:** <exact repository-relative paths; mark new paths `new`>
   - **Change:** <specific symbols/sections and behavior to add, alter, or remove>
-  - **Implementation details:** <exact signatures, data flow, invariants, failure behavior, and test
-    seams needed to remove implementation guesswork>
+  - **Implementation details:**
+    - **<concern>:** <one implementation behavior, boundary, invariant, or failure rule>
+    - **<concern>:** <another concern; use one short inline sentence instead when there is only one>
   - **Code example:** <short representative signature, data shape, call, query, or pseudocode; `None`
     only when the change is mechanical>
   - **Preserve:** <important behavior or `None`>
@@ -171,9 +172,12 @@ implementation:
   - **Dependencies:** T-001
   - **Paths:** `src/sync/client.ts`, `src/sync/client.test.ts`
   - **Change:** Extend `SyncClient.push` and its tests; keep retry policy inside the existing client.
-  - **Implementation details:** Attempt once plus at most `maxRetries`; retry only `429` and `5xx`;
-    honor `Retry-After` before exponential backoff; return the final `SyncError` unchanged after the
-    budget is exhausted. Inject the existing `sleep` seam so tests use no wall-clock delay.
+  - **Implementation details:**
+    - **Attempt budget:** Attempt once plus at most `maxRetries`.
+    - **Retry boundary:** Retry only `429` and `5xx`; return the final `SyncError` unchanged after the
+      budget is exhausted.
+    - **Timing:** Honor `Retry-After` before exponential backoff; inject the existing `sleep` seam so
+      tests use no wall-clock delay.
   - **Code example:**
 
     ```ts
@@ -207,6 +211,11 @@ When a task's target shape is hard to state in prose, show it — read
 - Every task has one checkable outcome, references at least one acceptance criterion, names exact
   repository-relative paths, and includes dependencies, implementation details, verification, and
   its expected result.
+- Keep implementation details **scannable**. A single concern may be one short inline sentence. When
+  a task has multiple concerns, put `Implementation details` on its own line and use nested bullets
+  with bold leading labels such as `**Data flow:**`, `**Failure:**`, or `**Boundary:**`; keep one
+  concern per bullet. Split ordered work into numbered nested steps. Never compress independent
+  behaviors, paths, invariants, and failure rules into one paragraph.
 - Omit `[P]` unless a task has no incomplete dependency and its write paths do not overlap another
   parallel task. Encode shared-file and API ordering through task dependencies.
 - Existing-code references use `path:line`. Label new paths `new` and identify the existing parent or
@@ -230,6 +239,8 @@ Before changing status from `draft` to `ready`, confirm:
       material.
 - [ ] Every task names exact paths, dependencies, concrete implementation details, runnable
       verification, and expected results; non-trivial behavior has a representative code example.
+- [ ] Every multi-concern `Implementation details` block uses labeled nested bullets (or numbered
+      nested steps for an ordered procedure); no monolithic implementation paragraph remains.
 - [ ] Task dependencies are existing earlier tasks, never self-references, and agree with phase
       ordering; the resulting task and phase dependency graphs are acyclic.
 - [ ] Every goal is served by at least one task, every acceptance criterion maps to at least one

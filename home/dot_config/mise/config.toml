@@ -1,0 +1,10 @@
+[tools]
+bitwarden = "latest"
+bun = "latest"
+dotnet = "10"
+herdr = "latest"
+hunk = "latest"
+java = "25"
+node = "24"
+python = "3.13"
+uv = "latest"

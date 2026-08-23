@@ -4,7 +4,9 @@ bun = "latest"
 dotnet = "10"
 herdr = "latest"
 hunk = "latest"
+{{ if eq .chezmoi.hostname "lv6cfqjl6l-macos" -}}
 java = "25"
+{{ end -}}
 node = "24"
 python = "3.13"
 uv = "latest"

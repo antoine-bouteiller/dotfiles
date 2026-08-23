@@ -1,0 +1,46 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/sh
+set -eu
+
+# NVIDIA dGPU module options that live in /etc, outside chezmoi's $HOME destination.
+# Both need the initramfs rebuilt, because Omarchy early-loads nvidia from it
+# (/etc/mkinitcpio.conf.d/nvidia.conf), and module options are read at load time.
+
+has_nvidia=0
+for v in /sys/bus/pci/devices/*/vendor; do
+  if [ "$(cat "$v" 2>/dev/null)" = "0x10de" ]; then has_nvidia=1; fi
+done
+[ "$has_nvidia" = 1 ] || exit 0
+
+changed=0
+
+install_file() {
+  new=$(cat)
+  if [ "$(cat "$1" 2>/dev/null)" != "$new" ]; then
+    printf '%s\n' "$new" | sudo tee "$1" >/dev/null
+    changed=1
+  fi
+}
+
+# gpu-screen-recorder ships /usr/lib/modprobe.d/gsr-nvidia.conf setting
+# NVreg_PreserveVideoMemoryAllocations=1. That is the 430-590 suspend mechanism and
+# requires /proc/driver/nvidia/suspend, which 595+ drivers no longer provide, so
+# nv_pmops_freeze() returns -EIO and hibernate resume aborts into a fresh boot.
+# 595+ preserves video memory via NVreg_UseKernelSuspendNotifiers=1 instead.
+install_file /etc/modprobe.d/gsr-nvidia.conf <<'EOF'
+# Managed by chezmoi: .chezmoiscripts/run_onchange_after_30-nvidia-modprobe.sh.tmpl
+# Overrides /usr/lib/modprobe.d/gsr-nvidia.conf (gpu-screen-recorder), whose
+# NVreg_PreserveVideoMemoryAllocations=1 breaks hibernate resume on driver 595+.
+options nvidia NVreg_PreserveVideoMemoryAllocations=0
+EOF
+
+# Fine-grained runtime power management, so the dGPU can power down when idle.
+install_file /etc/modprobe.d/nvidia-pm.conf <<'EOF'
+# Managed by chezmoi: .chezmoiscripts/run_onchange_after_30-nvidia-modprobe.sh.tmpl
+options nvidia "NVreg_DynamicPowerManagement=0x02"
+EOF
+
+if [ "$changed" = 1 ] && command -v mkinitcpio >/dev/null; then
+  sudo mkinitcpio -P
+fi
+{{ end -}}

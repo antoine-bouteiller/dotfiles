@@ -1,0 +1,6 @@
+typeset -U path cdpath fpath manpath
+
+for config in "$HOME"/.config/zsh/rc.d/*.zsh(N); do
+  source "$config"
+done
+unset config

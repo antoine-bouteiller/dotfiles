@@ -1,0 +1,10 @@
+[Unit]
+Description=Meridian local Anthropic API
+
+[Service]
+ExecStart={{ lookPath "mise" }} exec -- meridian
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

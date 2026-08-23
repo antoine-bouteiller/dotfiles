@@ -3,6 +3,12 @@
 .npmrc
 .config/mcp/**
 {{ end }}
+{{ if ne .chezmoi.os "linux" }}
+.config/systemd
+{{ end }}
+{{ if ne .chezmoi.os "darwin" }}
+Library
+{{ end }}
 {{ if eq .chezmoi.hostname "plex-server" }}
 .agents/**
 .claude/**

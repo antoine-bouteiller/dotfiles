@@ -1,0 +1,20 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+set -eu
+
+# service hash: {{ includeTemplate "private_Library/LaunchAgents/dev.rynfar.meridian.plist.tmpl" . | sha256sum }}
+# mise config hash: {{ includeTemplate "dot_config/mise/config.toml.tmpl" . | sha256sum }}
+domain="gui/$(id -u)"
+plist="$HOME/Library/LaunchAgents/dev.rynfar.meridian.plist"
+launchctl bootout "$domain" "$plist" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+{{ else if eq .chezmoi.os "linux" -}}
+#!/bin/sh
+set -eu
+
+# service hash: {{ includeTemplate "dot_config/systemd/user/meridian.service.tmpl" . | sha256sum }}
+# mise config hash: {{ includeTemplate "dot_config/mise/config.toml.tmpl" . | sha256sum }}
+systemctl --user daemon-reload
+systemctl --user enable meridian.service
+systemctl --user restart meridian.service
+{{ end -}}

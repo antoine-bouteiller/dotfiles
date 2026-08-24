@@ -1,0 +1,114 @@
+# Omarchy's Hyprland tiling (default/hypr/bindings/tiling-v2.conf + looknfeel.conf)
+# ported to AeroSpace. Modifier mapping: Hyprland SUPER -> alt, Hyprland ALT -> cmd.
+config-version = 2
+
+start-at-login = true
+auto-reload-config = true
+
+# looknfeel.conf: gaps_in = 5 (half-gap per window), gaps_out = 10
+gaps.inner.horizontal = 10
+gaps.inner.vertical = 10
+gaps.outer.left = 10
+gaps.outer.bottom = 10
+gaps.outer.top = 10
+gaps.outer.right = 10
+
+# dwindle: new windows split the focused window, alternating orientation
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+# misc { focus_on_activate = true }, cursor { warp_on_change_workspace = 1 }
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+[mode.main.binding]
+    # Close windows
+    alt-w = 'close'
+    ctrl-cmd-forwardDelete = ['close-all-windows-but-current', 'close']
+
+    # Control tiling
+    alt-j = 'layout tiles horizontal vertical' # togglesplit
+    alt-t = 'layout floating tiling'           # togglefloating
+    alt-f = 'fullscreen'
+    alt-ctrl-f = 'fullscreen --no-outer-gaps'  # tiled full screen
+    alt-o = 'layout floating'                  # window pop out
+    alt-l = 'layout tiles accordion'           # toggle workspace layout
+
+    # Move focus with SUPER + arrow keys
+    alt-left = 'focus left'
+    alt-right = 'focus right'
+    alt-up = 'focus up'
+    alt-down = 'focus down'
+
+    # Switch workspaces with SUPER + [1-9; 0]
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
+    alt-0 = 'workspace 10'
+
+    # Move active window to a workspace with SUPER + SHIFT + [1-9; 0]
+    alt-shift-1 = 'move-node-to-workspace 1 --focus-follows-window'
+    alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
+    alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
+    alt-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
+    alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
+    alt-shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
+    alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
+    alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
+    alt-shift-9 = 'move-node-to-workspace 9 --focus-follows-window'
+    alt-shift-0 = 'move-node-to-workspace 10 --focus-follows-window'
+
+    # Move active window silently to a workspace with SUPER + SHIFT + ALT + [1-9; 0]
+    alt-shift-cmd-1 = 'move-node-to-workspace 1'
+    alt-shift-cmd-2 = 'move-node-to-workspace 2'
+    alt-shift-cmd-3 = 'move-node-to-workspace 3'
+    alt-shift-cmd-4 = 'move-node-to-workspace 4'
+    alt-shift-cmd-5 = 'move-node-to-workspace 5'
+    alt-shift-cmd-6 = 'move-node-to-workspace 6'
+    alt-shift-cmd-7 = 'move-node-to-workspace 7'
+    alt-shift-cmd-8 = 'move-node-to-workspace 8'
+    alt-shift-cmd-9 = 'move-node-to-workspace 9'
+    alt-shift-cmd-0 = 'move-node-to-workspace 10'
+
+    # Scratchpad (special workspace S)
+    alt-s = 'workspace S'
+    alt-cmd-s = 'move-node-to-workspace S'
+
+    # TAB between workspaces
+    alt-tab = 'workspace --wrap-around next'
+    alt-shift-tab = 'workspace --wrap-around prev'
+    alt-ctrl-tab = 'workspace-back-and-forth'
+
+    # Move workspaces to other monitors
+    alt-shift-cmd-left = 'move-workspace-to-monitor --wrap-around left'
+    alt-shift-cmd-right = 'move-workspace-to-monitor --wrap-around right'
+    alt-shift-cmd-up = 'move-workspace-to-monitor --wrap-around up'
+    alt-shift-cmd-down = 'move-workspace-to-monitor --wrap-around down'
+
+    # Swap active window with the one next to it
+    alt-shift-left = 'move left'
+    alt-shift-right = 'move right'
+    alt-shift-up = 'move up'
+    alt-shift-down = 'move down'
+
+    # Cycle through monitors
+    ctrl-cmd-tab = 'focus-monitor --wrap-around next'
+    ctrl-cmd-shift-tab = 'focus-monitor --wrap-around prev'
+
+    # Resize active window
+    alt-minus = 'resize width -100'
+    alt-equal = 'resize width +100'
+    alt-shift-minus = 'resize height -100'
+    alt-shift-equal = 'resize height +100'
+
+    # Groups -> accordion containers
+    alt-g = 'layout accordion tiles'
+    alt-cmd-left = 'join-with left'
+    alt-cmd-right = 'join-with right'
+    alt-cmd-up = 'join-with up'
+    alt-cmd-down = 'join-with down'

@@ -8,6 +8,7 @@
 {{ end }}
 {{ if ne .chezmoi.os "darwin" }}
 Library
+.config/aerospace
 {{ end }}
 {{ if eq .chezmoi.hostname "plex-server" }}
 .agents/**

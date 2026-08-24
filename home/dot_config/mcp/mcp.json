@@ -20,13 +20,6 @@
       "type": "http",
       "url": "https://mcp.linear.app/mcp"
     },
-    "nixos": {
-      "args": [
-        "mcp-nixos"
-      ],
-      "command": "uvx",
-      "type": "stdio"
-    },
     "slack": {
       "oauth": {
         "callbackPort": 3118,

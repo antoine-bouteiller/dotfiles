@@ -5,11 +5,6 @@
     stripComponents = 3
     include = ["*/skills/agent-browser/**"]
 
-[".zsh/plugins/zsh-powerlevel10k"]
-    type = "archive"
-    url = "https://github.com/romkatv/powerlevel10k/archive/3308262dfbd743b6e1d3956a2b5572f7a049d692.tar.gz"
-    stripComponents = 1
-
 [".zsh/plugins/zsh-autosuggestions"]
     type = "archive"
     url = "https://github.com/zsh-users/zsh-autosuggestions/archive/85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5.tar.gz"

@@ -7,6 +7,12 @@ function lg() {
     fi
 }
 
+pi() {
+  AZURE_OPENAI_BASE_URL="https://pelico-openai-poc.openai.azure.com/openai" \
+  AZURE_OPENAI_API_KEY="$(chezmoi secret keyring get --service=openai --user=AZURE_OPENAI_API_KEY)" \
+    command pi "$@"
+}
+
 runenv() {
   emulate -L zsh
   local ns="env"

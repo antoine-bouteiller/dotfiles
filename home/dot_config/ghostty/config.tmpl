@@ -7,7 +7,9 @@ cursor-style-blink = false
 font-style = Regular
 gtk-toolbar-style = flat
 {{- if eq .chezmoi.os "darwin" }}
-macos-option-as-alt = true
+# Left Option = Meta (zsh word nav: ^[^?, ^[[1;3D). Right Option = compose,
+# so AZERTY Opt-composed chars ([ ] { } | @ # \) still work in the terminal.
+macos-option-as-alt = left
 keybind = super+left=text:\x01
 keybind = super+right=text:\x05
 {{- end }}

@@ -1,0 +1,38 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+set -eu
+
+# macOS binds ctrl+left/right to Mission Control "Move left/right a space" and
+# grabs them above Ghostty, so zsh never sees ^[[1;5D / ^[[1;5C
+# (dot_config/zsh/rc.d/20-shell.zsh binds those to backward-word/forward-word).
+#
+# 79 = Move left a space, 81 = Move right a space. parameters is
+# (ascii, keycode, modifiers): 123/124 = left/right arrow, 8650752 = ctrl+fn.
+# Written in full so re-enabling later still has the correct key parameters.
+
+changed=0
+
+disable_hotkey() {
+  id=$1
+  keycode=$2
+
+  current=$(defaults export com.apple.symbolichotkeys - 2>/dev/null |
+    plutil -extract "AppleSymbolicHotKeys.$id.enabled" raw -o - - 2>/dev/null || true)
+  case "$current" in
+    false | 0) return 0 ;;
+  esac
+
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" \
+    "{ enabled = 0; value = { type = standard; parameters = (65535, $keycode, 8650752); }; }"
+  changed=1
+}
+
+disable_hotkey 79 123
+disable_hotkey 81 124
+
+# Reload the hotkey table, so no logout is needed.
+if [ "$changed" = 1 ]; then
+  activate=/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings
+  [ -x "$activate" ] && "$activate" -u || true
+fi
+{{ end -}}

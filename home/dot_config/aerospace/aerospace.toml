@@ -56,7 +56,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
     alt-shift-2 = 'move-node-to-workspace 2 --focus-follows-window'
     alt-shift-3 = 'move-node-to-workspace 3 --focus-follows-window'
     alt-shift-4 = 'move-node-to-workspace 4 --focus-follows-window'
-    alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
+    # alt-shift-5 = 'move-node-to-workspace 5 --focus-follows-window'
     alt-shift-6 = 'move-node-to-workspace 6 --focus-follows-window'
     alt-shift-7 = 'move-node-to-workspace 7 --focus-follows-window'
     alt-shift-8 = 'move-node-to-workspace 8 --focus-follows-window'
@@ -68,7 +68,7 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
     alt-shift-cmd-2 = 'move-node-to-workspace 2'
     alt-shift-cmd-3 = 'move-node-to-workspace 3'
     alt-shift-cmd-4 = 'move-node-to-workspace 4'
-    alt-shift-cmd-5 = 'move-node-to-workspace 5'
+    # alt-shift-cmd-5 = 'move-node-to-workspace 5'
     alt-shift-cmd-6 = 'move-node-to-workspace 6'
     alt-shift-cmd-7 = 'move-node-to-workspace 7'
     alt-shift-cmd-8 = 'move-node-to-workspace 8'
@@ -99,12 +99,6 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
     # Cycle through monitors
     ctrl-cmd-tab = 'focus-monitor --wrap-around next'
     ctrl-cmd-shift-tab = 'focus-monitor --wrap-around prev'
-
-    # Resize active window
-    alt-minus = 'resize width -100'
-    alt-equal = 'resize width +100'
-    alt-shift-minus = 'resize height -100'
-    alt-shift-equal = 'resize height +100'
 
     # Groups -> accordion containers
     alt-g = 'layout accordion tiles'

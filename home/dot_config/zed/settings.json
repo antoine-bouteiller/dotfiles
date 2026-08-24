@@ -56,39 +56,6 @@
           "run": "onSave"
         }
       }
-    },
-    "vtsls": {
-      "settings": {
-        "autoUseWorkspaceTsdk": true,
-        "experimental": {
-          "completion": {
-            "enableServerSideFuzzyMatch": true,
-            "entriesLimit": 10
-          }
-        },
-        "javascript": {
-          "updateImportsOnFileMove": {
-            "enabled": "always"
-          },
-          "preferences": {
-            "importModuleSpecifier": "non-relative"
-          }
-        },
-        "typescript": {
-          "preferGoToSourceDefinition": true,
-          "updateImportsOnFileMove": {
-            "enabled": "always"
-          },
-          "preferences": {
-            "importModuleSpecifier": "non-relative"
-          },
-          "tsserver": {
-            "maxTsServerMemory": 16384,
-            "enableTracing": false,
-            "log": "off"
-          }
-        }
-      }
     }
   },
   "file_scan_exclusions": [
@@ -231,6 +198,13 @@
       "prettier": {
         "allowed": false
       },
+      "language_servers": [
+        "typescript-ls",
+        "!vtsls",
+        "!typescript-language-server",
+        "!eslint",
+        "..."
+      ],
       "formatter": [
         {
           "language_server": {
@@ -244,6 +218,13 @@
       "prettier": {
         "allowed": false
       },
+      "language_servers": [
+        "typescript-ls",
+        "!vtsls",
+        "!typescript-language-server",
+        "!eslint",
+        "..."
+      ],
       "formatter": [
         {
           "language_server": {
@@ -266,7 +247,7 @@
       ]
     },
     "Astro": {
-      "language_servers": ["eslint", "vtsls", "astro-language-server", "!oxlint", "!oxfmt", "..."],
+      "language_servers": ["!eslint", "!vtsls", "astro-language-server", "..."],
       "code_actions_on_format": {
         "source.fixAll.eslint": true,
         "source.organizeImports": true

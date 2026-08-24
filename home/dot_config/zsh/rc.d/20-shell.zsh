@@ -6,8 +6,13 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
 
+# Emacs keymap (zsh would otherwise pick viins from $EDITOR=nvim)
+bindkey -e
+
 bindkey '^[^?' backward-kill-word
 bindkey '^[^H' backward-kill-word
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
 
 # History options
 HISTSIZE="50000"

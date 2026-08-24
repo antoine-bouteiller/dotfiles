@@ -6,6 +6,11 @@ cursor-style = block
 cursor-style-blink = false
 font-style = Regular
 gtk-toolbar-style = flat
+{{- if eq .chezmoi.os "darwin" }}
+macos-option-as-alt = true
+keybind = super+left=text:\x01
+keybind = super+right=text:\x05
+{{- end }}
 keybind = shift+insert=paste_from_clipboard
 keybind = control+insert=copy_to_clipboard
 keybind = shift+enter=csi:13;2u

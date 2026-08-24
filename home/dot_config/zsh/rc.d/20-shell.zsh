@@ -11,9 +11,9 @@ bindkey -e
 
 bindkey '^[^?' backward-kill-word
 bindkey '^[^H' backward-kill-word
-# ctrl+arrows, not alt+arrows: AeroSpace grabs alt-left/right globally for 'focus'
-bindkey '^[[1;5D' backward-word
-bindkey '^[[1;5C' forward-word
+# alt+arrows, as in native macOS text fields
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
 
 # History options
 HISTSIZE="50000"

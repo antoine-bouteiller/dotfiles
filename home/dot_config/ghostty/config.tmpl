@@ -7,9 +7,10 @@ cursor-style-blink = false
 font-style = Regular
 gtk-toolbar-style = flat
 {{- if eq .chezmoi.os "darwin" }}
-# Left Option = Meta (zsh word nav: ^[^?, ^[[1;3D). Right Option = compose,
-# so AZERTY Opt-composed chars ([ ] { } | @ # \) still work in the terminal.
-macos-option-as-alt = left
+# Option stays compose on both sides, so AZERTY Opt-composed chars
+# ([ ] { } | @ # \) work in the terminal. Non-printable Opt sequences
+# (Opt+arrows, Opt+Delete) are still sent as Alt regardless.
+# Cmd+arrows = line start/end, as in native macOS text fields.
 keybind = super+left=text:\x01
 keybind = super+right=text:\x05
 {{- end }}

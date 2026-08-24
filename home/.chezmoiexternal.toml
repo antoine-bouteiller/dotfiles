@@ -10,12 +10,6 @@
     url = "https://github.com/romkatv/powerlevel10k/archive/3308262dfbd743b6e1d3956a2b5572f7a049d692.tar.gz"
     stripComponents = 1
 
-[".zsh/plugins/catppuccin-powerlevel10k-themes"]
-    type = "archive"
-    url = "https://github.com/tolkonepiu/catppuccin-powerlevel10k-themes/archive/6e72187953e5e9face7fbf8dcc926d691f7d1f2d.tar.gz"
-    exact = true
-    stripComponents = 1
-
 [".zsh/plugins/zsh-autosuggestions"]
     type = "archive"
     url = "https://github.com/zsh-users/zsh-autosuggestions/archive/85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5.tar.gz"

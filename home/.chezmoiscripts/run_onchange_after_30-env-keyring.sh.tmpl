@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+
+items="openai google_dev_recipe_organizer"
+
+if [ -z "${BW_SESSION:-}" ]; then
+  if [ -t 0 ]; then
+    BW_SESSION=$(bw unlock --raw)
+    export BW_SESSION
+  else
+    echo "Error: BW_SESSION not set and no TTY to prompt." >&2
+    exit 1
+  fi
+fi
+
+bw sync
+
+for item in $items; do
+  json=$(bw get item "$item")
+
+  printf '%s\n' "$json" |
+  jq -r '.fields[]? | select(.name and .value) | [.name, .value] | @tsv' |
+  while IFS="$(printf '\t')" read -r name value; do
+    {{ .chezmoi.executable }} secret keyring set --service="$item" --user="$name" --value="$value"
+  done
+done

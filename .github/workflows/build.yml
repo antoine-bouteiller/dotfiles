@@ -5,8 +5,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  discover:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.hosts.outputs.matrix }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -15,13 +17,34 @@ jobs:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
 
-      - name: Verify hosts build
+      - name: Collect hosts per system
+        id: hosts
         run: |
           set -e
-          system=x86_64-linux
-          hosts=$(nix eval --json --impure ".#checks.$system" --apply 'builtins.attrNames' | jq -r '.[]')
-          for host in $hosts; do
-            echo "::group::Verifying $host"
-            nix build ".#checks.$system.$host" --dry-run --impure
-            echo "::endgroup::"
+          include='[]'
+          for entry in x86_64-linux:ubuntu-latest aarch64-darwin:macos-latest; do
+            system=${entry%%:*}
+            runner=${entry##*:}
+            hosts=$(nix eval --json --impure ".#checks.$system" --apply 'builtins.attrNames')
+            include=$(jq -c --argjson hosts "$hosts" --arg system "$system" --arg runner "$runner" \
+              '. + [$hosts[] | {system: $system, runner: $runner, host: .}]' <<<"$include")
           done
+          echo "matrix={\"include\":$include}" >>"$GITHUB_OUTPUT"
+
+  build:
+    needs: discover
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    name: ${{ matrix.host }} (${{ matrix.system }})
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Build ${{ matrix.host }}
+        run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --impure --no-link --print-build-logs

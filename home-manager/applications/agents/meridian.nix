@@ -7,7 +7,10 @@
 }: let
   cfg = config.local.home-manager.agents;
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  package = inputs.meridian.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  system = pkgs.stdenv.hostPlatform.system;
+  package = inputs.meridian.packages.${system}.default.override {
+    claude-code = inputs.self.packages.${system}.claude-code;
+  };
 in {
   config = lib.mkIf (cfg.enable && cfg.pi.enable) {
     home.packages = [package];

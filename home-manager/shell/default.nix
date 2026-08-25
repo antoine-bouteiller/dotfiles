@@ -1,6 +1,7 @@
 {...}: {
   imports = [
     ./zsh.nix
+    ./starship.nix
     ./git.nix
     ./ssh.nix
     ./tmux.nix

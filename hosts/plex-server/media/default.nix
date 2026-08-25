@@ -1,26 +1,12 @@
 {...}: {
   imports = [
-    ./authelia.nix
-    ./caddy.nix
-    ./cloudflared.nix
-    ./tailscale.nix
-    ./exposure.nix
-    ./adguard.nix
-    ./postgres.nix
-    ./plex.nix
-    ./seerr.nix
-    ./sonarr.nix
-    ./radarr.nix
-    ./prowlarr.nix
-    ./bazarr.nix
-    ./qbittorrent.nix
-    ./recyclarr.nix
+    ./shared
+    ./edge
+    ./arr
+    ./download
+    ./library
+    ./data
+    ./hardware
     ./homepage.nix
-    ./byparr.nix
-    ./gluetun.nix
-    ./coolercontrol.nix
-    ./autoscan.nix
-    ./immich.nix
-    ./smartd.nix
   ];
 }

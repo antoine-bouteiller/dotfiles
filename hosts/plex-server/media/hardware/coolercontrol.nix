@@ -1,5 +1,5 @@
 _: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
 in {
   programs.coolercontrol.enable = true;
 

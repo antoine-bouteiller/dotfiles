@@ -1,5 +1,5 @@
 {config, ...}: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
 in {
   sops.secrets = {
     "recyclarr/sonarr_api_key" = {

@@ -4,7 +4,7 @@
   modulesPath,
   ...
 }: let
-  constants = import ./media/constants.nix;
+  constants = import ./media/shared/constants.nix;
 in {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")

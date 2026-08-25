@@ -1,5 +1,5 @@
 {config, ...}: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
 in {
   # cloudflared runs as a systemd DynamicUser and consumes the credentials
   # file via `LoadCredential`, which is read as root before privileges drop.

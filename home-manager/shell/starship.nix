@@ -29,10 +29,10 @@ _: {
         ahead = "⇡\${count} ";
         diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
         behind = "⇣\${count} ";
-        conflicted = " ";
-        up_to_date = " ";
+        conflicted = " ";
+        up_to_date = " ";
         untracked = "? ";
-        modified = " ";
+        modified = " ";
         stashed = "";
         staged = "";
         renamed = "";

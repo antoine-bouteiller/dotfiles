@@ -16,6 +16,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     autoscan = {
       url = "github:antoine-bouteiller/autoscan";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -7,13 +7,14 @@
 }: let
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
+  imports = [inputs.caelestia-shell.homeManagerModules.default];
+
   config = lib.mkIf (osConfig.desktop.enable or false) {
     gtk = {
       enable = true;
       gtk2.force = true;
-      # Without this the dconf gtk-theme keeps pointing at a theme that isn't in the
-      # closure, so GTK3 apps fall back to light Adwaita under a dark COSMIC session.
-      # adw-gtk3 is the theme cosmic-settings-daemon already expects to find.
+      # GTK3 apps otherwise fall back to light Adwaita in a dark session; adw-gtk3
+      # is the theme that matches libadwaita's dark styling.
       theme = {
         name = "adw-gtk3-dark";
         package = pkgs.adw-gtk3;
@@ -30,8 +31,34 @@ in {
       };
     };
 
+    home.pointerCursor = {
+      enable = true;
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+      size = 24;
+      gtk.enable = true;
+    };
+
+    xdg.configFile."hypr/hyprland.lua".source = ./hyprland.lua;
+
+    programs.caelestia = {
+      enable = true;
+      cli.enable = true;
+      # hyprland.lua starts the shell on compositor start.
+      systemd.enable = false;
+      settings.general.apps = {
+        terminal = ["ghostty"];
+        explorer = ["nautilus"];
+      };
+    };
+
+    services.cliphist.enable = true;
+    services.hyprpolkitagent.enable = true;
+
     home.packages = [
       pkgs.nixos-icons
+      pkgs.hyprpicker
+      pkgs.nautilus
     ];
   };
 }

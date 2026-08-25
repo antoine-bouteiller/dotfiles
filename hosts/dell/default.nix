@@ -48,13 +48,13 @@ in {
     customPkgs.nearby-file-share
     customPkgs.helium
 
-    # Two COSMIC fixes:
+    # Two Wayland fixes:
     # - Qt6's client-side decoration plugin (libbradient) segfaults while building the
-    #   titlebar, killing Plex at startup. COSMIC draws server-side decorations anyway.
+    #   titlebar, killing Plex at startup. Hyprland draws its own borders anyway.
     # - Plex sets its Wayland app_id to tv.plex.Plex, which matches no desktop entry, so
-    #   the dock can't pair the window with an icon. The entry basename must equal app_id.
+    #   the shell can't pair the window with an icon. The entry basename must equal app_id.
     (symlinkJoin {
-      name = "plex-desktop-cosmic";
+      name = "plex-desktop-wayland";
       paths = [plex-desktop];
       nativeBuildInputs = [makeWrapper];
       postBuild = ''

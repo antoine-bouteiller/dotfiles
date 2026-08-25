@@ -32,8 +32,6 @@
     casks = [
       # Development Tools
       "orbstack"
-      "beekeeper-studio"
-      "yaak"
       "ghostty"
       "zed"
       "dbx"

@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [../modules];
   nixpkgs.config = {
     allowUnfree = true;
@@ -30,10 +26,10 @@
       ];
     };
 
-    gc = {
-      automatic = true;
-      options = lib.mkDefault "--delete-older-than 30d";
-    };
+    # Garbage collection is handled by `nh clean all --keep 2 --keep-since 7d`
+
+    # Hardlink identical store files to save disk space
+    optimise.automatic = true;
   };
 
   time.timeZone = "Europe/Paris";

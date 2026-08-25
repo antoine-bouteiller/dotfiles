@@ -1,8 +1,7 @@
 #!/bin/sh -e
 
 echo "Cleaning up old system generations (keeping the 2 latest)..."
-sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +2
-sudo nix-collect-garbage
+sudo nh clean all --keep 2 --keep-since 7d
 
 echo "Cleaning up boot partition..."
 sudo nixos-rebuild boot --flake ".#${hostname}" --install-bootloader

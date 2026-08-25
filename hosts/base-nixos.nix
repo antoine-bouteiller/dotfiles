@@ -46,6 +46,14 @@
     priority = 100;
   };
 
+  programs.nh = {
+    enable = true;
+    clean = {
+      enable = true;
+      extraArgs = "--keep 2 --keep-since 7d";
+    };
+  };
+
   programs.zsh.enable = true;
   programs.nix-ld.enable = true;
 

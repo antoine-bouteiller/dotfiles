@@ -42,12 +42,6 @@ in {
     sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
   };
 
-  # Nix
-  nix.gc = {
-    dates = "weekly";
-    options = "--delete-older-than 7d";
-  };
-
   environment.systemPackages = with pkgs; [
     lm_sensors
   ];

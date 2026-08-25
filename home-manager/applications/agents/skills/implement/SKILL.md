@@ -21,8 +21,10 @@ Identify the target and read it, plus the code it touches:
   `writing-plan` first.
 
 Scan the task list once for contradictions — tasks that fight each other, or share a file in the
-wrong order — and resolve them before dispatching. Done when every task names real paths and a
-runnable check.
+wrong order — and resolve them before dispatching. Then draft the branch's commit map by intent,
+independent of task boundaries. A typical plan should land as two to five commits; exceed that only
+when every extra commit is independently useful to review or revert. Done when every task names real
+paths and a runnable check, and every task belongs to a planned commit.
 
 ## 2. Dispatch one implementer per task
 
@@ -58,13 +60,13 @@ loop.
 
 ## 4. Commit and record
 
-Commit whole units of work, not tasks. A commit is one **standalone** change: it states one intent,
+Follow the commit map, not the task list. A commit is one **standalone** change: it states one intent,
 leaves the tree building and its tests passing, and reads on its own in the log without the tasks
-around it. Several approved tasks usually make one — a test task and the code that satisfies it, a
-rename and its call sites; one large task can make several. Hold approved tasks until the unit is
-whole, then commit it with a message following `../conventional-commit/SKILL.md`. Commit at the last
-point the unit is whole: before the next task would mix a second intent in, before switching area,
-and before finishing.
+around it. Several approved tasks usually make one — a contract and its tests, or a migration and all
+its call sites. Hold approved tasks until the mapped unit is whole, then commit it with a message
+following `../conventional-commit/SKILL.md`. Commit before the next task would mix a second intent or
+before finishing. Fold later corrections into their owning commit with fixup/autosquash; the final
+branch must match the map rather than expose implementation chronology.
 
 When the target is a plan, tick each task and any satisfied acceptance criteria as it is approved,
 and append the outcome to `Log` at each commit — commit range, deviations, deferred findings. **The

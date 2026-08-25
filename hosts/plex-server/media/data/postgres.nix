@@ -4,7 +4,7 @@
   lib,
   ...
 }: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
   databases = import ./databases.nix;
   allDatabases = builtins.concatMap (e: [e.name] ++ (e.extraDatabases or [])) databases;
 in {

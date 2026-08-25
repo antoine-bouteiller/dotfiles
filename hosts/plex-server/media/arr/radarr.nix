@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
 in {
   services.radarr = {
     enable = true;

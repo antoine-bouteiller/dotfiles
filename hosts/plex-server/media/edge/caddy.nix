@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  constants = import ./constants.nix;
+  constants = import ../shared/constants.nix;
 in {
   sops.secrets."caddy/cloudflare_token" = {
     key = "cloudflare_token";
@@ -22,7 +22,7 @@ in {
 
   services.caddy = {
     enable = true;
-    package = pkgs.callPackage ../../../pkgs/caddy-cloudflare {};
+    package = pkgs.callPackage ../../../../pkgs/caddy-cloudflare {};
 
     extraConfig = ''
       (auth_proxy) {

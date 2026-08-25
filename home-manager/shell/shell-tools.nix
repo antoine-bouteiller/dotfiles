@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   pkgs,
   inputs,
   ...
@@ -16,45 +18,49 @@
     ${pkgs.mise}/bin/mise activate zsh > $out
   '';
 in {
-  # Same treefmt wrapper `nix fmt` uses (config baked in), so `treefmt` works anywhere.
-  home.packages = [inputs.self.formatter.${pkgs.stdenv.hostPlatform.system}];
+  options.local.home-manager.shell-tools.enable = lib.mkEnableOption "shell tools (zoxide, direnv, carapace, mise, treefmt)";
 
-  programs = {
-    zoxide = {
-      enable = true;
-      enableZshIntegration = false;
-      options = [
-        "--cmd"
-        "cd"
-      ];
+  config = lib.mkIf config.local.home-manager.shell-tools.enable {
+    # Same treefmt wrapper `nix fmt` uses (config baked in), so `treefmt` works anywhere.
+    home.packages = [inputs.self.formatter.${pkgs.stdenv.hostPlatform.system}];
+
+    programs = {
+      zoxide = {
+        enable = true;
+        enableZshIntegration = false;
+        options = [
+          "--cmd"
+          "cd"
+        ];
+      };
+
+      carapace = {
+        enable = true;
+        enableZshIntegration = false;
+      };
+
+      direnv = {
+        enable = true;
+        enableZshIntegration = false;
+      };
+
+      mise = {
+        enable = true;
+        enableZshIntegration = false;
+      };
+
+      zsh.envExtra = ''
+        export CARAPACE_BRIDGES='zsh,bash'
+      '';
+
+      zsh.initContent = ''
+        if [[ -o interactive ]]; then
+          source ${zoxideInit}
+        fi
+        source ${direnvInit}
+        source ${carapaceInit}
+        source ${miseInit}
+      '';
     };
-
-    carapace = {
-      enable = true;
-      enableZshIntegration = false;
-    };
-
-    direnv = {
-      enable = true;
-      enableZshIntegration = false;
-    };
-
-    mise = {
-      enable = true;
-      enableZshIntegration = false;
-    };
-
-    zsh.envExtra = ''
-      export CARAPACE_BRIDGES='zsh,bash'
-    '';
-
-    zsh.initContent = ''
-      if [[ -o interactive ]]; then
-        source ${zoxideInit}
-      fi
-      source ${direnvInit}
-      source ${carapaceInit}
-      source ${miseInit}
-    '';
   };
 }

@@ -45,7 +45,6 @@
     jq
     ripgrep
     tree
-    tmux
     eza
 
     # Development tools

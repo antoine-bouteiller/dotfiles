@@ -26,6 +26,9 @@ jobs:
           NIX_PATH: nixpkgs=flake:nixpkgs
         run: nix run --impure .#update
 
+      - name: Format
+        run: nix fmt
+
       - name: Open auto-merging pull request
         env:
           GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
@@ -34,11 +37,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet && exit 0
-          branch="flake-update/$(date -u +%Y-%m-%d-%H%M%S)"
+          branch="flake-update"
           git checkout -b "$branch"
           git commit -m "chore(deps): auto-update flake.lock and packages"
-          git push origin "$branch"
-          gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
-            --title "chore(deps): auto-update flake.lock and packages" \
-            --body "Automated weekly update of flake inputs and custom packages."
+          git push --force origin "$branch"
+          gh pr view "$branch" --json state --jq '.state == "OPEN"' | grep -q true || \
+            gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
+              --title "chore(deps): auto-update flake.lock and packages" \
+              --body "Automated weekly update of flake inputs and custom packages."
           gh pr merge "$branch" --squash --auto --delete-branch

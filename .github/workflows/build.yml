@@ -50,6 +50,9 @@ jobs:
         with:
           name: antoine-bouteiller
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # Skip per-dependency fetches (importNpmLock .tgz, bun2nix bun-pkg-*,
+          # cargo/zig vendor dirs): ~75% of pushed paths, zero build cost to redo.
+          pushFilter: "(\\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$)"
 
       - name: Build ${{ matrix.host }}
         run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --impure --no-link --print-build-logs

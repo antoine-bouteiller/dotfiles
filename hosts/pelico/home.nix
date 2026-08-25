@@ -6,7 +6,6 @@
   ...
 }: let
   inherit (config.home) homeDirectory;
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
     ../../home-manager
@@ -17,19 +16,15 @@ in {
     ghostty.enable = true;
     herdr.enable = true;
     hunk.enable = true;
+    shell-tools.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;
       pi.enable = true;
       mcpServers = {
-        fff.command = "${customPkgs.fff-mcp}/bin/fff-mcp";
         linear = {
           type = "http";
           url = "https://mcp.linear.app/mcp";
-        };
-        nixos = {
-          command = "uvx";
-          args = ["mcp-nixos"];
         };
         slack = {
           type = "http";
@@ -52,7 +47,6 @@ in {
         };
       };
     };
-    tmux.enable = true;
     runenv = {
       enable = true;
       secretsDir = "${homeDirectory}/.dotfiles/hosts/pelico/secrets";

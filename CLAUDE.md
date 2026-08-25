@@ -29,7 +29,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 
 - `flake.nix` — hosts wired via `mkDarwinHost`/`mkNixosHost` (`lib/default.nix`); `globals.nix` = name/email/keys.
 - `hosts/<name>/{default,home}.nix` + `hosts/base*.nix` — per-machine config. Darwin host: `pelico`.
-- `home-manager/applications/<app>/` — user program config; `home-manager/shell/` — zsh, git, tmux, ssh.
+- `home-manager/applications/<app>/` — user program config; `home-manager/shell/` — zsh, git, ssh.
 - `pkgs/<name>/` — custom derivations, exported in `flake.packages`. Each bumps itself via a
   `passthru.updateScript` → `update.nu` (nushell), driven by `nix run .#update`.
 - `modules/` — NixOS/darwin system modules; `dev/` — dev-shell flake (treefmt + git hooks).

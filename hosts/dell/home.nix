@@ -10,12 +10,12 @@
   local.home-manager = {
     herdr.enable = true;
     hunk.enable = true;
+    shell-tools.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;
       pi.enable = true;
     };
-    tmux.enable = true;
     zed.enable = true;
     ghostty.enable = true;
   };

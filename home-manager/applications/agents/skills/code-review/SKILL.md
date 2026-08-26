@@ -23,11 +23,22 @@ Perform a thorough code review of the merge request changes. If the context abov
 2. **Detect the stack** — identify languages, frameworks, and the project's existing conventions (look at neighbouring files, lint configs, CLAUDE.md, contributing docs). Judge the diff against _this project's_ patterns, not a generic ideal.
 3. **For each changed file**, apply the five review categories below **in priority order**. Backend, frontend, infra, and config files all get reviewed — use the subsections that apply to each file's stack.
 4. **Draft the structured review report** (format described at the end).
-5. **Adversarial pass** — spawn a `reviewer` subagent with the diff, the changed-file list, and your draft report, and instruct it to attack the review itself: which findings are wrong or unsupported by the code, which are noise, which severities are inflated or understated, and what a hostile reader would catch that the draft missed. Then reconcile: drop findings you cannot defend, add the ones it surfaced, and re-derive the verdict.
+5. **Subtractive pass** — spawn a `reviewer` subagent with the diff, the changed-file list, and your draft report, and instruct it to delete findings only: those unsupported by the diff, out of the branch's scope, speculative, or whose fix costs more than the problem. It must not add findings. Drop everything it cuts and re-derive the verdict.
 
-Completion criterion: every changed file has been read in full, checked against every applicable category, and the report has survived the adversarial pass.
+Completion criterion: every changed file has been read in full, checked against every applicable category, and every surviving finding passes the scope rules below.
 
 ---
+
+## Scope rules (apply to every finding)
+
+The MR's goal is what its commits and diff set out to do. Review that, nothing else.
+
+- Drop any finding you cannot point to a concrete failing input, caller, or line for. "Could theoretically" is not a finding.
+- Drop findings about code the MR did not touch, and about behaviour that was already like that before.
+- Never propose a fix that adds more code than the risk removes: no new abstraction, config, flag, defensive branch, or dependency unless the MR is already broken without it.
+- Handling of inputs that cannot occur, given the callers in the codebase, is not a finding.
+- Prefer the smaller suggestion; if the only fix is a rewrite outside the branch's goal, say so in one line and move on.
+- When in doubt, do not report it. A short review with three real issues beats a long one.
 
 ## Review Categories (by priority)
 

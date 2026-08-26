@@ -1,0 +1,45 @@
+#!/bin/sh -e
+#
+# Fresh NixOS install for a host already declared in this flake.
+# Run from the NixOS installer ISO, with this repo checked out and staged:
+#
+#   nix run --extra-experimental-features 'nix-command flakes' .#bootstrap -- antoine-dell
+#
+# Requires the host to have a disko config (hosts/<name>/disko.nix). Afterwards:
+#   1. restart, clone this repo, `nix run .#apply`
+#   2. `nix run .#secure-boot` to enroll the Secure Boot keys and the LUKS TPM2 slot
+
+host="$1"
+if [ -z "$host" ]; then
+  echo "usage: nix run .#bootstrap -- <flake-hostname>" >&2
+  exit 1
+fi
+
+# The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
+# would serve (lanzaboote, custom pkgs) would otherwise be built from source.
+NIX_CONFIG="extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org
+extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc="
+export NIX_CONFIG
+sudo() { command sudo --preserve-env=NIX_CONFIG "$@"; }
+
+printf 'This ERASES every disk declared by .#%s. Type the hostname to confirm: ' "$host"
+read -r confirm
+[ "$confirm" = "$host" ] || {
+  echo "Aborted."
+  exit 1
+}
+
+echo "Partitioning, formatting and mounting..."
+sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount --flake ".#${host}"
+
+# lanzaboote signs the very first generation, so the keys must exist before the
+# install; sbctl in the target system then finds them at /var/lib/sbctl.
+echo "Creating Secure Boot keys..."
+sudo install -d -m 700 /mnt/var/lib/sbctl
+sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock \
+  --export /mnt/var/lib/sbctl --database-path /mnt/var/lib/sbctl/GUID
+
+echo "Installing..."
+sudo nixos-install --flake ".#${host}" --no-root-password
+
+echo "Install complete. Restart, then follow the post-install steps in apps/x86_64-linux/bootstrap."

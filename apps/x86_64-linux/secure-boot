@@ -14,8 +14,13 @@
 # The keys themselves are created by `nix run .#bootstrap` before the install,
 # because lanzaboote cannot sign the first generation without them.
 
+# sbctl needs root to read the efivars, otherwise it reports nothing at all.
 secure_boot_enabled() {
-  sbctl status --json | grep -q '"secure_boot": *true'
+  sudo sbctl status --json | grep -q '"secure_boot": *true'
+}
+
+setup_mode() {
+  sudo sbctl status --json | grep -q '"setup_mode": *true'
 }
 
 luks_device() {
@@ -28,8 +33,20 @@ luks_device() {
 }
 
 if ! secure_boot_enabled; then
+  # Out of Setup Mode with Secure Boot off means the keys are already enrolled
+  # and only the firmware toggle is missing; enroll-keys can only fail here.
+  if ! setup_mode; then
+    echo "Keys are already enrolled. Enable Secure Boot in the firmware, then re-run this."
+    exit 0
+  fi
+  # lanzaboote bundles the kernel and initrd into signed UKIs, so the raw
+  # /EFI/nixos/* blobs left next to them are expected to be unsigned.
   echo "Verifying that every file in the ESP is signed..."
-  sudo sbctl verify
+  unsigned=$(sudo sbctl verify | grep 'is not signed' | grep -v '/EFI/nixos/' || true)
+  [ -z "$unsigned" ] || {
+    echo "$unsigned" >&2
+    exit 1
+  }
   echo "Enrolling keys (firmware must be in Setup Mode)..."
   sudo sbctl enroll-keys --microsoft
   echo "Keys enrolled. Restart, confirm Secure Boot is on in the firmware, then re-run this."

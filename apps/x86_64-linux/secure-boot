@@ -1,0 +1,47 @@
+#!/bin/sh -e
+#
+# Secure Boot + TPM2 bring-up on an installed host, run as:
+#
+#   nix run .#secure-boot
+#
+# The procedure spans two restarts, so this script detects the phase it is in and
+# is meant to be re-run after each one until it reports "nothing left to do":
+#
+#   1. keys enrolled into firmware (needs the firmware in Setup Mode)
+#   2. once Secure Boot is actually active, the LUKS TPM2 slot is enrolled
+#      against PCR 7 -- doing it earlier seals against the wrong PCR 7 value
+#
+# The keys themselves are created by `nix run .#bootstrap` before the install,
+# because lanzaboote cannot sign the first generation without them.
+
+secure_boot_enabled() {
+  sbctl status --json | grep -q '"secure_boot": *true'
+}
+
+luks_device() {
+  devs=$(lsblk -rno PATH,FSTYPE | awk '$2 == "crypto_LUKS" { print $1 }')
+  [ "$(echo "$devs" | wc -l)" -eq 1 ] || {
+    echo "Expected exactly one crypto_LUKS device, found: $(echo "$devs" | tr '\n' ' ')" >&2
+    exit 1
+  }
+  echo "$devs"
+}
+
+if ! secure_boot_enabled; then
+  echo "Verifying that every file in the ESP is signed..."
+  sudo sbctl verify
+  echo "Enrolling keys (firmware must be in Setup Mode)..."
+  sudo sbctl enroll-keys --microsoft
+  echo "Keys enrolled. Restart, confirm Secure Boot is on in the firmware, then re-run this."
+  exit 0
+fi
+
+dev=$(luks_device)
+if sudo cryptsetup luksDump "$dev" | grep -q systemd-tpm2; then
+  echo "Secure Boot is active and $dev already has a TPM2 slot: nothing left to do."
+  exit 0
+fi
+
+echo "Enrolling a TPM2 slot on $dev against PCR 7 (the passphrase stays as recovery)..."
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "$dev"
+echo "Done. Restart to check that the root unlocks without a passphrase."

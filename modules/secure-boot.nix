@@ -5,14 +5,11 @@
 # an attacker's unsigned initrd never boots and the TPM never releases the key.
 # Enrolling against PCR 7 alone (not 0) also survives firmware updates.
 #
-# Bring-up on a new host, in this order:
-#   1. secureBoot.enable = false, install, boot. A fresh host has no keys under
-#      /var/lib/sbctl, so lanzaboote could not sign and activation would fail.
-#   2. sbctl create-keys, then secureBoot.enable = true and rebuild
-#   3. sbctl verify, sbctl enroll-keys --microsoft, then restart
-#   4. sbctl status -> must report Secure Boot enabled, otherwise stop here
-#   5. systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 <luks-partition>
-# Enrolling before step 4 seals against the wrong PCR 7 value.
+# Bring-up on a new host is scripted: `nix run .#bootstrap` creates the sbctl keys
+# before nixos-install (lanzaboote cannot sign the first generation without them),
+# then `nix run .#secure-boot`, re-run after each restart, enrolls the keys into the
+# firmware and only afterwards the LUKS TPM2 slot -- enrolling before Secure Boot is
+# active would seal against the wrong PCR 7 value.
 {
   config,
   inputs,

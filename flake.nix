@@ -78,12 +78,17 @@
         exec ${self}/apps/${system}/${scriptName}
       '')}/bin/${scriptName}";
     };
-    mkApps = system: {
-      "apply" = mkApp "apply" system;
-      "clean" = mkApp "clean" system;
-      "update" = mkApp "update" system;
-      "update-claude" = mkApp "update-claude" system;
-    };
+    mkApps = system:
+      {
+        "apply" = mkApp "apply" system;
+        "clean" = mkApp "clean" system;
+        "update" = mkApp "update" system;
+        "update-claude" = mkApp "update-claude" system;
+      }
+      // nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) {
+        "bootstrap" = mkApp "bootstrap" system;
+        "secure-boot" = mkApp "secure-boot" system;
+      };
   in {
     apps = nixpkgs.lib.genAttrs allSystems mkApps;
 

@@ -2,11 +2,9 @@
   pkgs,
   config,
   lib,
-  inputs,
   ...
 }: let
   cfg = config.desktop;
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   options.desktop = {
     enable = lib.mkEnableOption "Hyprland Desktop";
@@ -33,10 +31,6 @@ in {
 
     # Hyprland only ships its own portal; GTK provides the file chooser.
     xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
-
-    environment.systemPackages = [
-      customPkgs.whitesur-icon-theme
-    ];
 
     fonts.packages = with pkgs; [
       nerd-fonts.jetbrains-mono

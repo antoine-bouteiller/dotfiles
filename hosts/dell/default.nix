@@ -1,4 +1,5 @@
 {
+  config,
   globals,
   inputs,
   lib,
@@ -14,7 +15,7 @@ in {
     ./hardware-configuration.nix
   ];
 
-  flakePath = "/home/${user}/nix-config";
+  flakePath = "${config.users.users.${user}.home}/dotfiles";
 
   desktop.enable = true;
   gaming.enable = true;

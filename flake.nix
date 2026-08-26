@@ -102,9 +102,6 @@
         {
           comment-checker = pkgs.callPackage ./pkgs/comment-checker {};
           vite-plus = pkgs.callPackage ./pkgs/vite-plus {};
-          whitesur-icon-theme = pkgs.callPackage ./pkgs/whitesur-icon-theme.nix {
-            overlay = ./home-manager/themes/WhiteSur-icon-overlay;
-          };
           claude-code = pkgs.callPackage ./pkgs/claude-code {};
           sonarqube-cli = pkgs.callPackage ./pkgs/sonarqube-cli {};
           caddy-cloudflare = pkgs.callPackage ./pkgs/caddy-cloudflare {};

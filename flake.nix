@@ -8,6 +8,14 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     darwin = {
       url = "github:LnL7/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -142,7 +150,10 @@
         name = "dell";
         hostname = "antoine-dell";
         system = "x86_64-linux";
-        extraModules = [inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia];
+        extraModules = [
+          inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia
+          inputs.disko.nixosModules.disko
+        ];
       };
     };
   };

@@ -79,7 +79,7 @@
       program = "${(pkgs.writeScriptBin scriptName ''
         #!/usr/bin/env bash
         echo "Running ${scriptName} for ${system}"
-        exec ${self}/apps/${system}/${scriptName}
+        exec ${self}/apps/${system}/${scriptName} "$@"
       '')}/bin/${scriptName}";
     };
     mkApps = system:

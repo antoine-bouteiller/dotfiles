@@ -89,15 +89,9 @@ in {
       settings = {
         config = {
           general = {
-            layout = "dwindle";
             gaps_in = 5;
             gaps_out = 10;
             border_size = 2;
-          };
-
-          dwindle = {
-            preserve_split = true;
-            smart_resizing = true;
           };
 
           # Decoration values noctalia's docs recommend for hyprland; its surfaces

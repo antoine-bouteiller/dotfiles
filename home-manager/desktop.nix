@@ -71,6 +71,10 @@ in {
       };
     };
 
+    # The GTK ini keys above are invisible to the XDG portal, which is what
+    # ghostty and other portal-aware apps read to pick their light/dark variant.
+    dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+
     home.pointerCursor = {
       enable = true;
       name = cursor.theme;
@@ -134,7 +138,8 @@ in {
           output = "";
           mode = "preferred";
           position = "auto";
-          scale = 1;
+          # 4K panel: everything is unreadable at 1:1.
+          scale = 2;
         };
 
         env = [

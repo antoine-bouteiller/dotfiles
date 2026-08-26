@@ -1,6 +1,7 @@
 {
   globals,
   inputs,
+  lib,
   pkgs,
   ...
 }: let
@@ -35,6 +36,11 @@ in {
     enable = true;
     finegrained = true;
   };
+
+  # PRIME offload implies nvidia-drm.fbdev=1 on drivers >= 545, and that framebuffer
+  # console keeps a reference on the dGPU, so runtime_status never leaves "active"
+  # despite finegrained. The iGPU owns the console here, so drop it.
+  hardware.nvidia.moduleParams."nvidia-drm".fbdev = lib.mkForce 0;
 
   hardware.bluetooth = {
     enable = true;

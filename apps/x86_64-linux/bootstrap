@@ -9,6 +9,10 @@
 #   1. restart, clone this repo, `nix run .#apply`
 #   2. `nix run .#secure-boot` to enroll the Secure Boot keys and the LUKS TPM2 slot
 
+# Under `curl | sh` stdin is the pipe, so disko's wipe confirmation would read EOF
+# and abort. Reattach the terminal once for the whole script.
+[ -t 0 ] || exec </dev/tty
+
 host="$1"
 if [ -z "$host" ]; then
   echo "usage: nix run .#bootstrap -- <flake-hostname>" >&2
@@ -17,17 +21,13 @@ fi
 
 # The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
 # would serve (lanzaboote, custom pkgs) would otherwise be built from source.
-NIX_CONFIG="extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
+# Also carries the experimental features: the sudo'd nix calls below read root's
+# nix.conf, which on the ISO has neither nix-command nor flakes.
+NIX_CONFIG="extra-experimental-features = nix-command flakes
+extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
 extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
 export NIX_CONFIG
 sudo() { command sudo --preserve-env=NIX_CONFIG "$@"; }
-
-printf 'This ERASES every disk declared by .#%s. Type the hostname to confirm: ' "$host"
-read -r confirm
-[ "$confirm" = "$host" ] || {
-  echo "Aborted."
-  exit 1
-}
 
 echo "Partitioning, formatting and mounting..."
 sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount --flake ".#${host}"

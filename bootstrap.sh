@@ -15,8 +15,9 @@ fi
 
 repo="${DOTFILES_REPO:-https://github.com/antoine-bouteiller/dotfiles.git}"
 dir="${DOTFILES_DIR:-/tmp/dotfiles}"
-nix() { command nix --extra-experimental-features 'nix-command flakes' "$@"; }
+# Via the environment rather than a flag, so nested and sudo'd nix calls inherit it.
+export NIX_CONFIG="extra-experimental-features = nix-command flakes"
 
 [ -d "$dir" ] || nix run nixpkgs#git -- clone --depth 1 "$repo" "$dir"
 cd "$dir"
-exec nix run .#bootstrap -- "$host"
+nix run .#bootstrap -- "$host"

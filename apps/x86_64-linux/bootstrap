@@ -37,9 +37,14 @@ sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount --
 echo "Creating Secure Boot keys..."
 sudo install -d -m 700 /mnt/var/lib/sbctl
 sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock \
-  --export /mnt/var/lib/sbctl --database-path /mnt/var/lib/sbctl/GUID
+  --export /mnt/var/lib/sbctl/keys --database-path /mnt/var/lib/sbctl/GUID
 
 echo "Installing..."
 sudo nixos-install --flake ".#${host}" --no-root-password
+
+# No password is declared anywhere, so the account would be locked on first boot.
+echo "Setting the login password..."
+sudo nixos-enter --root /mnt -c 'passwd "$(id -nu 1000)"' ||
+  echo "Password not set. Re-run: sudo nixos-enter --root /mnt -c 'passwd \"\$(id -nu 1000)\"'" >&2
 
 echo "Install complete. Restart, then follow the post-install steps in apps/x86_64-linux/bootstrap."

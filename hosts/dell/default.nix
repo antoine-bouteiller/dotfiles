@@ -9,6 +9,7 @@
 in {
   imports = [
     ../base-nixos.nix
+    ./disko.nix
     ./hardware-configuration.nix
   ];
 
@@ -16,6 +17,8 @@ in {
 
   desktop.enable = true;
   gaming.enable = true;
+  # Set to false for the initial install; see modules/secure-boot.nix.
+  secureBoot.enable = true;
 
   security.rtkit.enable = true;
   services.pipewire = {

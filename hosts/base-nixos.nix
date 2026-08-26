@@ -7,6 +7,7 @@
     ./base.nix
     ../modules/desktop.nix
     ../modules/gaming.nix
+    ../modules/secure-boot.nix
   ];
 
   networking = {

@@ -24,6 +24,6 @@
     enableNixpkgsReleaseCheck = false;
     username = hostUser;
     homeDirectory = lib.mkForce "/home/${hostUser}";
-    stateVersion = "25.11";
+    stateVersion = "26.05";
   };
 }

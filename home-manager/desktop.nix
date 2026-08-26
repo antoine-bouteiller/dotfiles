@@ -1,4 +1,5 @@
 {
+  config,
   osConfig,
   lib,
   pkgs,
@@ -11,24 +12,40 @@
     explorer = "thunar";
   };
   cursor = {
-    theme = "Adwaita";
+    theme = "Bibata-Modern-Ice";
+    package = pkgs.bibata-cursors;
     size = 24;
   };
-  # Directional binds, hyprland's l/r/u/d suffixes.
+  mod = "SUPER";
+  # Directional binds, hyprland's l/r/u/d selectors.
   dirs = {
     left = "l";
     right = "r";
     up = "u";
     down = "d";
   };
+  # Renders to hl.bind(keys, <dispatcher>, { flags }); dispatchers are raw lua.
+  mkBind = flags: keys: dispatcher: {
+    _args =
+      [keys (lib.generators.mkLuaInline dispatcher)]
+      ++ lib.optional (flags != {}) flags;
+  };
+  bind = mkBind {};
+  bindLocked = mkBind {locked = true;};
+  bindRepeat = mkBind {repeating = true;};
+  bindRepeatLocked = mkBind {
+    repeating = true;
+    locked = true;
+  };
+  bindMouse = mkBind {mouse = true;};
   # code:10 is the `1` key and code:19 the `0` key, so workspace binds stay on
   # the same physical keys under the fr/azerty layout.
   workspaceBinds = lib.concatMap (i: [
-    "$mod, code:1${toString i}, workspace, ${toString (i + 1)}"
-    "$mod SHIFT, code:1${toString i}, movetoworkspace, ${toString (i + 1)}"
+    (bind "${mod} + code:1${toString i}" ''hl.dsp.focus({ workspace = "${toString (i + 1)}" })'')
+    (bind "${mod} + SHIFT + code:1${toString i}" ''hl.dsp.window.move({ workspace = "${toString (i + 1)}" })'')
   ]) (lib.range 0 9);
 in {
-  imports = [inputs.caelestia-shell.homeManagerModules.default];
+  imports = [inputs.noctalia.homeModules.default];
 
   config = lib.mkIf (osConfig.desktop.enable or false) {
     gtk = {
@@ -39,6 +56,12 @@ in {
       theme = {
         name = "adw-gtk3-dark";
         package = pkgs.adw-gtk3;
+      };
+      # noctalia's gtk templates recolor adw-gtk3 through an imported noctalia.css;
+      # they leave the theme and icon names alone, so they stay set here.
+      iconTheme = {
+        name = "Papirus-Dark";
+        package = pkgs.papirus-icon-theme;
       };
       gtk3.extraConfig.gtk-application-prefer-dark-theme = true;
       # GTK4 apps use libadwaita, not adw-gtk3, so don't push the GTK3 theme at them.
@@ -51,8 +74,7 @@ in {
     home.pointerCursor = {
       enable = true;
       name = cursor.theme;
-      package = pkgs.adwaita-icon-theme;
-      inherit (cursor) size;
+      inherit (cursor) package size;
       gtk.enable = true;
     };
 
@@ -65,131 +87,182 @@ in {
       systemd.enable = false;
 
       settings = {
-        "$mod" = "SUPER";
+        config = {
+          general = {
+            layout = "dwindle";
+            gaps_in = 5;
+            gaps_out = 10;
+            border_size = 2;
+          };
 
-        monitor = ",preferred,auto,1";
+          dwindle = {
+            preserve_split = true;
+            smart_resizing = true;
+          };
 
-        env = [
-          "XCURSOR_THEME,${cursor.theme}"
-          "XCURSOR_SIZE,${toString cursor.size}"
-        ];
+          # Decoration values noctalia's docs recommend for hyprland; its surfaces
+          # are translucent, so without blur they read as flat grey.
+          decoration = {
+            rounding = 20;
+            rounding_power = 2;
+            shadow = {
+              enabled = true;
+              range = 4;
+              render_power = 3;
+              # Nix has no hex literals; lua wants the 0xAARRGGBB form.
+              color = lib.generators.mkLuaInline "0xee1a1a1a";
+            };
+            blur = {
+              enabled = true;
+              size = 3;
+              passes = 2;
+              vibrancy = 0.1696;
+            };
+          };
 
-        exec-once = [
-          "hyprctl setcursor ${cursor.theme} ${toString cursor.size}"
-          "caelestia shell -d"
-        ];
+          input = {
+            kb_layout = "fr";
+            kb_variant = "azerty";
+            follow_mouse = 1;
+            touchpad = {
+              natural_scroll = true;
+              disable_while_typing = true;
+            };
+          };
 
-        general = {
-          layout = "dwindle";
-          gaps_in = 5;
-          gaps_out = 10;
-          border_size = 2;
-        };
-
-        dwindle = {
-          preserve_split = true;
-          smart_resizing = true;
-        };
-
-        decoration.rounding = 10;
-
-        input = {
-          kb_layout = "fr";
-          kb_variant = "azerty";
-          follow_mouse = 1;
-          touchpad = {
-            natural_scroll = true;
-            disable_while_typing = true;
+          misc = {
+            disable_hyprland_logo = true;
+            disable_splash_rendering = true;
           };
         };
 
-        misc = {
-          disable_hyprland_logo = true;
-          disable_splash_rendering = true;
+        monitor = {
+          output = "";
+          mode = "preferred";
+          position = "auto";
+          scale = 1;
+        };
+
+        env = [
+          {_args = ["XCURSOR_THEME" cursor.theme];}
+          {_args = ["XCURSOR_SIZE" (toString cursor.size)];}
+          {_args = ["QT_QPA_PLATFORMTHEME" "qt6ct"];}
+        ];
+
+        on = {
+          _args = [
+            "hyprland.start"
+            (lib.generators.mkLuaInline ''
+              function()
+                hl.exec_cmd("hyprctl setcursor ${cursor.theme} ${toString cursor.size}")
+                hl.exec_cmd("noctalia")
+              end
+            '')
+          ];
+        };
+
+        # Blur noctalia's own layers and let it run its animations unhindered.
+        layer_rule = {
+          match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher)$";
+          no_anim = true;
+          blur = true;
+          blur_popups = true;
+          ignore_alpha = 0.5;
+        };
+
+        window_rule = {
+          match.class = "dev.noctalia.Noctalia";
+          float = true;
+          size = [1080 920];
         };
 
         bind =
           [
-            "$mod, Return, exec, ${apps.terminal}"
-            "$mod, B, exec, ${apps.browser}"
-            "$mod, F, exec, ${apps.explorer}"
-            "$mod, N, exec, ${apps.terminal} -e nvim"
-            "$mod, T, exec, ${apps.terminal} -e btop"
-            "$mod, Space, global, caelestia:launcher"
-            "$mod, Escape, global, caelestia:session"
-            "CTRL $mod, L, global, caelestia:lock"
-            "$mod, V, exec, caelestia clipboard"
-            "CTRL $mod, E, exec, caelestia emoji -p"
-            "$mod, W, killactive"
-            "$mod SHIFT, V, togglefloating"
-            "SHIFT, F11, fullscreen, 0"
-            "ALT, F11, fullscreen, 1"
-            "$mod SHIFT, S, global, caelestia:screenshot"
-            "$mod, Print, exec, pkill hyprpicker || hyprpicker -a"
-            "$mod, mouse_down, workspace, +1"
-            "$mod, mouse_up, workspace, -1"
+            (bind "${mod} + Return" ''hl.dsp.exec_cmd("${apps.terminal}")'')
+            (bind "${mod} + B" ''hl.dsp.exec_cmd("${apps.browser}")'')
+            (bind "${mod} + F" ''hl.dsp.exec_cmd("${apps.explorer}")'')
+            (bind "${mod} + N" ''hl.dsp.exec_cmd("${apps.terminal} -e nvim")'')
+            (bind "${mod} + T" ''hl.dsp.exec_cmd("${apps.terminal} -e btop")'')
+            (bind "${mod} + Space" ''hl.dsp.exec_cmd("noctalia msg panel-toggle launcher")'')
+            (bind "${mod} + S" ''hl.dsp.exec_cmd("noctalia msg panel-toggle control-center")'')
+            (bind "${mod} + Escape" ''hl.dsp.exec_cmd("noctalia msg panel-toggle session")'')
+            (bind "CTRL + ${mod} + L" ''hl.dsp.exec_cmd("noctalia msg session lock")'')
+            (bind "${mod} + V" ''hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard")'')
+            # The launcher's emoji provider is triggered by typing its prefix.
+            (bind "CTRL + ${mod} + E" ''hl.dsp.exec_cmd("noctalia msg panel-open launcher '/emo '")'')
+            (bind "${mod} + W" "hl.dsp.window.close()")
+            (bind "${mod} + SHIFT + V" "hl.dsp.window.float()")
+            (bind "SHIFT + F11" ''hl.dsp.window.fullscreen({ mode = "fullscreen" })'')
+            (bind "ALT + F11" ''hl.dsp.window.fullscreen({ mode = "maximized" })'')
+            (bind "${mod} + SHIFT + S" ''hl.dsp.exec_cmd("noctalia msg screenshot-region")'')
+            (bind "${mod} + Print" ''hl.dsp.exec_cmd("pkill hyprpicker || hyprpicker -a")'')
+            (bind "${mod} + mouse_down" ''hl.dsp.focus({ workspace = "+1" })'')
+            (bind "${mod} + mouse_up" ''hl.dsp.focus({ workspace = "-1" })'')
+
+            (bindRepeat "${mod} + code:20" "hl.dsp.window.resize({ x = -100, y = 0, relative = true })")
+            (bindRepeat "${mod} + code:21" "hl.dsp.window.resize({ x = 100, y = 0, relative = true })")
+            (bindRepeat "${mod} + SHIFT + code:20" "hl.dsp.window.resize({ x = 0, y = -100, relative = true })")
+            (bindRepeat "${mod} + SHIFT + code:21" "hl.dsp.window.resize({ x = 0, y = 100, relative = true })")
+            (bindRepeat "ALT + Tab" "hl.dsp.window.cycle_next()")
+            (bindRepeat "SHIFT + ALT + Tab" "hl.dsp.window.cycle_next({ next = false })")
+            (bindRepeat "${mod} + Tab" ''hl.dsp.focus({ workspace = "+1" })'')
+            (bindRepeat "${mod} + SHIFT + Tab" ''hl.dsp.focus({ workspace = "-1" })'')
+
+            (bindMouse "${mod} + mouse:272" "hl.dsp.window.drag()")
+            (bindMouse "${mod} + mouse:273" "hl.dsp.window.resize()")
+
+            (bindLocked "Print" ''hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen")'')
+            (bindLocked "${mod} + comma" ''hl.dsp.exec_cmd("noctalia msg notification-clear-active")'')
+            (bindLocked "XF86MonBrightnessUp" ''hl.dsp.exec_cmd("noctalia msg brightness-up")'')
+            (bindLocked "XF86MonBrightnessDown" ''hl.dsp.exec_cmd("noctalia msg brightness-down")'')
+            (bindLocked "XF86AudioPlay" ''hl.dsp.exec_cmd("noctalia msg media toggle")'')
+            (bindLocked "XF86AudioPause" ''hl.dsp.exec_cmd("noctalia msg media toggle")'')
+            (bindLocked "XF86AudioNext" ''hl.dsp.exec_cmd("noctalia msg media next")'')
+            (bindLocked "XF86AudioPrev" ''hl.dsp.exec_cmd("noctalia msg media previous")'')
+            (bindLocked "XF86AudioMute" ''hl.dsp.exec_cmd("noctalia msg volume-mute")'')
+            (bindLocked "XF86AudioMicMute" ''hl.dsp.exec_cmd("noctalia msg mic-mute")'')
+
+            (bindRepeatLocked "XF86AudioRaiseVolume" ''hl.dsp.exec_cmd("noctalia msg volume-up")'')
+            (bindRepeatLocked "XF86AudioLowerVolume" ''hl.dsp.exec_cmd("noctalia msg volume-down")'')
           ]
-          ++ lib.mapAttrsToList (key: dir: "$mod, ${key}, movefocus, ${dir}") dirs
-          ++ lib.mapAttrsToList (key: dir: "$mod SHIFT, ${key}, movewindow, ${dir}") dirs
+          ++ lib.mapAttrsToList (key: dir: bind "${mod} + ${key}" ''hl.dsp.focus({ direction = "${dir}" })'') dirs
+          ++ lib.mapAttrsToList (key: dir: bind "${mod} + SHIFT + ${key}" ''hl.dsp.window.move({ direction = "${dir}" })'') dirs
           ++ workspaceBinds;
-
-        binde = [
-          "$mod, code:20, resizeactive, -100 0"
-          "$mod, code:21, resizeactive, 100 0"
-          "$mod SHIFT, code:20, resizeactive, 0 -100"
-          "$mod SHIFT, code:21, resizeactive, 0 100"
-          "ALT, Tab, cyclenext"
-          "SHIFT ALT, Tab, cyclenext, prev"
-          "$mod, Tab, workspace, +1"
-          "$mod SHIFT, Tab, workspace, -1"
-        ];
-
-        bindm = [
-          "$mod, mouse:272, movewindow"
-          "$mod, mouse:273, resizewindow"
-        ];
-
-        bindl = [
-          ", Print, exec, caelestia screenshot"
-          "$mod, comma, global, caelestia:clearNotifs"
-          ", XF86MonBrightnessUp, global, caelestia:brightnessUp"
-          ", XF86MonBrightnessDown, global, caelestia:brightnessDown"
-          ", XF86AudioPlay, global, caelestia:mediaToggle"
-          ", XF86AudioPause, global, caelestia:mediaToggle"
-          ", XF86AudioNext, global, caelestia:mediaNext"
-          ", XF86AudioPrev, global, caelestia:mediaPrev"
-          ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-          ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-        ];
-
-        bindel = [
-          ", XF86AudioRaiseVolume, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
-          ", XF86AudioLowerVolume, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-        ];
       };
     };
 
-    programs.caelestia = {
+    programs.noctalia = {
+      # exec-once above starts the shell, as noctalia's hyprland docs recommend.
       enable = true;
-      cli.enable = true;
-      # exec-once above starts the shell on compositor start.
-      systemd.enable = false;
-      settings.general.apps = {
-        terminal = [apps.terminal];
-        explorer = [apps.explorer];
+      settings = {
+        shell.polkit_agent = true;
+        theme = {
+          mode = "dark";
+          source = "builtin";
+          builtin = "Catppuccin";
+          # Render the palette into gtk-3.0/gtk-4.0 noctalia.css and qt6ct's colors.
+          templates.builtin_ids = ["gtk3" "gtk4" "qt"];
+        };
       };
     };
 
-    services.cliphist.enable = true;
-    services.hyprpolkitagent.enable = true;
+    # qt6ct reads the palette noctalia's qt template writes; the file only exists
+    # once the shell has applied a theme, and Fusion is the style that honours it.
+    qt = {
+      enable = true;
+      platformTheme.name = "qtct";
+      qt6ctSettings.Appearance = {
+        style = "Fusion";
+        custom_palette = true;
+        color_scheme_path = "${config.xdg.configHome}/qt6ct/colors/noctalia.conf";
+        icon_theme = "Papirus-Dark";
+      };
+    };
 
     home.packages = [
       pkgs.nixos-icons
       pkgs.hyprpicker
-      # caelestia's scheme templates cover thunar, not nautilus.
       pkgs.xfce.thunar
-      # `caelestia scheme` points dconf's icon-theme at Papirus-<mode>.
-      pkgs.papirus-icon-theme
     ];
   };
 }

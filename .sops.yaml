@@ -5,6 +5,6 @@ creation_rules:
       - age1w5wyppwmfvwwh4xn2hpkwn8flwh69aarhyt4xsnp6hm3d5y69sfs8n6glg # Mac Pelico
   - age:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICUZ+rb5WpsUv/4wVWlQ0aCRiNzZCIQngxXiNAJx6hJs # desktop
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHhSmVRhMXbxDkDOaUk0udibjBos2nDg6byvZ//dzMwL # dell
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJf/EE7y7ua7CVtBHXJqSN+jl5xN+c2hKyjI3oVFG9LT # antoine-dell
       - age1zxaucdgk9gf9kntp63h9wsnkduadygetdq3lgyj05whdq6k3248qecvdfw # plex server
       - age1w5wyppwmfvwwh4xn2hpkwn8flwh69aarhyt4xsnp6hm3d5y69sfs8n6glg # Mac Pelico

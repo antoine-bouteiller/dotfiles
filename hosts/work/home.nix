@@ -2,7 +2,6 @@
   globals,
   pkgs,
   config,
-  inputs,
   ...
 }: let
   inherit (config.home) homeDirectory;

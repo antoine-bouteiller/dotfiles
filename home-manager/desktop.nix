@@ -87,8 +87,12 @@ in {
       # The compositor and its portal come from the NixOS module.
       package = null;
       portalPackage = null;
-      # uwsm owns the session.
-      systemd.enable = false;
+      # greetd launches the plain hyprland.desktop, not the uwsm one, so nothing else
+      # activates graphical-session.target. Without it the xdg-desktop-portal units --
+      # all PartOf that target -- never start, and portal-aware apps fall back to the
+      # light color scheme. This starts hyprland-session.target and imports the session
+      # environment instead.
+      systemd.enable = true;
 
       settings = {
         config = {

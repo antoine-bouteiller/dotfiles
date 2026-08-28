@@ -76,6 +76,7 @@ in {
     })
     telegram-desktop
     caffeine-ng
+    bitwarden-desktop
   ];
 
   services.logind.settings.Login.HandleLidSwitch = "hibernate";

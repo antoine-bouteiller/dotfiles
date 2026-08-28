@@ -53,7 +53,10 @@ in {
     services.upower.enable = true;
     services.power-profiles-daemon.enable = true;
 
-    services.system76-scheduler.enable = true;
+    # No system76-scheduler here: its cfs-profiles write sysctls that EEVDF removed in
+    # 6.6, and its foreground boost needs a GNOME/COSMIC client to report the focused
+    # window, so under Hyprland only the de-boost half lands -- launcher-started apps
+    # match its system-services profile (nice 12, idle IO) and get starved.
 
     # Hyprland only ships its own portal; GTK provides the file chooser.
     xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];

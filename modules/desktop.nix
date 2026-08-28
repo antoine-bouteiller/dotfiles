@@ -38,6 +38,9 @@ in {
           size = 24;
           path = "${pkgs.bibata-cursors}/share/icons";
         };
+        # Submitting an empty password is what hands the PAM conversation over to
+        # pam_fprintd, so this is what makes fingerprint login work at the greeter.
+        auth.allow_empty_password = true;
       };
     };
 

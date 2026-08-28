@@ -185,6 +185,7 @@ in {
             (bind "${mod} + Space" ''hl.dsp.exec_cmd("noctalia msg panel-toggle launcher")'')
             (bind "${mod} + S" ''hl.dsp.exec_cmd("noctalia msg panel-toggle control-center")'')
             (bind "${mod} + Escape" ''hl.dsp.exec_cmd("noctalia msg panel-toggle session")'')
+            (bind "${mod} + I" ''hl.dsp.exec_cmd("noctalia msg settings-open")'')
             (bind "CTRL + ${mod} + L" ''hl.dsp.exec_cmd("noctalia msg session lock")'')
             (bind "${mod} + V" ''hl.dsp.exec_cmd("noctalia msg panel-toggle clipboard")'')
             # The launcher's emoji provider is triggered by typing its prefix.
@@ -256,6 +257,17 @@ in {
         color_scheme_path = "${config.xdg.configHome}/qt6ct/colors/noctalia.conf";
         icon_theme = "Papirus-Dark";
       };
+    };
+
+    # noctalia ships a single entry whose Exec is `noctalia --daemon`, so launching it
+    # from the launcher does nothing once the shell is already running; settings live in
+    # a desktop *action*, which the launcher doesn't list. This is that action as an entry.
+    xdg.desktopEntries.noctalia-settings = {
+      name = "Noctalia Settings";
+      exec = "noctalia msg settings-open";
+      icon = "noctalia";
+      terminal = false;
+      categories = ["Settings" "DesktopSettings"];
     };
 
     home.packages = [

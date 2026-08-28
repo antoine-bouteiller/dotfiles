@@ -17,7 +17,7 @@
       pi.enable = true;
     };
     zed.enable = true;
-    ghostty.enable = true;
+    terminal.enable = true;
   };
 
   home = {

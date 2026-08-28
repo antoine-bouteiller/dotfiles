@@ -2,7 +2,7 @@
   imports = [
     ./neovim
     ./btop.nix
-    ./ghostty.nix
+    ./terminal.nix
     ./lazygit.nix
     ./herdr.nix
     ./hunk.nix

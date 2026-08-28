@@ -12,7 +12,7 @@ in {
 
   local.home-manager = {
     zed.enable = true;
-    ghostty.enable = true;
+    terminal.enable = true;
     herdr.enable = true;
     hunk.enable = true;
     shell-tools.enable = true;

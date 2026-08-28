@@ -7,7 +7,7 @@
   ...
 }: let
   apps = {
-    terminal = "ghostty";
+    terminal = "foot";
     browser = "helium";
     explorer = "thunar";
   };
@@ -72,7 +72,7 @@ in {
     };
 
     # The GTK ini keys above are invisible to the XDG portal, which is what
-    # ghostty and other portal-aware apps read to pick their light/dark variant.
+    # portal-aware apps read to pick their light/dark variant.
     dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
 
     home.pointerCursor = {
@@ -93,6 +93,16 @@ in {
       # light color scheme. This starts hyprland-session.target and imports the session
       # environment instead.
       systemd.enable = true;
+
+      # noctalia's hyprland template renders hypr/noctalia.lua and expects its
+      # loader in hyprland.lua -- which home-manager owns and makes read-only, so
+      # the template's own apply hook cannot add it. Spelled exactly as the hook
+      # greps for it, so it leaves the file alone. pcall covers the window before
+      # noctalia has applied a theme for the first time.
+      extraConfig = ''
+        package.path = "${config.xdg.configHome}/hypr/?.lua;" .. package.path
+        pcall(function() require("noctalia").apply_theme() end)
+      '';
 
       settings = {
         config = {
@@ -245,7 +255,7 @@ in {
           source = "builtin";
           builtin = "Catppuccin";
           # Render the palette into gtk-3.0/gtk-4.0 noctalia.css and qt6ct's colors.
-          templates.builtin_ids = ["gtk3" "gtk4" "qt"];
+          templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot" "hyprland" "btop"];
         };
       };
     };
@@ -273,6 +283,17 @@ in {
       terminal = false;
       categories = ["Settings" "DesktopSettings"];
     };
+
+    # Same story for the foot and btop templates: their apply hooks would have to
+    # edit read-only config, so the theme is wired in here instead. foot refuses to
+    # start on a missing include, hence the placeholder for the pre-first-theme window.
+    programs.foot.settings.main.include = "${config.xdg.configHome}/foot/themes/noctalia";
+    programs.btop.settings.color_theme = "noctalia";
+
+    home.activation.footNoctaliaTheme = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run mkdir -p ${config.xdg.configHome}/foot/themes
+      run touch -a ${config.xdg.configHome}/foot/themes/noctalia
+    '';
 
     home.packages = [
       pkgs.nixos-icons

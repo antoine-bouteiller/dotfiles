@@ -46,6 +46,29 @@ in {
     # swaylock, sudo and polkit-1 keep fingerprint; tty login loses it, being this stack.
     security.pam.services.login.fprintAuth = false;
 
+    # The key left of the spacebar -- Alt here, Cmd on the MacBook -- becomes a layer
+    # carrying Ctrl, so the same physical key copies and closes tabs on both machines.
+    # keyd remaps below the compositor, so this covers every app.
+    #
+    # Each key maps onto Ctrl + itself rather than onto a named letter: the fr layout
+    # is applied after keyd, so the key labelled W arrives as Ctrl+w unaided.
+    #
+    # The layer inherits Alt (`cmd:A`), leaving Alt+Tab and Alt+F11 alone. Terminals
+    # are the casualty: Cmd+C reaches foot as SIGINT, so copy there stays Ctrl+Shift+C.
+    services.keyd = {
+      enable = true;
+      keyboards.default = {
+        ids = ["*"];
+        settings = {
+          main.leftalt = "layer(cmd)";
+          "cmd:A" =
+            lib.genAttrs
+            (lib.stringToCharacters "abcdefghijklmnopqrstuvwxyz0123456789" ++ ["minus" "equal"])
+            (key: "C-${key}");
+        };
+      };
+    };
+
     environment.sessionVariables.NIXOS_OZONE_WL = 1;
 
     # noctalia's gtk template applies itself through gsettings.

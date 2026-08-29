@@ -4,5 +4,6 @@
     ./gaming.nix
     ./shell
     ./applications
+    ./wm
   ];
 }

@@ -38,16 +38,23 @@ in {
           size = 24;
           path = "${pkgs.bibata-cursors}/share/icons";
         };
-        # Submitting an empty password is what hands the PAM conversation over to
-        # pam_fprintd, so this is what makes fingerprint login work at the greeter.
-        auth.allow_empty_password = true;
       };
     };
+
+    # greetd's pam stack is `include login`, so dropping fprintd here forces a typed password
+    # at the greeter -- the only thing that reaches pam_gnome_keyring and unlocks the keyring.
+    # swaylock, sudo and polkit-1 keep fingerprint; tty login loses it, being this stack.
+    security.pam.services.login.fprintAuth = false;
 
     environment.sessionVariables.NIXOS_OZONE_WL = 1;
 
     # noctalia's gtk template applies itself through gsettings.
     programs.dconf.enable = true;
+
+    # Secret Service provider (org.freedesktop.secrets): without it chromium falls back to
+    # its plaintext store and NetworkManager keeps wifi PSKs system-wide. The module wires
+    # pam_gnome_keyring into `login` itself, so the greeter password unlocks it unaided.
+    services.gnome.gnome-keyring.enable = true;
 
     # noctalia's battery and power-profile widgets talk to these daemons over D-Bus.
     services.upower.enable = true;

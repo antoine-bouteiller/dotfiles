@@ -7,80 +7,20 @@
   ...
 }: let
   cfg = config.local.home-manager.agents;
-
-  inherit (config.lib.file) mkOutOfStoreSymlink;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
-  agentsDir = "${osConfig.flakePath}/home-manager/applications/agents";
-
-  findSkills = relPath: let
-    fullPath = ./skills + (lib.optionalString (relPath != "") "/${relPath}");
-    entries = builtins.readDir fullPath;
-    dirs = lib.filterAttrs (_: type: type == "directory") entries;
-  in
-    lib.concatLists (
-      lib.mapAttrsToList (
-        name: _: let
-          subRelPath =
-            if relPath == ""
-            then name
-            else "${relPath}/${name}";
-          subEntries = builtins.readDir (./skills + "/${subRelPath}");
-          hasSkillMd = subEntries ? "SKILL.md";
-        in
-          if hasSkillMd
-          then [
-            {
-              name = lib.replaceStrings ["/"] [":"] subRelPath;
-              path = subRelPath;
-            }
-          ]
-          else findSkills subRelPath
-      )
-      dirs
-    );
-
-  skills = findSkills "";
-
-  # External skills pinned as flake inputs, symlinked into every agent's
-  # skills dir so they stay available even without claude-code.
-  externalSkills = {
-    agent-browser = "${inputs.agent-browser-skill}/skills/agent-browser";
+  skillFiles = import ./skills.nix {
+    inherit lib inputs;
+    inherit (config.lib.file) mkOutOfStoreSymlink;
+    agentsDir = "${osConfig.flakePath}/agents";
   };
-
-  # skill name -> home.file entries for a given target dir (".agents" / ".claude")
-  skillFiles = dir:
-    builtins.listToAttrs (
-      (map (skill: {
-          name = "${dir}/skills/${skill.name}";
-          value.source = mkOutOfStoreSymlink "${agentsDir}/skills/${skill.path}";
-        })
-        skills)
-      ++ lib.mapAttrsToList (name: path: {
-        name = "${dir}/skills/${name}";
-        value.source = path;
-      })
-      externalSkills
-    );
-
-  claudeTopLevelFiles = [
-    "CLAUDE.md"
-    "settings.json"
-    "hooks"
-    "agents"
-    ".lsp.json"
-  ];
-
-  piTopLevelFiles = [
-    "AGENTS.md"
-    "APPEND_SYSTEM.md"
-    "themes"
-    "node_modules"
-    "settings.json"
-    "models.json"
-  ];
 in {
-  imports = [./meridian.nix];
+  imports = [
+    ./claude-code.nix
+    ./pi.nix
+    ./meridian.nix
+  ];
+
   options.local.home-manager.agents = {
     enable = lib.mkEnableOption "agent CLIs";
 
@@ -107,59 +47,24 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    # Always: shared MCP servers, util packages, skills into ~/.agents
-    {
-      programs.mcp = {
-        enable = cfg.mcpServers != {};
-        servers = cfg.mcpServers;
-      };
+  # Shared across every agent CLI: MCP servers, util packages and the skill tree.
+  config = lib.mkIf cfg.enable {
+    programs.mcp = {
+      enable = cfg.mcpServers != {};
+      servers = cfg.mcpServers;
+    };
 
-      home.packages = with pkgs; [
-        # Utils
-        customPkgs.comment-checker
-        (rtk.overrideAttrs (_: {doCheck = false;}))
-        vtsls
-        jdt-language-server
-      ];
+    home.packages = with pkgs; [
+      # Utils
+      customPkgs.comment-checker
+      (rtk.overrideAttrs (_: {doCheck = false;}))
+      vtsls
+      jdt-language-server
+    ];
 
-      home.file = skillFiles ".agents";
-    }
-
-    # Claude-specific: native HM module owns the package (wrapped with
-    # --plugin-dir for MCP). Everything hand-edited (settings.json, hooks,
-    # CLAUDE.md, local skills) stays on mkOutOfStoreSymlink: edit-and-go,
-    # no rebuild.
-    (lib.mkIf cfg.claude-code.enable {
-      programs.claude-code = {
-        enable = true;
-        package = customPkgs.claude-code;
-        enableMcpIntegration = true;
-      };
-
-      home.file =
-        skillFiles ".claude"
-        // builtins.listToAttrs (map (name: {
-            name = ".claude/${name}";
-            value.source = mkOutOfStoreSymlink "${agentsDir}/claude-code/${name}";
-          })
-          claudeTopLevelFiles)
-        // {
-          ".config/ccstatusline/settings.json".source =
-            mkOutOfStoreSymlink "${agentsDir}/claude-code/ccstatusline.json";
-        };
-    })
-
-    # Pi: nix-packaged prebuilt binary (pkgs/pi); settings + vendored
-    # extensions stay on edit-and-go symlinks.
-    (lib.mkIf cfg.pi.enable {
-      home.packages = [customPkgs.pi];
-
-      home.file = builtins.listToAttrs (map (name: {
-          name = ".pi/agent/${name}";
-          value.source = mkOutOfStoreSymlink "${agentsDir}/pi/${name}";
-        })
-        piTopLevelFiles);
-    })
-  ]);
+    # Every agent reads ~/.agents/skills; claude wants its own copy under ~/.claude.
+    home.file =
+      skillFiles ".agents"
+      // lib.optionalAttrs cfg.claude-code.enable (skillFiles ".claude");
+  };
 }

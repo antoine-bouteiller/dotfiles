@@ -1,5 +1,5 @@
 {pkgs, ...}: {
-  imports = [../modules];
+  imports = [../modules/common];
   nixpkgs.config = {
     allowUnfree = true;
     allowBroken = true;

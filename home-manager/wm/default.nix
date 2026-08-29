@@ -1,6 +1,6 @@
 {...}: {
   imports = [
     ./aerospace.nix
-    ./hyprland.nix
+    ./hyprland
   ];
 }

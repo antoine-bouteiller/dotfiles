@@ -37,7 +37,7 @@
     dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
 
     programs.noctalia = {
-      # hyprland.nix starts the shell from hyprland.start, as noctalia's docs recommend.
+      # niri/default.nix starts the shell from spawn-at-startup, as noctalia's docs recommend.
       enable = true;
       settings = {
         shell.polkit_agent = true;
@@ -46,7 +46,7 @@
           source = "builtin";
           builtin = "Catppuccin";
           # Render the palette into gtk-3.0/gtk-4.0 noctalia.css and qt6ct's colors.
-          templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot" "hyprland" "btop"];
+          templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot" "niri" "btop"];
         };
       };
     };

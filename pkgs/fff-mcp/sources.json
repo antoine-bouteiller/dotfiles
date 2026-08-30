@@ -1,17 +1,17 @@
 {
-  "version": "0.10.5",
+  "version": "0.10.6",
   "platforms": {
     "aarch64-darwin": {
-      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.5/fff-mcp-aarch64-apple-darwin",
-      "hash": "sha256-Lxp1wkAeXff1oQgn+c6f6EAfKQ/5nD8/FCPH17FW2Ek="
+      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.6/fff-mcp-aarch64-apple-darwin",
+      "hash": "sha256-AuD1f1uI+mmElPMQ2ABaDDTVvaWh/NBpUgs1+OIxmJI="
     },
     "x86_64-linux": {
-      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.5/fff-mcp-x86_64-unknown-linux-gnu",
-      "hash": "sha256-BAjLrAYwOzvyBBGBCJ2LSXS1J4gyQr3Pi6WZtBwAOXM="
+      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.6/fff-mcp-x86_64-unknown-linux-gnu",
+      "hash": "sha256-O4h7Jy1YDzT5/mxgzRJr5UxKfPX4/7Ei2GyB8puYUk4="
     },
     "aarch64-linux": {
-      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.5/fff-mcp-aarch64-unknown-linux-gnu",
-      "hash": "sha256-SPWvDZ5u9FBsXMzT9FcdpPCsybnAlngyFn5J/mUfjuU="
+      "url": "https://github.com/dmtrKovalenko/fff/releases/download/v0.10.6/fff-mcp-aarch64-unknown-linux-gnu",
+      "hash": "sha256-xVeg/GRj0BO9GFDo0s+9gjtf9BpzhuCAOrVS71XGvzE="
     }
   }
 }

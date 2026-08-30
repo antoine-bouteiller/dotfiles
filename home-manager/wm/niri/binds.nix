@@ -52,22 +52,38 @@
     up = "Up";
     down = "Down";
   };
+  # Each direction answers to its arrow and to the shared vim-style letter.
+  keysFor = dir: [directionKeys.${dir} (key keymap.directionLetters.${dir})];
 
   sharedBinds =
     map (
       b: bind (chord (b.mods or []) (key b.key)) dispatchers.${b.action}
     )
     keymap.binds
-    ++ lib.concatMap (dir: [
-      (bind (chord [] directionKeys.${dir}) focusDirection.${dir})
-      (bind (chord ["Shift"] directionKeys.${dir}) moveDirection.${dir})
-    ])
+    ++ lib.concatMap (
+      dir:
+        lib.concatMap (k: [
+          (bind (chord [] k) focusDirection.${dir})
+          (bind (chord ["Shift"] k) moveDirection.${dir})
+        ]) (keysFor dir)
+    )
     keymap.directions
     ++ lib.concatLists (lib.imap1 (index: k: [
         (once (chord [] (key k)) "focus-workspace ${toString index}")
         (once (chord ["Shift"] (key k)) "move-window-to-workspace ${toString index}")
       ])
       keymap.workspaceKeys);
+
+  # Niri-only: paneru has no equivalent, so these stay out of the shared keymap.
+  monitorBinds =
+    lib.concatMap (
+      dir:
+        lib.concatMap (k: [
+          (bind (chord ["Alt"] k) "move-column-to-monitor-${dir}")
+          (bind (chord ["Alt" "Shift"] k) "focus-monitor-${dir}")
+        ]) (keysFor dir)
+    )
+    keymap.directions;
 in
   [
     (once "${mod}+${key "z"}" "close-window")
@@ -115,3 +131,4 @@ in
     (lockedRepeat "XF86AudioLowerVolume" (noctalia ["volume-down"]))
   ]
   ++ sharedBinds
+  ++ monitorBinds

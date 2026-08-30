@@ -69,6 +69,8 @@ in {
 
       environment {
           QT_QPA_PLATFORMTHEME "qt6ct"
+          // niri has no built-in Xwayland; xwayland-satellite below provides :12.
+          DISPLAY ":12"
       }
 
       // niri opens its keybind cheatsheet on every start otherwise.
@@ -77,6 +79,7 @@ in {
       }
 
       spawn-at-startup "noctalia"
+      spawn-at-startup "xwayland-satellite" ":12"
 
       window-rule {
           geometry-corner-radius 20

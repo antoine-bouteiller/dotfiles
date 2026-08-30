@@ -76,19 +76,17 @@ in {
     customPkgs.nearby-file-share
     customPkgs.helium
 
-    # Two Wayland fixes:
-    # - Qt6's client-side decoration plugin (libbradient) segfaults while building the
-    #   titlebar, killing Plex at startup. niri draws its own borders anyway.
-    # - Plex sets its Wayland app_id to tv.plex.Plex, which matches no desktop entry, so
-    #   the shell can't pair the window with an icon. The entry basename must equal app_id.
-    (symlinkJoin {
-      name = "plex-desktop-wayland";
-      paths = [plex-desktop];
-      nativeBuildInputs = [makeWrapper];
-      postBuild = ''
-        wrapProgram $out/bin/plex-desktop \
-          --set QT_WAYLAND_DISABLE_WINDOWDECORATION 1
+    xwayland-satellite
 
+    # Plex's only DisplayManager backend is X11DisplayManager, which XOpenDisplay()s
+    # $DISPLAY regardless of the Qt platform plugin; with no Xwayland it fails and
+    # playback segfaults. xwayland-satellite plus DISPLAY :12 from the niri config is
+    # enough, so no wrapper. Only the rename is left: the desktop entry basename must
+    # equal the app_id (tv.plex.Plex) or the shell can't pair the window with an icon.
+    (symlinkJoin {
+      name = "plex-desktop-app-id";
+      paths = [plex-desktop];
+      postBuild = ''
         mv $out/share/applications/plex-desktop.desktop \
           $out/share/applications/tv.plex.Plex.desktop
       '';

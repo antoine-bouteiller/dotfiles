@@ -75,6 +75,8 @@ in
     (once "${mod}+${key "b"}" (spawn [apps.browser]))
     (bind "${mod}+Shift+${key "equal"}" ''set-window-height "+100"'')
     (bind "${mod}+Shift+${key "minus"}" ''set-window-height "-100"'')
+    (once "${mod}+R" "switch-preset-column-width")
+    (once "${mod}+Shift+R" "switch-preset-column-width-back")
 
     (once "${mod}+F" (spawn [apps.explorer]))
     (once "${mod}+N" (spawn [apps.terminal "-e" "nvim"]))

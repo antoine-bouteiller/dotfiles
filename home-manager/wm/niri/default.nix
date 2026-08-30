@@ -58,6 +58,10 @@ in {
           }
       }
 
+      // Ask clients for server-side decorations: foot and friends drop their own
+      // titlebar and niri's border becomes the only frame.
+      prefer-no-csd
+
       cursor {
           xcursor-theme "${cursor.theme}"
           xcursor-size ${toString cursor.size}

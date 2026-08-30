@@ -31,6 +31,9 @@
     up = "uparrow";
     down = "downarrow";
   };
+  # Each direction answers to its arrow and to the shared vim-style letter;
+  # paneru takes a list of chords per command.
+  keysFor = dir: [directionKeys.${dir} keymap.directionLetters.${dir}];
 
   binds =
     map (
@@ -38,8 +41,8 @@
     )
     keymap.binds
     ++ lib.concatMap (dir: [
-      (lib.nameValuePair "window_focus_${directionCommands.${dir}}" (chord [] directionKeys.${dir}))
-      (lib.nameValuePair "window_swap_${directionCommands.${dir}}" (chord ["shift"] directionKeys.${dir}))
+      (lib.nameValuePair "window_focus_${directionCommands.${dir}}" (map (chord []) (keysFor dir)))
+      (lib.nameValuePair "window_swap_${directionCommands.${dir}}" (map (chord ["shift"]) (keysFor dir)))
     ])
     keymap.directions
     ++ lib.concatLists (lib.imap1 (index: key: [

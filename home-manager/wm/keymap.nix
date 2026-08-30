@@ -25,10 +25,23 @@
     z = "W";
     v = "V";
     b = "B";
+    j = "J";
+    k = "K";
+    l = "L";
+    semicolon = "M";
   };
 
   # Rendered bare to focus and with SHIFT to move the focused window.
   directions = ["left" "right" "up" "down"];
+
+  # Vim's HJKL slid one key right, so the home row reads J K L M under azerty.
+  # Bound alongside the arrows, not instead of them.
+  directionLetters = {
+    left = "j";
+    down = "k";
+    up = "l";
+    right = "semicolon";
+  };
 
   # Top-row digits, 0 being the tenth workspace.
   workspaceKeys = ["1" "2" "3" "4" "5" "6" "7" "8" "9" "0"];

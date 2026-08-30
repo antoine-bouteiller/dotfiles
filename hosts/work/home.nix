@@ -11,7 +11,7 @@ in {
   ];
 
   local.home-manager = {
-    aerospace.enable = true;
+    paneru.enable = true;
     zed.enable = true;
     terminal.enable = true;
     herdr.enable = true;

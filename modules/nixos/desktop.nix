@@ -10,17 +10,14 @@ in {
   imports = [inputs.noctalia-greeter.nixosModules.default];
 
   options.desktop = {
-    enable = lib.mkEnableOption "Hyprland Desktop";
+    enable = lib.mkEnableOption "Niri Desktop";
   };
 
   config = lib.mkIf cfg.enable {
-    programs.hyprland = {
-      enable = true;
-      withUWSM = true;
-    };
+    programs.niri.enable = true;
 
     # The greeter enables greetd and points it at its own wlroots compositor; the
-    # session list comes from the wayland-sessions entries hyprland's uwsm unit ships.
+    # session list comes from the wayland-sessions entry niri ships.
     programs.noctalia-greeter = {
       enable = true;
       settings = {
@@ -85,10 +82,11 @@ in {
 
     # No system76-scheduler here: its cfs-profiles write sysctls that EEVDF removed in
     # 6.6, and its foreground boost needs a GNOME/COSMIC client to report the focused
-    # window, so under Hyprland only the de-boost half lands -- launcher-started apps
+    # window, so under niri only the de-boost half lands -- launcher-started apps
     # match its system-services profile (nice 12, idle IO) and get starved.
 
-    # Hyprland only ships its own portal; GTK provides the file chooser.
+    # The niri module already pulls in the gnome portal; GTK is what its own portal
+    # config lists as the fallback for Access and Notification.
     xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
 
     fonts.packages = with pkgs; [

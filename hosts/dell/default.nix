@@ -92,7 +92,6 @@ in {
       '';
     })
     telegram-desktop
-    caffeine-ng
     bitwarden-desktop
   ];
 

@@ -41,6 +41,12 @@
       enable = true;
       settings = {
         shell.polkit_agent = true;
+        wallpaper = {
+          # The picker lists this directory; it's the repo's wallpapers as a store path.
+          directory = "${./wallpapers}";
+          # Rotate at random through them; interval and order keep noctalia's defaults.
+          automation.enabled = true;
+        };
         theme = {
           mode = "dark";
           source = "builtin";

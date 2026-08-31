@@ -21,7 +21,8 @@ in {
           style = "block";
           blink = "no";
         };
-        scrollback.multiplier = 0.95;
+        # foot's default is 3.0 (ghostty's is 1.0); same ~5% trim as below.
+        scrollback.multiplier = 2.85;
         key-bindings = {
           clipboard-copy = "Control+Shift+c Control+Insert XF86Copy";
           clipboard-paste = "Control+Shift+v Shift+Insert XF86Paste";

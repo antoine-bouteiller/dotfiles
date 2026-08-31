@@ -114,7 +114,7 @@ in {
     # Only referenced by binds.nix.
     home.packages = [
       pkgs.wl-color-picker
-      pkgs.xfce.thunar
+      pkgs.thunar
     ];
   };
 }

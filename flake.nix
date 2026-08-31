@@ -119,6 +119,18 @@
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           nearby-file-share = pkgs.callPackage ./pkgs/nearby-file-share.nix {};
           helium = pkgs.callPackage ./pkgs/helium.nix {};
+
+          # Deliberately not in `checks`: CI would build a full ISO on every push.
+          install-iso =
+            (nixpkgs.lib.nixosSystem {
+              inherit system;
+              specialArgs = {inherit globals inputs self;};
+              modules = [./images/install-iso.nix];
+            })
+            .config
+            .system
+            .build
+            .isoImage;
         }
         // nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           neostation = pkgs.callPackage ./pkgs/neostation {};

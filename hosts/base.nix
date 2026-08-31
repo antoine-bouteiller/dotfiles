@@ -15,6 +15,7 @@
         "nix-command"
         "flakes"
       ];
+      warn-dirty = false;
       # Keep build-time deps (sources, compilers) so GC doesn't force re-fetching them
       keep-outputs = true;
       keep-derivations = true;

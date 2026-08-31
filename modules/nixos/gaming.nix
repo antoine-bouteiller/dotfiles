@@ -1,75 +1,72 @@
 {
+  mkModule,
   pkgs,
-  config,
-  lib,
   inputs,
   ...
-}: let
-  cfg = config.gaming;
+} @ args: let
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
-in {
-  options.gaming = {
-    enable = lib.mkEnableOption "Steam, Heroic and gaming utilities";
-  };
+in
+  mkModule args "local.nixos.gaming" {
+    description = "Steam, Heroic and gaming utilities";
 
-  config = lib.mkIf cfg.enable {
-    # neostation's gamepad plugin only reads the legacy joystick API
-    # (/dev/input/js*), which needs the joydev handler.
-    boot.kernelModules = ["joydev"];
+    config = _: {
+      # neostation's gamepad plugin only reads the legacy joystick API
+      # (/dev/input/js*), which needs the joydev handler.
+      boot.kernelModules = ["joydev"];
 
-    # Kernel regression (hid-nintendo, 6.9+): joycon_input_create() calls
-    # input_register_device() before setting any capability bits, so joydev's
-    # match (EV_ABS+ABS_X) fails at hotplug and no js node is created.
-    # Reloading joydev re-scans the by-then populated device. Drop once
-    # upstream configures axes/buttons before registering.
-    # modprobe -r is a no-op while another js device is held open;
-    # replace with a kernel patch via boot.kernelPatches if that ever bites.
-    services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="input", KERNEL=="event*", ATTRS{id/vendor}=="057e", ATTRS{id/product}=="2009", ATTRS{name}!="*IMU*", RUN+="${pkgs.runtimeShell} -c '${pkgs.coreutils}/bin/sleep 1; ${pkgs.kmod}/bin/modprobe -r joydev; ${pkgs.kmod}/bin/modprobe joydev'"
-    '';
+      # Kernel regression (hid-nintendo, 6.9+): joycon_input_create() calls
+      # input_register_device() before setting any capability bits, so joydev's
+      # match (EV_ABS+ABS_X) fails at hotplug and no js node is created.
+      # Reloading joydev re-scans the by-then populated device. Drop once
+      # upstream configures axes/buttons before registering.
+      # modprobe -r is a no-op while another js device is held open;
+      # replace with a kernel patch via boot.kernelPatches if that ever bites.
+      services.udev.extraRules = ''
+        ACTION=="add", SUBSYSTEM=="input", KERNEL=="event*", ATTRS{id/vendor}=="057e", ATTRS{id/product}=="2009", ATTRS{name}!="*IMU*", RUN+="${pkgs.runtimeShell} -c '${pkgs.coreutils}/bin/sleep 1; ${pkgs.kmod}/bin/modprobe -r joydev; ${pkgs.kmod}/bin/modprobe joydev'"
+      '';
 
-    services.udev.packages = [pkgs.game-devices-udev-rules];
+      services.udev.packages = [pkgs.game-devices-udev-rules];
 
-    hardware.graphics = {
-      enable = true;
-      enable32Bit = true;
-    };
+      hardware.graphics = {
+        enable = true;
+        enable32Bit = true;
+      };
 
-    programs.steam = {
-      enable = true;
-      remotePlay.openFirewall = true;
-      dedicatedServer.openFirewall = true;
-      localNetworkGameTransfers.openFirewall = true;
-      gamescopeSession.enable = true;
-      protontricks.enable = true;
-      extraCompatPackages = [pkgs.proton-ge-bin];
-      # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's
-      # CEF bootstrap UI off-center and crops it. Force Steam's own 2x scaling.
-      package = pkgs.steam.override {
-        extraEnv = {
-          STEAM_FORCE_DESKTOPUI_SCALING = "2";
+      programs.steam = {
+        enable = true;
+        remotePlay.openFirewall = true;
+        dedicatedServer.openFirewall = true;
+        localNetworkGameTransfers.openFirewall = true;
+        gamescopeSession.enable = true;
+        protontricks.enable = true;
+        extraCompatPackages = [pkgs.proton-ge-bin];
+        # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's
+        # CEF bootstrap UI off-center and crops it. Force Steam's own 2x scaling.
+        package = pkgs.steam.override {
+          extraEnv = {
+            STEAM_FORCE_DESKTOPUI_SCALING = "2";
+          };
         };
       };
+
+      programs.gamescope = {
+        enable = true;
+        capSysNice = true;
+      };
+
+      programs.gamemode.enable = true;
+
+      environment.systemPackages = with pkgs; [
+        protonup-qt
+        heroic
+        mangohud
+        azahar
+        (retroarch.withCores (cores:
+          with cores; [
+            melondsds
+            mgba
+          ]))
+        customPkgs.neostation
+      ];
     };
-
-    programs.gamescope = {
-      enable = true;
-      capSysNice = true;
-    };
-
-    programs.gamemode.enable = true;
-
-    environment.systemPackages = with pkgs; [
-      protonup-qt
-      heroic
-      mangohud
-      azahar
-      (retroarch.withCores (cores:
-        with cores; [
-          melondsds
-          mgba
-        ]))
-      customPkgs.neostation
-    ];
-  };
-}
+  }

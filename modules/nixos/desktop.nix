@@ -1,19 +1,15 @@
 {
+  mkModule,
   pkgs,
-  config,
   lib,
   inputs,
   ...
-}: let
-  cfg = config.desktop;
-in {
+} @ args:
+mkModule args "local.nixos.desktop" {
+  description = "Niri Desktop";
   imports = [inputs.noctalia-greeter.nixosModules.default];
 
-  options.desktop = {
-    enable = lib.mkEnableOption "Niri Desktop";
-  };
-
-  config = lib.mkIf cfg.enable {
+  config = _: {
     programs.niri.enable = true;
 
     # The greeter enables greetd and points it at its own wlroots compositor; the

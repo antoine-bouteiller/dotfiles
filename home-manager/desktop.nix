@@ -8,7 +8,7 @@
 }: {
   imports = [inputs.noctalia.homeModules.default];
 
-  config = lib.mkIf (osConfig.desktop.enable or false) {
+  config = lib.mkIf (osConfig.local.nixos.desktop.enable or false) {
     gtk = {
       enable = true;
       gtk2.force = true;

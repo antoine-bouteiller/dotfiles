@@ -17,8 +17,8 @@ in {
 
   flakePath = "${config.users.users.${user}.home}/dotfiles";
 
-  desktop.enable = true;
-  gaming.enable = true;
+  local.nixos.desktop.enable = true;
+  local.nixos.gaming.enable = true;
   secureBoot.enable = true;
 
   security.rtkit.enable = true;

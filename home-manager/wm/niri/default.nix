@@ -13,7 +13,7 @@
 
   binds = import ./binds.nix {inherit lib;};
 in {
-  config = lib.mkIf (osConfig.desktop.enable or false) {
+  config = lib.mkIf (osConfig.local.nixos.desktop.enable or false) {
     home.pointerCursor = {
       enable = true;
       name = cursor.theme;

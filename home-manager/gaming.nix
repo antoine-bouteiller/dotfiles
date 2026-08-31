@@ -3,7 +3,7 @@
   lib,
   ...
 }: {
-  config = lib.mkIf (osConfig.gaming.enable or false) {
+  config = lib.mkIf (osConfig.local.nixos.gaming.enable or false) {
     home.activation.fixSteamIcons = lib.hm.dag.entryAfter ["writeBoundary"] ''
       for f in ~/.local/share/applications/*.desktop; do
         id=$(grep -Eo 'steam://rungameid/[0-9]+' "$f" | sed 's#.*/##') || true

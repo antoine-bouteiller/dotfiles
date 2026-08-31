@@ -11,6 +11,11 @@ in {
       port = config.services.adguardhome.port;
     };
 
+    # AdGuard owns port 53 on every address, including 127.0.0.53, so the resolved
+    # stub listener has to step aside. /etc/resolv.conf still points at
+    # 127.0.0.53, which now lands on AdGuard, so host lookups keep working.
+    services.resolved.settings.Resolve.DNSStubListener = "no";
+
     services.adguardhome = {
       enable = true;
       # Bind only the admin UI to loopback; DNS remains available on Tailscale.

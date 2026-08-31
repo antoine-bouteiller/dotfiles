@@ -1,14 +1,14 @@
 {
+  mkModule,
   config,
   pkgs,
   lib,
   ...
-}: let
-  cfg = config.local.home-manager.runenv;
-in {
-  options.local.home-manager.runenv = {
-    enable = lib.mkEnableOption "runenv (per-command sops secret injection)";
+} @ args:
+mkModule args "local.home-manager.runenv" {
+  description = "runenv (per-command sops secret injection)";
 
+  options = {
     secretsDir = lib.mkOption {
       type = lib.types.str;
       description = "Directory holding per-namespace sops-encrypted <ns>.yaml files.";
@@ -21,7 +21,7 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = {cfg}: {
     home.packages = [
       pkgs.sops
       pkgs.age

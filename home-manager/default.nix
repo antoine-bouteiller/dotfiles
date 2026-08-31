@@ -1,6 +1,6 @@
 {...}: {
   imports = [
-    ./desktop.nix
+    ./desktop
     ./gaming.nix
     ./shell
     ./applications

@@ -17,9 +17,12 @@ mkModule args "local.nixos.desktop" {
     programs.noctalia-greeter = {
       enable = true;
       settings = {
+        # "Synced" takes its palette from noctalia's Sync, which writes sync.toml
+        # next to this file from the running shell -- the greeter then matches the desktop.
         appearance = {
-          scheme = "Catppuccin";
+          scheme = "Synced";
           theme_mode = "dark";
+          hide_logo = true;
         };
         keyboard = {
           layout = "fr";

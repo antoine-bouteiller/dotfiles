@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
 
-echo "Applying darwin configuration for ${hostname}..."
-sudo WORK_EMAIL="${WORK_EMAIL:?Set WORK_EMAIL}" darwin-rebuild switch --impure --flake ".#${hostname}" "$@"
+echo "Applying darwin configuration..."
+nh darwin switch . --impure "$@"
 echo "Switch to new generation complete!"

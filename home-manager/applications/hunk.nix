@@ -1,14 +1,12 @@
 {
-  config,
+  mkModule,
   inputs,
-  lib,
   ...
-}: {
+} @ args:
+mkModule args "local.home-manager.hunk" {
+  description = "Hunk diff viewer";
   imports = [inputs.hunk.homeManagerModules.default];
-
-  options.local.home-manager.hunk.enable = lib.mkEnableOption "Hunk diff viewer";
-
-  config = lib.mkIf config.local.home-manager.hunk.enable {
+  config = _: {
     programs.hunk.enable = true;
   };
 }

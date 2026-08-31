@@ -36,6 +36,10 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 
 ## Patterns
 
-- Feature toggles use the `local.home-manager.<name>.enable` option pattern — follow it for new opt-in modules.
+- Feature toggles use the `local.home-manager.<name>.enable` option pattern. Write them with
+  `lib/module.nix`, passed to every system and home-manager module as the `mkModule` special arg:
+  `{mkModule, ...} @ args: mkModule args "local.home-manager.foo" {description = "…"; config = {cfg}: {…};}`.
+  It declares the `enable` toggle, binds `cfg`, and wraps the body in `mkIf cfg.enable`; extra options
+  go under `options`, module imports under `imports`.
 - Prefer nixpkgs packages over Homebrew casks when both exist.
 - Renovate owns GitHub Actions + pinned Docker digests; the weekly `flake-update.yml` workflow owns Nix inputs.

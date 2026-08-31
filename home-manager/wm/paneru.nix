@@ -1,10 +1,9 @@
 {
-  config,
+  mkModule,
   lib,
   inputs,
   ...
-}: let
-  cfg = config.local.home-manager.paneru;
+} @ args: let
   keymap = import ./keymap.nix;
 
   # Option sits where SUPER does on dell, two keys left of the spacebar. Cmd is
@@ -50,32 +49,30 @@
         (lib.nameValuePair "window_virtualmovenum_${toString index}" (chord ["shift"] key))
       ])
       keymap.workspaceKeys);
-in {
+in
   # The module is inert until enabled, and it asserts macOS itself: dell tiles
   # with niri and never sets the toggle.
-  imports = [inputs.paneru.homeModules.paneru];
+  mkModule args "local.home-manager.paneru" {
+    description = "the Paneru sliding window manager";
+    imports = [inputs.paneru.homeModules.paneru];
+    config = _: {
+      services.paneru = {
+        enable = true;
 
-  options.local.home-manager.paneru.enable =
-    lib.mkEnableOption "the Paneru sliding window manager";
+        settings = {
+          # paneru creates one virtual workspace per space; the shared keymap binds ten.
+          default_workspaces = builtins.length keymap.workspaceKeys;
 
-  config = lib.mkIf cfg.enable {
-    services.paneru = {
-      enable = true;
+          # niri's gaps 10, at the only place paneru has gaps: the screen edges.
+          padding = {
+            top = 10;
+            bottom = 10;
+            left = 10;
+            right = 10;
+          };
 
-      settings = {
-        # paneru creates one virtual workspace per space; the shared keymap binds ten.
-        default_workspaces = builtins.length keymap.workspaceKeys;
-
-        # niri's gaps 10, at the only place paneru has gaps: the screen edges.
-        padding = {
-          top = 10;
-          bottom = 10;
-          left = 10;
-          right = 10;
+          bindings = lib.listToAttrs binds;
         };
-
-        bindings = lib.listToAttrs binds;
       };
     };
-  };
-}
+  }

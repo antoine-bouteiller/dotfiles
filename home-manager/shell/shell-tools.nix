@@ -1,10 +1,9 @@
 {
-  config,
-  lib,
+  mkModule,
   pkgs,
   inputs,
   ...
-}: let
+} @ args: let
   zoxideInit = pkgs.runCommand "zoxide-init.zsh" {} ''
     ${pkgs.zoxide}/bin/zoxide init zsh --cmd cd > $out
   '';
@@ -17,50 +16,50 @@
   miseInit = pkgs.runCommand "mise-init.zsh" {} ''
     ${pkgs.mise}/bin/mise activate zsh > $out
   '';
-in {
-  options.local.home-manager.shell-tools.enable = lib.mkEnableOption "shell tools (zoxide, direnv, carapace, mise, treefmt)";
+in
+  mkModule args "local.home-manager.shell-tools" {
+    description = "shell tools (zoxide, direnv, carapace, mise, treefmt)";
+    config = _: {
+      # Same treefmt wrapper `nix fmt` uses (config baked in), so `treefmt` works anywhere.
+      home.packages = [inputs.self.formatter.${pkgs.stdenv.hostPlatform.system}];
 
-  config = lib.mkIf config.local.home-manager.shell-tools.enable {
-    # Same treefmt wrapper `nix fmt` uses (config baked in), so `treefmt` works anywhere.
-    home.packages = [inputs.self.formatter.${pkgs.stdenv.hostPlatform.system}];
+      programs = {
+        zoxide = {
+          enable = true;
+          enableZshIntegration = false;
+          options = [
+            "--cmd"
+            "cd"
+          ];
+        };
 
-    programs = {
-      zoxide = {
-        enable = true;
-        enableZshIntegration = false;
-        options = [
-          "--cmd"
-          "cd"
-        ];
+        carapace = {
+          enable = true;
+          enableZshIntegration = false;
+        };
+
+        direnv = {
+          enable = true;
+          enableZshIntegration = false;
+        };
+
+        mise = {
+          enable = true;
+          enableZshIntegration = false;
+        };
+
+        zsh.envExtra = ''
+          export CARAPACE_BRIDGES='zsh,bash'
+        '';
+
+        zsh.initContent = ''
+          if [[ -o interactive ]]; then
+            source ${zoxideInit}
+          fi
+          source ${direnvInit}
+          source ${carapaceInit}
+          source ${miseInit}
+        '';
       };
-
-      carapace = {
-        enable = true;
-        enableZshIntegration = false;
-      };
-
-      direnv = {
-        enable = true;
-        enableZshIntegration = false;
-      };
-
-      mise = {
-        enable = true;
-        enableZshIntegration = false;
-      };
-
-      zsh.envExtra = ''
-        export CARAPACE_BRIDGES='zsh,bash'
-      '';
-
-      zsh.initContent = ''
-        if [[ -o interactive ]]; then
-          source ${zoxideInit}
-        fi
-        source ${direnvInit}
-        source ${carapaceInit}
-        source ${miseInit}
-      '';
     };
-  };
-}
+  }

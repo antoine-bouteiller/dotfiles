@@ -10,7 +10,10 @@
     home-manager
     sops-nix
     ;
-  commonSpecialArgs = {inherit inputs globals;};
+  mkModule = import ./module.nix nixpkgs.lib;
+  commonSpecialArgs = {inherit inputs globals mkModule;};
+  # Home-manager modules don't inherit the system specialArgs.
+  hmSpecialArgs = {home-manager.extraSpecialArgs = {inherit mkModule;};};
 in {
   mkDarwinHost = {
     hostname,
@@ -24,6 +27,7 @@ in {
       modules =
         [
           home-manager.darwinModules.home-manager
+          hmSpecialArgs
           {
             networking.hostName = hostname;
           }
@@ -44,6 +48,7 @@ in {
       modules =
         [
           home-manager.nixosModules.home-manager
+          hmSpecialArgs
           sops-nix.nixosModules.sops
           {networking.hostName = nixpkgs.lib.mkDefault hostname;}
           (self + "/hosts/${name}")

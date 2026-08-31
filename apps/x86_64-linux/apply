@@ -2,6 +2,6 @@
 
 shift 2>/dev/null || true
 
-echo "Applying NixOS configuration for ${hostname}..."
-sudo SSH_AUTH_SOCK=$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake ".#${hostname}" "$@"
+echo "Applying NixOS configuration..."
+nh os switch . "$@"
 echo "Switch to new generation complete!"

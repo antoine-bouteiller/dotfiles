@@ -86,6 +86,8 @@
       run touch -a ${config.xdg.configHome}/foot/themes/noctalia
     '';
 
+    programs.zsh.shellAliases.sudo = "pkexec";
+
     home.packages = [
       pkgs.nixos-icons
     ];

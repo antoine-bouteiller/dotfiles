@@ -12,6 +12,24 @@ mkModule args "local.nixos.desktop" {
   config = _: {
     programs.niri.enable = true;
 
+    # A splash instead of the boot log. The kernel and udev have to be quietened
+    # separately, or their messages tear through the splash; the LUKS passphrase
+    # prompt is drawn by plymouth itself under the systemd initrd.
+    boot = {
+      # catppuccin-mocha is the wallpaper's own background (#1e1e2e); the logo is the
+      # snowflake cropped out of it, which the plymouth module wires in as the theme's
+      # header-image -- together they reproduce the wallpaper, throbber aside.
+      plymouth = {
+        enable = true;
+        theme = "catppuccin-mocha";
+        themePackages = [(pkgs.catppuccin-plymouth.override {variant = "mocha";})];
+        logo = ./plymouth-logo.png;
+      };
+      kernelParams = ["quiet" "splash" "udev.log_level=3"];
+      consoleLogLevel = 0;
+      initrd.verbose = false;
+    };
+
     # The greeter enables greetd and points it at its own wlroots compositor; the
     # session list comes from the wayland-sessions entry niri ships.
     programs.noctalia-greeter = {

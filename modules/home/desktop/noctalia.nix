@@ -2,8 +2,11 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
-}: {
+}: let
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
+in {
   config = lib.mkIf config.local.home-manager.desktop.enable {
     programs.noctalia = {
       # niri/default.nix starts the shell from spawn-at-startup, as noctalia's docs recommend.
@@ -13,7 +16,6 @@
         # Opt-in list; noctalia clones the default `community` source itself at startup.
         plugins.enabled = [
           "raycursive/niri-displays"
-          "blackbartblues/audio-switcher"
           "felipeartur/ai-usagebar"
         ];
         wallpaper = {
@@ -56,6 +58,8 @@
 
     home.packages = [
       pkgs.nixos-icons
+      # `felipeartur/ai-usagebar` runs the CLI by name off PATH.
+      customPkgs.ai-usagebar
     ];
   };
 }

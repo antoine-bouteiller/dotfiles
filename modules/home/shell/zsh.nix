@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   osConfig,
   ...
@@ -19,22 +20,25 @@
       expireDuplicatesFirst = true;
     };
 
-    shellAliases = {
-      "_" = "sudo";
-      l = "ls";
-      cat = "bat";
-      ll = "ls -lh";
-      la = "ls -lAh";
-      ldot = "ls -ld .*";
-      quit = "exit";
-      "cd.." = "cd ..";
-      tarls = "tar -tvf";
-      untar = "tar -xf";
-      bua = "bup && bcup --greedy && bcn";
-      please = "sudo";
-      zshrc = "\${EDITOR:-nvim} $HOME/.zshrc";
-      zdot = "cd ${osConfig.flakePath}";
-    };
+    shellAliases =
+      {
+        "_" = "sudo";
+        l = "ls";
+        cat = "bat";
+        ll = "ls -lh";
+        la = "ls -lAh";
+        ldot = "ls -ld .*";
+        quit = "exit";
+        "cd.." = "cd ..";
+        tarls = "tar -tvf";
+        untar = "tar -xf";
+        bua = "bup && bcup --greedy && bcn";
+        please = "sudo";
+        zshrc = "\${EDITOR:-nvim} $HOME/.zshrc";
+        zdot = "cd ${osConfig.flakePath}";
+      }
+      # Needs polkit, which only a graphical session has.
+      // lib.optionalAttrs config.local.home-manager.desktop.enable {sudo = "pkexec";};
 
     envExtra = ''
       export XDG_CONFIG_HOME=''${XDG_CONFIG_HOME:-$HOME/.config}

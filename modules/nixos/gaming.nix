@@ -37,7 +37,6 @@ in
         remotePlay.openFirewall = true;
         dedicatedServer.openFirewall = true;
         localNetworkGameTransfers.openFirewall = true;
-        gamescopeSession.enable = true;
         protontricks.enable = true;
         extraCompatPackages = [pkgs.proton-ge-bin];
         # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's

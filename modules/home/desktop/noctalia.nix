@@ -10,6 +10,12 @@
       enable = true;
       settings = {
         shell.polkit_agent = true;
+        # Opt-in list; noctalia clones the default `community` source itself at startup.
+        plugins.enabled = [
+          "raycursive/niri-displays"
+          "blackbartblues/audio-switcher"
+          "felipeartur/ai-usagebar"
+        ];
         wallpaper = {
           # The picker lists this directory; it's the repo's wallpapers as a store path.
           directory = "${./wallpapers}";

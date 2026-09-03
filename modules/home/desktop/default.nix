@@ -1,14 +1,15 @@
 {
+  mkModule,
   config,
-  osConfig,
   lib,
   pkgs,
   inputs,
   ...
-}: {
+} @ args:
+mkModule args "local.home-manager.desktop" {
+  description = "Niri desktop session: gtk/qt theming and the noctalia shell";
   imports = [inputs.noctalia.homeModules.default];
-
-  config = lib.mkIf (osConfig.local.nixos.desktop.enable or false) {
+  config = _: {
     gtk = {
       enable = true;
       gtk2.force = true;

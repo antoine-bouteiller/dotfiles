@@ -1,9 +1,11 @@
 {
-  osConfig,
+  mkModule,
   lib,
   ...
-}: {
-  config = lib.mkIf (osConfig.local.nixos.gaming.enable or false) {
+} @ args:
+mkModule args "local.home-manager.gaming" {
+  description = "Steam desktop-entry fixups for gaming hosts";
+  config = _: {
     home.activation.fixSteamIcons = lib.hm.dag.entryAfter ["writeBoundary"] ''
       for f in ~/.local/share/applications/*.desktop; do
         id=$(grep -Eo 'steam://rungameid/[0-9]+' "$f" | sed 's#.*/##') || true

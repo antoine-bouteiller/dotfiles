@@ -120,17 +120,7 @@
           nearby-file-share = pkgs.callPackage ./pkgs/nearby-file-share.nix {};
           helium = pkgs.callPackage ./pkgs/helium.nix {};
 
-          # Deliberately not in `checks`: CI would build a full ISO on every push.
-          install-iso =
-            (nixpkgs.lib.nixosSystem {
-              inherit system;
-              specialArgs = {inherit globals inputs self;};
-              modules = [./images/install-iso.nix];
-            })
-            .config
-            .system
-            .build
-            .isoImage;
+          install-iso = self.nixosConfigurations.iso.config.system.build.isoImage;
         }
         // nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           neostation = pkgs.callPackage ./pkgs/neostation {};
@@ -148,8 +138,10 @@
         darwinChecks = nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) (
           nixpkgs.lib.mapAttrs (_: cfg: cfg.system) self.darwinConfigurations
         );
+        # `iso` is deliberately excluded: CI would build a full ISO on every push.
         nixosChecks = nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) (
-          nixpkgs.lib.mapAttrs (_: cfg: cfg.config.system.build.toplevel) self.nixosConfigurations
+          nixpkgs.lib.mapAttrs (_: cfg: cfg.config.system.build.toplevel)
+          (builtins.removeAttrs self.nixosConfigurations ["iso"])
         );
       in
         darwinChecks // nixosChecks
@@ -162,6 +154,11 @@
     };
 
     nixosConfigurations = {
+      iso = mkNixosHost {
+        hostname = "iso";
+        system = "x86_64-linux";
+      };
+
       plex-server = mkNixosHost {
         hostname = "plex-server";
         system = "x86_64-linux";

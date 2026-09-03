@@ -2,7 +2,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  inherit (import ../lib/palette.nix {inherit lib;}) colors;
+in {
   imports = [
     ./base.nix
     ../modules/nixos
@@ -62,24 +64,24 @@
     # Catppuccin Mocha, from github:catppuccin/tty -- the option compiles down to the
     # vt.default_red/grn/blu kernel params that theme carries. It only reaches the Linux
     # VT, never the bootloader, which draws with the firmware's own fixed EFI palette.
-    colors = [
-      "1e1e2e"
-      "f38ba8"
-      "a6e3a1"
-      "f9e2af"
-      "89b4fa"
-      "f5c2e7"
-      "94e2d5"
-      "bac2de"
-      "585b70"
-      "f38ba8"
-      "a6e3a1"
-      "f9e2af"
-      "89b4fa"
-      "f5c2e7"
-      "94e2d5"
-      "a6adc8"
-    ];
+    colors = map (lib.removePrefix "#") (with colors; [
+      base
+      red
+      green
+      yellow
+      blue
+      pink
+      teal
+      subtext1
+      surface2
+      red
+      green
+      yellow
+      blue
+      pink
+      teal
+      subtext0
+    ]);
   };
 
   users.defaultUserShell = pkgs.zsh;

@@ -11,7 +11,7 @@
     sops-nix
     ;
   mkModule = import ./module.nix nixpkgs.lib;
-  commonSpecialArgs = {inherit inputs globals mkModule;};
+  commonSpecialArgs = {inherit inputs globals mkModule self;};
   # Home-manager modules don't inherit the system specialArgs.
   hmSpecialArgs = {home-manager.extraSpecialArgs = {inherit mkModule;};};
 in {

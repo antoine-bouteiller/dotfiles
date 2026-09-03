@@ -10,7 +10,7 @@ mkModule args "local.home-manager.zed" {
   description = "zed editor";
   config = _: let
     inherit (config.lib.file) mkOutOfStoreSymlink;
-    zedDit = "${osConfig.flakePath}/home-manager/applications/zed";
+    zedDit = "${osConfig.flakePath}/modules/home/applications/zed";
   in {
     home.packages = lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [pkgs.zed-editor];
 

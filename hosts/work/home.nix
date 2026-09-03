@@ -7,7 +7,7 @@
   inherit (config.home) homeDirectory;
 in {
   imports = [
-    ../../home-manager
+    ../../modules/home
   ];
 
   local.home-manager = {

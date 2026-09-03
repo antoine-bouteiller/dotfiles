@@ -7,7 +7,7 @@
   signingKeyPath = "${config.home.homeDirectory}/.ssh/id_ed25519.pub";
   allowedSignersFile = "${config.xdg.configHome}/git/allowed_signers";
 
-  palette = import ../../lib/palette.nix {inherit lib;};
+  palette = import ../../../lib/palette.nix {inherit lib;};
   inherit (palette) colors mix;
   # delta paints whole lines, so these stay mostly base; any more accent and the
   # syntax highlighting on top stops being readable. Emph is the changed words.

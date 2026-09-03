@@ -7,7 +7,7 @@
   mkOutOfStoreSymlink,
   agentsDir,
 }: let
-  root = ../../../agents/skills;
+  root = ../../../../agents/skills;
 
   findSkills = relPath: let
     fullPath = root + (lib.optionalString (relPath != "") "/${relPath}");

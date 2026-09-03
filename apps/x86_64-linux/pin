@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Snapshot the running generation as a boot entry that survives garbage collection:
+# the entry lives in the host directory (so every rebuild reinstalls it) and the
+# generation's closure gets a gcroot of its own.
+set -euo pipefail
+
+host=$(hostname)
+hostDir=$(nix eval --raw ".#nixosConfigurations.\"$host\".config.local.hostDir")
+dir=$(basename "$hostDir")
+
+[ -d "hosts/$dir" ] || {
+  echo "pin: no host directory hosts/$dir -- run this from the flake root" >&2
+  exit 1
+}
+
+gen=$(sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | awk '/\(current\)/{print $1}')
+[ -n "$gen" ] || {
+  echo "pin: no current system generation" >&2
+  exit 1
+}
+
+src=/boot/loader/entries/nixos-generation-$gen.conf
+sudo test -f "$src" || {
+  echo "pin: no boot entry for generation $gen at $src" >&2
+  exit 1
+}
+
+version=$(sudo awk '/^version/{$1= ""; print substr($0, 2)}' "$src")
+
+# `sort-key pinned` sorts the entry below the generation list instead of into it.
+# Pinning again overwrites the previous entry: one pin per host, by design.
+sudo sed -e '/^sort-key /d' -e "s|^title .*|title PINNED: $version|" "$src" |
+  { cat; echo "sort-key pinned"; } > "hosts/$dir/pinned-boot-entry.conf"
+
+# Without a root of its own the closure goes with the generation on the next clean.
+sudo nix-store --add-root "/nix/var/nix/gcroots/pinned-$host" -r /nix/var/nix/profiles/system
+
+# Flakes ignore untracked files, so the entry is invisible to the rebuild until staged.
+git add "hosts/$dir/pinned-boot-entry.conf"
+
+echo "Pinned generation $gen; rebuilding so the entry lands on the ESP..."
+nh os switch .
+echo "Pinned: $version"

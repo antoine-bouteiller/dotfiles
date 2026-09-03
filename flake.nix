@@ -95,6 +95,7 @@
       }
       // nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) {
         "bootstrap" = mkApp "bootstrap" system;
+        "noctalia-diff" = mkApp "noctalia-diff" system;
         "pin" = mkApp "pin" system;
         "secure-boot" = mkApp "secure-boot" system;
       };

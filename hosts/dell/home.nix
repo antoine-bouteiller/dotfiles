@@ -7,18 +7,7 @@
     ../../modules/home
   ];
 
-  local.home-manager = {
-    herdr.enable = true;
-    hunk.enable = true;
-    shell-tools.enable = true;
-    agents = {
-      enable = true;
-      claude-code.enable = true;
-      pi.enable = true;
-    };
-    zed.enable = true;
-    terminal.enable = true;
-  };
+  local.home-manager.workstation.enable = true;
 
   home = {
     enableNixpkgsReleaseCheck = false;

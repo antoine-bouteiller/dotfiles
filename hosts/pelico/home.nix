@@ -11,16 +11,9 @@ in {
   ];
 
   local.home-manager = {
+    workstation.enable = true;
     paneru.enable = true;
-    zed.enable = true;
-    terminal.enable = true;
-    herdr.enable = true;
-    hunk.enable = true;
-    shell-tools.enable = true;
     agents = {
-      enable = true;
-      claude-code.enable = true;
-      pi.enable = true;
       mcpServers = {
         linear = {
           type = "http";

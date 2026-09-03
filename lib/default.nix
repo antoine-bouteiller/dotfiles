@@ -20,7 +20,9 @@ in {
     system,
     name ? hostname,
     extraModules ? [],
-  }:
+  }: let
+    hostDir = self + "/hosts/${name}";
+  in
     darwin.lib.darwinSystem {
       inherit system;
       specialArgs = commonSpecialArgs;
@@ -28,10 +30,14 @@ in {
         [
           home-manager.darwinModules.home-manager
           hmSpecialArgs
+          # Declared here rather than in modules/common, because it is set here and
+          # the iso host imports no common modules at all.
+          (self + "/modules/common/host-dir.nix")
           {
             networking.hostName = hostname;
+            local.hostDir = hostDir;
           }
-          (self + "/hosts/${name}")
+          hostDir
         ]
         ++ extraModules;
     };
@@ -41,7 +47,9 @@ in {
     system,
     name ? hostname,
     extraModules ? [],
-  }:
+  }: let
+    hostDir = self + "/hosts/${name}";
+  in
     nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = commonSpecialArgs;
@@ -50,8 +58,12 @@ in {
           home-manager.nixosModules.home-manager
           hmSpecialArgs
           sops-nix.nixosModules.sops
-          {networking.hostName = nixpkgs.lib.mkDefault hostname;}
-          (self + "/hosts/${name}")
+          (self + "/modules/common/host-dir.nix")
+          {
+            networking.hostName = nixpkgs.lib.mkDefault hostname;
+            local.hostDir = hostDir;
+          }
+          hostDir
         ]
         ++ extraModules;
     };

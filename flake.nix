@@ -126,6 +126,7 @@
         }
         // nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           neostation = pkgs.callPackage ./pkgs/neostation {};
+          ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
         }
     );
 

@@ -22,7 +22,6 @@ in {
       };
     };
     secrets = {
-      plexTokenFile = config.sops.secrets."autoscan/plex_token".path;
       telegramTokenFile = config.sops.secrets."autoscan/telegram_token".path;
       telegramChatIdFile = config.sops.secrets."autoscan/telegram_chat_id".path;
       tmdbApiTokenFile = config.sops.secrets."autoscan/tmdb_api_token".path;
@@ -38,10 +37,6 @@ in {
     requires = ["pgbouncer.service"];
   };
 
-  sops.secrets."autoscan/plex_token" = {
-    key = "plex_token";
-    owner = constants.autoscan.user;
-  };
   sops.secrets."autoscan/telegram_token" = {
     key = "telegram/token";
     owner = constants.autoscan.user;

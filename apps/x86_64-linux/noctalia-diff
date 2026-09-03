@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# What the GUI changed: the config noctalia actually runs (its config dir plus the
+# state-dir overrides the Settings UI writes) against the one this flake declares.
+set -euo pipefail
+
+command -v noctalia >/dev/null || {
+  echo "noctalia-diff: noctalia is not on PATH -- run this on a host with the desktop enabled" >&2
+  exit 1
+}
+
+live=$(mktemp -t noctalia-live.XXXXXX.toml)
+trap 'command rm -f -- "$live"' EXIT
+
+noctalia config export > "$live" || {
+  echo "noctalia-diff: 'noctalia config export' failed" >&2
+  exit 1
+}
+
+# TOML has no canonical order, so compare the parsed trees instead of the text.
+as_json() { nix eval --impure --json --expr "builtins.fromTOML (builtins.readFile $1)" | jq -S .; }
+
+case ${1:-} in
+  --nix)
+    nix eval --impure --expr "builtins.fromTOML (builtins.readFile $live)" |
+      nix run nixpkgs#alejandra -- -q -
+    ;;
+  *)
+    diff -u --label declared <(as_json "$HOME/.config/noctalia/config.toml") \
+      --label running <(as_json "$live") || true
+    ;;
+esac

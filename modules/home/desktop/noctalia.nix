@@ -9,26 +9,58 @@
 in {
   config = lib.mkIf config.local.home-manager.desktop.enable {
     programs.noctalia = {
-      # niri/default.nix starts the shell from spawn-at-startup, as noctalia's docs recommend.
       enable = true;
       settings = {
-        shell.polkit_agent = true;
-        # Opt-in list; noctalia clones the default `community` source itself at startup.
+        shell = {
+          polkit_agent = true;
+          settings_show_advanced = false;
+          panel.open_near_click_control_center = true;
+        };
         plugins.enabled = [
           "raycursive/niri-displays"
           "felipeartur/ai-usagebar"
         ];
+        plugin_settings."felipeartur/ai-usagebar".panel_open_near_click = true;
+        bar.default = {
+          start = ["launcher" "niri-display" "workspaces"];
+          end = [
+            "media"
+            "ai-usagebar"
+            "tray"
+            "notifications"
+            "clipboard"
+            "network"
+            "bluetooth"
+            "volume"
+            "brightness"
+            "battery"
+            "session"
+          ];
+        };
+        widget = {
+          "ai-usagebar".type = "felipeartur/ai-usagebar:bar";
+          "niri-display".type = "raycursive/niri-displays:bar";
+          media.enabled = false;
+        };
+        control_center = {
+          sidebar = "none";
+          sidebar_section = "none";
+          shortcuts = map (type: {inherit type;}) [
+            "wifi"
+            "bluetooth"
+            "caffeine"
+            "nightlight"
+            "power_profile"
+          ];
+        };
         wallpaper = {
-          # The picker lists this directory; it's the repo's wallpapers as a store path.
           directory = "${./wallpapers}";
-          # Rotate at random through them; interval and order keep noctalia's defaults.
           automation.enabled = true;
         };
         theme = {
           mode = "dark";
           source = "builtin";
           builtin = "Catppuccin";
-          # Render the palette into gtk-3.0/gtk-4.0 noctalia.css and qt6ct's colors.
           templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot" "niri" "btop"];
         };
       };

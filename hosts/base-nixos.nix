@@ -11,21 +11,12 @@ in {
   ];
 
   networking = {
-    networkmanager = {
-      enable = true;
-      dns = "systemd-resolved";
-    };
+    networkmanager.enable = true;
     hosts = {
       "192.168.1.254" = ["mabbox.bytel.fr"];
     };
     nftables.enable = true;
     firewall.enable = true;
-  };
-
-  # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
-  services.resolved = {
-    enable = true;
-    settings.Resolve.FallbackDNS = ["1.1.1.1" "9.9.9.9"];
   };
 
   boot.loader = {

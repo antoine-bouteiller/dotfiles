@@ -19,13 +19,20 @@ in {
         plugins.enabled = [
           "raycursive/niri-displays"
           "felipeartur/ai-usagebar"
+          "nightwatch75/dns-switcher"
         ];
         plugin_settings."felipeartur/ai-usagebar".panel_open_near_click = true;
+        # The ISP resolver filters some domains; switch to a public one when needed.
+        plugin_settings."nightwatch75/dns-switcher" = {
+          providers = "cloudflare,quad9,google";
+          custom_1 = "Bytel = 192.168.1.254";
+        };
         bar.default = {
           start = ["launcher" "niri-display" "workspaces"];
           end = [
             "media"
             "ai-usagebar"
+            "dns-switcher"
             "tray"
             "notifications"
             "clipboard"
@@ -40,6 +47,7 @@ in {
         widget = {
           "ai-usagebar".type = "felipeartur/ai-usagebar:bar";
           "niri-display".type = "raycursive/niri-displays:bar";
+          "dns-switcher".type = "nightwatch75/dns-switcher:dns-switcher";
           media.enabled = false;
         };
         control_center = {
@@ -92,6 +100,8 @@ in {
       pkgs.nixos-icons
       # `felipeartur/ai-usagebar` runs the CLI by name off PATH.
       customPkgs.ai-usagebar
+      # `nightwatch75/dns-switcher`'s lookup tester shells out to `dig`.
+      pkgs.dnsutils
     ];
   };
 }

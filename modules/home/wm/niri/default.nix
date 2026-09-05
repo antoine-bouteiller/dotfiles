@@ -12,6 +12,7 @@
   };
 
   binds = import ./binds.nix {inherit lib;};
+  inherit (import ../keymap.nix) presetWidths;
 in
   mkModule args "local.home-manager.niri" {
     description = "niri scrolling window manager session";
@@ -47,6 +48,9 @@ in
 
         layout {
             gaps 10
+            preset-column-widths {
+        ${lib.concatMapStringsSep "\n" (w: "        proportion ${toString w}") presetWidths}
+            }
             // A single 2px frame: the focus ring would double up on the border,
             // and noctalia's template colors both, whichever is drawn.
             border {

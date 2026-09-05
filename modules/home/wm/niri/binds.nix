@@ -15,6 +15,10 @@
   keymap = import ../keymap.nix;
   key = name: keymap.azerty.${name};
   chord = mods: k: lib.concatStringsSep "+" ([mod] ++ mods ++ [k]);
+  # The shared layer carries Ctrl on both sides: on macOS every alt+<key> combo
+  # types a character under the Apple fr layout, so paneru needs a second
+  # modifier, and matching it here keeps one muscle memory across both hosts.
+  sharedChord = mods: chord (["Ctrl"] ++ mods);
 
   # niri binds repeat while held; only spawns and toggles opt out.
   mkBind = props: keys: action: let
@@ -62,21 +66,21 @@
           if b.once or false
           then once
           else bind
-        ) (chord (b.mods or []) (key b.key))
+        ) (sharedChord (b.mods or []) (key b.key))
         dispatchers.${b.action}
     )
     keymap.binds
     ++ lib.concatMap (
       dir:
         lib.concatMap (k: [
-          (bind (chord [] k) focusDirection.${dir})
-          (bind (chord ["Shift"] k) moveDirection.${dir})
+          (bind (sharedChord [] k) focusDirection.${dir})
+          (bind (sharedChord ["Shift"] k) moveDirection.${dir})
         ]) (keysFor dir)
     )
     keymap.directions
     ++ lib.concatLists (lib.imap1 (index: k: [
-        (once (chord [] (key k)) "focus-workspace ${toString index}")
-        (once (chord ["Shift"] (key k)) "move-window-to-workspace ${toString index}")
+        (once (sharedChord [] (key k)) "focus-workspace ${toString index}")
+        (once (sharedChord ["Shift"] (key k)) "move-window-to-workspace ${toString index}")
       ])
       keymap.workspaceKeys);
 
@@ -107,7 +111,7 @@ in
     (once "${mod}+S" (noctalia ["panel-toggle" "control-center"]))
     (once "${mod}+Escape" (noctalia ["panel-toggle" "session"]))
     (once "${mod}+I" (noctalia ["settings-open"]))
-    (once "Ctrl+${mod}+L" (noctalia ["session" "lock"]))
+    (once "${mod}+Shift+${key "l"}" (noctalia ["session" "lock"]))
     (once "${mod}+V" (noctalia ["panel-toggle" "clipboard"]))
     # The launcher's emoji provider is triggered by typing its prefix.
     (once "Ctrl+${mod}+E" (noctalia ["panel-open" "launcher" "/emo "]))

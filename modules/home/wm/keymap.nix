@@ -44,6 +44,9 @@
     right = "semicolon";
   };
 
+  # Column widths both sides cycle through, as fractions of the screen.
+  presetWidths = [0.33333 0.5 0.66667 1.0];
+
   # Top-row digits, 0 being the tenth workspace.
   workspaceKeys = ["1" "2" "3" "4" "5" "6" "7" "8" "9" "0"];
 

@@ -21,6 +21,15 @@ in {
   local.nixos.gaming.enable = true;
   secureBoot.enable = true;
 
+  # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
+  # The noctalia dns-switcher plugin flips the active profile's ipv4.dns to a public
+  # resolver when the ISP one filters a domain.
+  networking.networkmanager.dns = "systemd-resolved";
+  services.resolved = {
+    enable = true;
+    settings.Resolve.FallbackDNS = ["1.1.1.1" "9.9.9.9"];
+  };
+
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;

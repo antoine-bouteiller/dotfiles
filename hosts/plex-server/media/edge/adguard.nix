@@ -11,10 +11,15 @@ in {
       port = config.services.adguardhome.port;
     };
 
-    # AdGuard owns port 53 on every address, including 127.0.0.53, so the resolved
-    # stub listener has to step aside. /etc/resolv.conf still points at
-    # 127.0.0.53, which now lands on AdGuard, so host lookups keep working.
-    services.resolved.settings.Resolve.DNSStubListener = "no";
+    # AdGuard owns port 53 on every address, so resolved would have nowhere to
+    # listen: it stays off and /etc/resolv.conf is pinned to AdGuard instead.
+    # The host then resolves the local media domains through its own rewrites
+    # and everything else through Cloudflare DoH, never the ISP resolver.
+    services.resolved.enable = false;
+    networking = {
+      networkmanager.dns = "none";
+      nameservers = ["127.0.0.1"];
+    };
 
     services.adguardhome = {
       enable = true;
@@ -26,13 +31,10 @@ in {
         dns = {
           bind_hosts = ["0.0.0.0"];
           port = 53;
-          upstream_dns = [
-            "1.1.1.1"
-            "9.9.9.9"
-          ];
+          upstream_dns = ["https://dns.cloudflare.com/dns-query"];
           bootstrap_dns = [
             "1.1.1.1"
-            "9.9.9.9"
+            "1.0.0.1"
           ];
         };
       };

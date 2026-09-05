@@ -5,10 +5,14 @@
   ...
 } @ args: let
   keymap = import ./keymap.nix;
+  inherit (import ../../../lib/palette.nix {inherit lib;}) colors;
 
   # Option sits where SUPER does on dell, two keys left of the spacebar. Cmd is
-  # left to macOS, which already owns Cmd+W and friends.
-  mod = "alt";
+  # left to macOS, which already owns Cmd+W and friends. Ctrl joins it because
+  # the Apple fr layout puts a character on every alt+<key>: alt+shift+l is a
+  # pipe, alt+arrow is word-wise motion. Ctrl+alt types nothing at all, and niri
+  # carries the same Ctrl so the chords match on both hosts.
+  mod = "ctrl + alt";
   chord = mods: key: "${lib.concatStringsSep " + " ([mod] ++ mods)} - ${key}";
 
   commands = {
@@ -71,6 +75,7 @@ in
             # Unset means "instant": paneru substitutes an absurdly high speed.
             animation_speed = 12;
             virtual_workspace_animations = true;
+            preset_column_widths = keymap.presetWidths;
           };
 
           swipe = {
@@ -95,6 +100,13 @@ in
             bottom = 5;
             left = 5;
             right = 5;
+          };
+
+          # niri's 2px mauve border, which macOS has no equivalent of.
+          decorations.active.border = {
+            enabled = true;
+            color = colors.mauve;
+            width = 2.0;
           };
 
           windows.tiled = {

@@ -18,5 +18,11 @@
     "git:github.com/antoine-bouteiller/plan-viewer"
   ],
   "defaultThinkingLevel": "medium",
-  "tuiMode": "fullscreen"
+  "tuiMode": "fullscreen",
+  "subagents": {
+    "implementer": "azure-openai-responses/gpt-5.6-terra",
+    "librarian": "azure-openai-responses/gpt-5.6-luna",
+    "reviewer": "azure-openai-responses/gpt-6-astra",
+    "scout": "azure-openai-responses/gpt-5.6-luna"
+  }
 }

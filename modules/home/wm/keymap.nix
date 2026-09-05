@@ -29,6 +29,7 @@
     k = "K";
     l = "L";
     semicolon = "M";
+    r = "R";
   };
 
   # Rendered bare to focus and with SHIFT to move the focused window.
@@ -52,13 +53,19 @@
       key = "v";
       mods = ["Shift"];
     }
+    # Cycling presets is the only width command paneru has; niri's pixel
+    # resize stays on its own side. `once` because holding the key would
+    # otherwise run through the whole preset list.
     {
-      action = "growWidth";
-      key = "equal";
+      action = "cycleWidth";
+      key = "r";
+      once = true;
     }
     {
-      action = "shrinkWidth";
-      key = "minus";
+      action = "cycleWidthBack";
+      key = "r";
+      mods = ["Shift"];
+      once = true;
     }
   ];
 }

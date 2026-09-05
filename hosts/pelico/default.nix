@@ -110,6 +110,10 @@ in {
       trackpad = {
         Clicking = true;
         TrackpadThreeFingerDrag = false;
+
+        # Sideways three-finger swipes belong to paneru, which scrolls the
+        # window strip with them; vertical ones stay with Mission Control.
+        TrackpadThreeFingerHorizSwipeGesture = 0;
       };
     };
   };

@@ -32,6 +32,25 @@
     r = "R";
   };
 
+  # paneru resolves a key name through the active macOS layout before falling
+  # back to its positional table, so any name that is a character the layout
+  # emits elsewhere lands on the wrong key: "1" matches the numeric keypad,
+  # since Apple French puts "&" on the top row. Spell those positions as the
+  # character they emit; letters and word-names like "semicolon" resolve
+  # positionally on their own.
+  appleFrench = {
+    "1" = "&";
+    "2" = "é";
+    "3" = "\"";
+    "4" = "'";
+    "5" = "(";
+    "6" = "§";
+    "7" = "è";
+    "8" = "!";
+    "9" = "ç";
+    "0" = "à";
+  };
+
   # Rendered bare to focus and with SHIFT to move the focused window.
   directions = ["left" "right" "up" "down"];
 

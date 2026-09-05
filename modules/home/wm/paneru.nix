@@ -13,7 +13,7 @@
   # pipe, alt+arrow is word-wise motion. Ctrl+alt types nothing at all, and niri
   # carries the same Ctrl so the chords match on both hosts.
   mod = "ctrl + alt";
-  chord = mods: key: "${lib.concatStringsSep " + " ([mod] ++ mods)} - ${key}";
+  chord = mods: key: "${lib.concatStringsSep " + " ([mod] ++ mods)} - ${keymap.appleFrench.${key} or key}";
 
   commands = {
     float = "window_manage";
@@ -74,7 +74,8 @@ in
             focus_follows_mouse = false;
             # Unset means "instant": paneru substitutes an absurdly high speed.
             animation_speed = 12;
-            virtual_workspace_animations = true;
+            # Row swaps snap: the slide-in only delays the window you asked for.
+            virtual_workspace_animations = false;
             preset_column_widths = keymap.presetWidths;
           };
 
@@ -83,13 +84,14 @@ in
             # windows end up half off the left edge; snap to the edge instead.
             continuous = false;
 
-            # Three fingers sideways scroll the strip, as in niri. Vertical is
-            # left to macOS Mission Control: paneru only needs it for virtual
-            # workspaces, which native Spaces already cover.
+            # Three fingers sideways scroll the strip, as in niri; vertical
+            # switches virtual workspace rows, which the number chords also
+            # reach. macOS Mission Control still sees the vertical swipe, so
+            # unbind it in System Settings if the two fight.
             gesture = {
               fingers_count = 3;
               direction = "Natural";
-              vertical = false;
+              vertical = true;
             };
           };
 

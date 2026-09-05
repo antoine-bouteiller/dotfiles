@@ -31,8 +31,8 @@
 
   dispatchers = {
     float = "toggle-window-floating";
-    growWidth = ''set-window-width "+100"'';
-    shrinkWidth = ''set-window-width "-100"'';
+    cycleWidth = "switch-preset-column-width";
+    cycleWidthBack = "switch-preset-column-width-back";
   };
   focusDirection = {
     left = "focus-column-left";
@@ -57,7 +57,13 @@
 
   sharedBinds =
     map (
-      b: bind (chord (b.mods or []) (key b.key)) dispatchers.${b.action}
+      b:
+        (
+          if b.once or false
+          then once
+          else bind
+        ) (chord (b.mods or []) (key b.key))
+        dispatchers.${b.action}
     )
     keymap.binds
     ++ lib.concatMap (
@@ -89,10 +95,10 @@ in
     (once "${mod}+${key "z"}" "close-window")
     (once "${mod}+${key "return"}" (spawn [apps.terminal]))
     (once "${mod}+${key "b"}" (spawn [apps.browser]))
+    (bind "${mod}+${key "equal"}" ''set-window-width "+100"'')
+    (bind "${mod}+${key "minus"}" ''set-window-width "-100"'')
     (bind "${mod}+Shift+${key "equal"}" ''set-window-height "+100"'')
     (bind "${mod}+Shift+${key "minus"}" ''set-window-height "-100"'')
-    (once "${mod}+R" "switch-preset-column-width")
-    (once "${mod}+Shift+R" "switch-preset-column-width-back")
 
     (once "${mod}+F" (spawn [apps.explorer]))
     (once "${mod}+N" (spawn [apps.terminal "-e" "nvim"]))

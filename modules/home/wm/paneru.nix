@@ -13,9 +13,9 @@
 
   commands = {
     float = "window_manage";
-    # paneru resizes by cycling preset column widths rather than by pixels.
-    growWidth = "window_grow";
-    shrinkWidth = "window_shrink";
+    # Aliases of window_resize, which cycles the preset column widths.
+    cycleWidth = "window_grow";
+    cycleWidthBack = "window_shrink";
   };
   # niri's columns and rows are paneru's compass directions.
   directionCommands = {
@@ -63,12 +63,44 @@ in
           # paneru creates one virtual workspace per space; the shared keymap binds ten.
           default_workspaces = builtins.length keymap.workspaceKeys;
 
-          # niri's gaps 10, at the only place paneru has gaps: the screen edges.
+          options = {
+            # paneru warps focus to whatever the pointer sits on, so a keyboard
+            # focus move that slides another window under the cursor is undone
+            # immediately. niri doesn't do this either.
+            focus_follows_mouse = false;
+            # Unset means "instant": paneru substitutes an absurdly high speed.
+            animation_speed = 12;
+            virtual_workspace_animations = true;
+          };
+
+          swipe = {
+            # Continuous lets the strip scroll past its own ends, which is how
+            # windows end up half off the left edge; snap to the edge instead.
+            continuous = false;
+
+            # Three fingers sideways scroll the strip, as in niri. Vertical is
+            # left to macOS Mission Control: paneru only needs it for virtual
+            # workspaces, which native Spaces already cover.
+            gesture = {
+              fingers_count = 3;
+              direction = "Natural";
+              vertical = false;
+            };
+          };
+
+          # niri's gaps 10: paneru splits them between the screen edges and a
+          # per-window margin, which is the only inter-window gap it has.
           padding = {
-            top = 10;
-            bottom = 10;
-            left = 10;
-            right = 10;
+            top = 5;
+            bottom = 5;
+            left = 5;
+            right = 5;
+          };
+
+          windows.tiled = {
+            title = ".*";
+            horizontal_padding = 5;
+            vertical_padding = 5;
           };
 
           bindings = lib.listToAttrs binds;

@@ -1,4 +1,4 @@
 #!/bin/sh -e
 
 # Clean up old generations (keep the 2 latest)
-sudo nh clean all --keep 2 --keep-since 7d
+sudo nh clean all --keep 2

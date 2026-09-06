@@ -13,8 +13,13 @@ def root_dir []: nothing -> string {
   }
 }
 
+# Unauthenticated api.github.com allows 60 req/h per IP, which CI runners share.
+def gh_headers []: nothing -> list<string> {
+  if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
+}
+
 def fetch_latest_version []: nothing -> string {
-  http get $"https://api.github.com/repos/($github_repo)/releases/latest"
+  http get -H (gh_headers) $"https://api.github.com/repos/($github_repo)/releases/latest"
   | get tag_name
   | str replace -r '^v' ''
 }

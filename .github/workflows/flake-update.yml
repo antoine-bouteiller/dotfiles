@@ -24,6 +24,7 @@ jobs:
       - name: Update flake.lock and packages
         env:
           NIX_PATH: nixpkgs=flake:nixpkgs
+          GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
         run: nix run --impure .#update
 
       - name: Format

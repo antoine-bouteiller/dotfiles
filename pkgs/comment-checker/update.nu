@@ -17,7 +17,8 @@ def root_dir []: nothing -> string {
 # comment-checker pins in its Cargo.lock — read it straight from the tag so the
 # parser bundle can never drift away from the crate that consumes it.
 def tslp_version [pkg_version: string]: nothing -> string {
-  http get $"https://raw.githubusercontent.com/($owner_repo)/v($pkg_version)/Cargo.lock"
+  let headers = if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
+  http get -H $headers $"https://raw.githubusercontent.com/($owner_repo)/v($pkg_version)/Cargo.lock"
   | split row "[[package]]"
   | where {|block| $block =~ '(?m)^name = "tree-sitter-language-pack"$'}
   | first

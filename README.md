@@ -1,4 +1,17 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/NixOS/nixos-artwork/master/logo/nix-snowflake-colours.svg" width="140" alt="NixOS logo" />
+
 # dotfiles
+
+<p align="center">
+  <a href="https://github.com/antoine-bouteiller/dotfiles/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/antoine-bouteiller/dotfiles/build.yml?branch=main&style=for-the-badge&logo=github&label=build" alt="Build" /></a>
+  <a href="https://github.com/antoine-bouteiller/dotfiles/actions/workflows/flake-update.yml"><img src="https://img.shields.io/github/actions/workflow/status/antoine-bouteiller/dotfiles/flake-update.yml?branch=main&style=for-the-badge&logo=github&label=flake%20update" alt="Flake update" /></a>
+  <a href="https://github.com/antoine-bouteiller/dotfiles/commits/main"><img src="https://img.shields.io/github/last-commit/antoine-bouteiller/dotfiles?style=for-the-badge&logo=git&logoColor=white" alt="Last commit" /></a>
+  <a href="flake.nix"><img src="https://img.shields.io/badge/dynamic/json?style=for-the-badge&logo=nixos&logoColor=white&label=nixpkgs&color=5277C3&url=https%3A%2F%2Fraw.githubusercontent.com%2Fantoine-bouteiller%2Fdotfiles%2Fmain%2Fflake.lock&query=%24.nodes.nixpkgs.original.ref" alt="nixpkgs channel" /></a>
+</p>
+
+</div>
 
 Nix flake configuring every machine I use, declaratively: system config via
 [nix-darwin](https://github.com/LnL7/nix-darwin) (macOS) and NixOS (Linux), user config via

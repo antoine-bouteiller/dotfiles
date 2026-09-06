@@ -12,7 +12,6 @@ in {
 
   local.home-manager = {
     workstation.enable = true;
-    paneru.enable = true;
     agents = {
       mcpServers = {
         linear = {

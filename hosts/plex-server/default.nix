@@ -76,10 +76,10 @@ in {
   users.groups.media = {};
 
   # Journald
-  services.journald.extraConfig = ''
-    MaxRetentionSec=1week
-    MaxFileSec=1day
-  '';
+  services.journald.settings.Journal = {
+    MaxRetentionSec = "1week";
+    MaxFileSec = "1day";
+  };
 
   # Early OOM killer — prefers killing Nix rebuild processes over media services
   services.earlyoom = {

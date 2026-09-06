@@ -19,10 +19,6 @@ in {
       key = "bazarr_api_key";
       owner = "homepage-dashboard";
     };
-    "homepage/plex_token" = {
-      key = "plex_token";
-      owner = "homepage-dashboard";
-    };
     "homepage/seerr_api_key" = {
       key = "seerr_api_key";
       owner = "homepage-dashboard";
@@ -109,11 +105,6 @@ in {
             Plex = {
               icon = "plex.svg";
               href = "https://app.plex.tv";
-              widget = {
-                type = "plex";
-                url = "http://localhost:${toString constants.plex.port}";
-                key = "{{HOMEPAGE_FILE_PLEX_TOKEN}}";
-              };
             };
           }
           {
@@ -265,7 +256,6 @@ in {
   };
 
   systemd.services.homepage-dashboard.environment = {
-    HOMEPAGE_FILE_PLEX_TOKEN = config.sops.secrets."homepage/plex_token".path;
     HOMEPAGE_FILE_SONARR_API_KEY = config.sops.secrets."homepage/sonarr_api_key".path;
     HOMEPAGE_FILE_RADARR_API_KEY = config.sops.secrets."homepage/radarr_api_key".path;
     HOMEPAGE_FILE_PROWLARR_API_KEY = config.sops.secrets."homepage/prowlarr_api_key".path;

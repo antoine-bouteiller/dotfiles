@@ -29,7 +29,7 @@ in {
 
     # CLI
     agent-browser
-    customPkgs.sonarqube-cli
+    sonarqube-cli
     gh
     glab
     yamllint

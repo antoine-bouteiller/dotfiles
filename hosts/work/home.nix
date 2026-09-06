@@ -41,7 +41,8 @@ in {
     };
     runenv = {
       enable = true;
-      secretsDir = "${homeDirectory}/.dotfiles/hosts/work/secrets";
+      secretsDir = "${homeDirectory}/.dotfiles/secrets";
+      defaultNamespace = "work_env";
     };
   };
 

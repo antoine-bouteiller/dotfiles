@@ -14,6 +14,11 @@ mkModule args "local.home-manager.runenv" {
       description = "Directory holding per-namespace sops-encrypted <ns>.yaml files.";
     };
 
+    defaultNamespace = lib.mkOption {
+      type = lib.types.str;
+      description = "Namespace used when the first argument is not a namespace.";
+    };
+
     ageKeyFile = lib.mkOption {
       type = lib.types.str;
       default = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
@@ -33,8 +38,8 @@ mkModule args "local.home-manager.runenv" {
     programs.zsh.initContent = lib.mkAfter ''
       runenv() {
         emulate -L zsh
-        local ns="env"
-        # first arg is the namespace only if secrets/<arg>.yaml exists, else default to env.yaml
+        local ns=${lib.escapeShellArg cfg.defaultNamespace}
+        # first arg is the namespace only if secrets/<arg>.yaml exists, else default
         if [[ -f ${lib.escapeShellArg cfg.secretsDir}/"$1".yaml ]]; then ns="$1"; shift; fi
         # ''${(@q)@} quotes each arg so spaces survive sops's single command string
         sops exec-env ${lib.escapeShellArg cfg.secretsDir}/"$ns".yaml "''${(j: :)''${(@q)@}}"

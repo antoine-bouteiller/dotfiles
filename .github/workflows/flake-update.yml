@@ -45,4 +45,4 @@ jobs:
             gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
               --title "chore(deps): auto-update flake.lock and packages" \
               --body "Automated weekly update of flake inputs and custom packages."
-          gh pr merge "$branch" --squash --auto --delete-branch
+          gh pr merge "$branch" --rebase --auto --delete-branch

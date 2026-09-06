@@ -27,8 +27,6 @@ in {
       tmdbApiTokenFile = config.sops.secrets."autoscan/tmdb_api_token".path;
       sonarrApiKeyFile = config.sops.secrets."autoscan/sonarr_api_key".path;
       radarrApiKeyFile = config.sops.secrets."autoscan/radarr_api_key".path;
-      traktClientIdFile = config.sops.secrets."autoscan/trakt_client_id".path;
-      traktClientSecretFile = config.sops.secrets."autoscan/trakt_client_secret".path;
     };
   };
 
@@ -55,14 +53,6 @@ in {
   };
   sops.secrets."autoscan/radarr_api_key" = {
     key = "radarr_api_key";
-    owner = constants.autoscan.user;
-  };
-  sops.secrets."autoscan/trakt_client_id" = {
-    key = "trakt/client_id";
-    owner = constants.autoscan.user;
-  };
-  sops.secrets."autoscan/trakt_client_secret" = {
-    key = "trakt/client_secret";
     owner = constants.autoscan.user;
   };
 }

@@ -4,12 +4,8 @@
   "defaultProvider": "anthropic",
   "defaultModel": "claude-fable-5-1",
   "enabledModels": [
-    "azure-openai-responses/gpt-5.6-luna",
     "azure-openai-responses/gpt-6-astra",
-    "azure-openai-responses/gpt-5.6-terra",
-    "anthropic/claude-opus-5",
     "anthropic/claude-sonnet-5",
-    "anthropic/claude-haiku-4-5",
     "anthropic/claude-fable-5-1"
   ],
   "packages": [

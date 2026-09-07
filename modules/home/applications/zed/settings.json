@@ -28,7 +28,7 @@
       "initialization_options": {
         "settings": {
           "configPath": null,
-          "run": "onType",
+          "run": "onSave",
           "disableNestedConfig": false,
           "fixKind": "safe_fix",
           "unusedDisableDirectives": "deny"
@@ -44,17 +44,7 @@
       }
     }
   },
-  "file_scan_exclusions": [
-    "**/.git",
-    "**/.svn",
-    "**/.hg",
-    "**/CVS",
-    "**/.DS_Store",
-    "**/.worktree",
-    "**/Thumbs.db",
-    "**/.classpath",
-    "**/.settings"
-  ],
+  "file_scan_exclusions": ["**/node_modules", "**/.direnv", "**/.worktree", "..."],
   "languages": {
     "Python": {
       "language_servers": ["!basedpyright", "ruff", "ty", "!pyrefly", "!pyright", "!pylsp", "..."]

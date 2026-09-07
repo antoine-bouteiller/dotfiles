@@ -13,10 +13,12 @@ in {
   local.home-manager = {
     workstation.enable = true;
     agents = {
+      pi.extraSecretFiles = ["${homeDirectory}/.dotfiles/secrets/work_env.yaml"];
       mcpServers = {
         linear = {
           type = "http";
           url = "https://mcp.linear.app/mcp";
+          headers.Authorization = "Bearer \${LINEAR_TOKEN}";
         };
         slack = {
           type = "http";

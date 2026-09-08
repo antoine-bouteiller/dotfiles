@@ -7,7 +7,7 @@
 {
   disko.devices = {
     disk.main = {
-      device = "/dev/nvme0n1"; # CHECK: the disk holding Windows and the freed space
+      device = "/dev/nvme0n1"; # Windows: p1 MSR 128M, p2 EFI 100M, p3 C: 834.5G, p4 recovery 815M
       type = "disk";
       content = {
         type = "gpt";
@@ -18,7 +18,7 @@
           # Sizes are explicit (not 100%) because Windows recovery usually sits at the
           # end of the disk and "-0" would overlap it.
           ESP = {
-            _index = 5; # CHECK
+            _index = 5;
             size = "2G";
             type = "EF00";
             content = {
@@ -32,8 +32,8 @@
             };
           };
           luks = {
-            _index = 6; # CHECK
-            size = "500G"; # CHECK: freed space minus 2G
+            _index = 6;
+            size = "93G"; # ~96G freed minus the 2G ESP and lsblk rounding
             content = {
               type = "luks";
               name = "cryptroot";

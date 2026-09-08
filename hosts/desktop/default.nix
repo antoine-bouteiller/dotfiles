@@ -29,6 +29,10 @@ in {
   local.nixos.gaming.enable = true;
   secureBoot.enable = true;
 
+  # RTX 2080 SUPER (Turing): supported by the open kernel module.
+  services.xserver.videoDrivers = ["nvidia"];
+  hardware.nvidia.open = true;
+
   # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
   # The noctalia dns-switcher plugin flips the active profile's ipv4.dns to a public
   # resolver when the ISP one filters a domain.

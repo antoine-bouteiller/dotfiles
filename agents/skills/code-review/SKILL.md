@@ -1,213 +1,141 @@
 ---
 name: code-review
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(glab:*)
-description: Review a merge request for security, performance, architecture, style, and improvements
+description: Review a merge/pull request or local changes for correctness, security, and regressions.
 ---
 
-# Merge Request Review
+# Code Review
 
-## Context
+Find consequential defects introduced or exposed by the change. Discover broadly, then report only evidence-backed findings. Correctness and data safety take priority over design preferences and polish.
 
-- Target branch: !`git rev-parse --abbrev-ref HEAD`
-- MR diff stats: !`git diff --stat origin/main...HEAD 2>/dev/null || git diff --stat main...HEAD 2>/dev/null || echo "no diff available - provide branch or use gh/glab"`
-- Changed files: !`git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name-only main...HEAD 2>/dev/null || echo "no diff available"`
-- Recent commits on branch: !`git log --oneline origin/main...HEAD 2>/dev/null || git log --oneline main...HEAD 2>/dev/null || echo "no commits diff available"`
+## Review process
 
-## Your Task
+### 1. Establish scope
 
-Perform a thorough code review of the merge request changes. If the context above shows "no diff available", ask the user which branch or MR to review, or use `gh pr diff` / `glab mr diff` to get the changes.
+- Resolve the requested MR/PR, branch, commit range, or local changes. For an MR/PR, use its actual target branch and head from `gh` / `glab`; for a branch, compare from its merge base with the intended target. Ask if the target is ambiguous rather than assuming `main`.
+- For local changes, account for staged, unstaged, and relevant untracked files. Record the exact refs or working-tree scope being reviewed. Keep the checkout and user files intact; reviewing does not authorize fixes or publishing comments.
+- Read the request, linked requirements when available, commits, project instructions, and stack/tooling conventions. Separate intended behavior from what the implementation currently does.
+- Get the complete diff and changed-file list, including deletions, renames, tests, config, migrations, and dependency changes. Keep a working coverage list: changed file/behavior, affected callers, applicable checks, evidence, unresolved questions.
 
-**Review process:**
+Done when the review range and intended behavior are explicit and every changed file is accounted for. Missing requirements or inaccessible context remain named gaps, not assumed facts.
 
-1. **Gather the full diff** — read every changed file in its entirety (not just the diff hunks) so you understand the surrounding context.
-2. **Detect the stack** — identify languages, frameworks, and the project's existing conventions (look at neighbouring files, lint configs, CLAUDE.md, contributing docs). Judge the diff against _this project's_ patterns, not a generic ideal.
-3. **For each changed file**, apply the five review categories below **in priority order**. Backend, frontend, infra, and config files all get reviewed — use the subsections that apply to each file's stack.
-4. **Draft the structured review report** (format described at the end).
-5. **Subtractive pass** — spawn a `reviewer` subagent with the diff, the changed-file list, and your draft report, and instruct it to delete findings only: those unsupported by the diff, out of the branch's scope, speculative, or whose fix costs more than the problem. It must not add findings. Drop everything it cuts and re-derive the verdict.
+### 2. Trace behavior beyond the diff
 
-Completion criterion: every changed file has been read in full, checked against every applicable category, and every surviving finding passes the scope rules below.
+- Read each changed source/config file and relevant tests, not just hunks. For large generated files, inspect the source/generator and consequential output changes; record what was not inspected.
+- For each changed behavior, trace entry point → validation/authorization → transformation/state change → persistence or external effect → response/consumer. Read the relevant implementations rather than inferring behavior from names.
+- Inspect every repository caller of a changed contract: signature, return value, exceptions, async behavior, serialization, defaults, or side effects. Check external consumers against available schemas/docs and compatibility guarantees. Follow changed config through its loader to its consumers; follow schema changes through writers, readers, and migrations.
+- State the invariants the change must preserve (for example, tenant isolation, totals, ordering, exactly-once effects, or compatibility with stored records). Compare before and after so an unchanged caller broken by a changed helper is visible.
 
----
+Done when each changed behavior has a traced caller-to-effect path and its affected contracts are checked, or a specific coverage gap is recorded.
 
-## Scope rules (apply to every finding)
+### 3. Try to break the change
 
-The MR's goal is what its commits and diff set out to do. Review that, nothing else.
+Apply the review checks below to each affected behavior. For each applicable check, construct a concrete counterexample and trace it through the code. Start with normal usage that could regress, then boundaries, failure/retry, and concurrency/lifecycle paths. Record the result in the working coverage list; an inapplicable check needs only a short reason.
 
-- Drop any finding you cannot point to a concrete failing input, caller, or line for. "Could theoretically" is not a finding.
-- Drop findings about code the MR did not touch, and about behaviour that was already like that before.
-- Never propose a fix that adds more code than the risk removes: no new abstraction, config, flag, defensive branch, or dependency unless the MR is already broken without it.
-- Handling of inputs that cannot occur, given the callers in the codebase, is not a finding.
-- Prefer the smaller suggestion; if the only fix is a rewrite outside the branch's goal, say so in one line and move on.
-- When in doubt, do not report it. A short review with three real issues beats a long one.
+Inspect what the tests actually assert, their fixtures, and mocks. Passing tests are evidence only for the paths they exercise. Look for omitted requirements, deleted safeguards, and coordinated changes that the branch forgot to make, not only suspicious added lines.
 
-## Review Categories (by priority)
+Done when every affected behavior has been checked against the applicable risk paths. Keep searching after the first finding; several symptoms may share a root cause, but independent defects still need discovery.
 
-### P1 — Security (CRITICAL)
+### 4. Independent discovery
 
-Check every changed line at trust boundaries:
+Before sharing your candidate findings, dispatch a read-only reviewer subagent with the exact review scope, intended behavior, changed-file list, and relevant project instructions. Ask it to trace callers and failure paths and find additional correctness, security, and data-loss defects independently, with concrete evidence. Give it the review checks below, not your draft or a delete-only mandate; ask it to review directly without spawning further reviewers.
 
-#### Injection
+If delegation is unavailable, make a separate caller-first pass: start from consumers, stored data, and failure paths and work back toward the changed code. Record this limitation.
 
-- SQL built via string concatenation/interpolation — must use parameterized queries or a query builder; identifiers must be quoted/escaped through the library
-- Command execution (`exec`, `spawn`, `ProcessBuilder`, shell strings) with user-supplied input
-- Template/expression injection (server-side templates, `eval`, dynamic imports from user input)
+Done when the independent findings or fallback pass are available for reconciliation.
 
-#### XSS & Frontend Injection
+### 5. Validate and reconcile
 
-- `innerHTML`, `dangerouslySetInnerHTML`, `v-html`, `document.write` with unsanitized data
-- User input reflected into URLs, attributes, or inline event handlers
-- `javascript:` / `data:` URLs from user input in `href`/`src`
-- Missing output encoding when rendering untrusted content
+- Combine candidates by root cause. For each, identify the triggering input/state, reachable caller, faulty path, observable consequence, and how the change caused it.
+- Seek disconfirming evidence: upstream validation, authorization, transaction boundaries, framework guarantees, deliberate contract changes, or tests that exercise the exact case. Read the evidence behind reviewer disagreements; neither a second opinion nor a passing suite automatically invalidates a finding.
+- Run existing focused tests/checks where safe and feasible. Use a minimal non-destructive reproduction when needed; keep experiments out of the user's files and external services. A complete code-path demonstration is sufficient when execution is unavailable. Distinguish observed failures from reasoned ones.
+- Remove disproven, pre-existing, and speculative candidates using the scope rules. Retain supported defects even when the fix is large; recommend the smallest correct fix, or describe the required behavior if the remedy is uncertain.
 
-#### Path Traversal & File Handling
+Done when every candidate is supported, disproven, or explicitly unresolved, and every changed file in the coverage list has been reviewed or named as a gap. An unresolved potentially serious defect or a material coverage gap prevents an unqualified approval.
 
-- Paths built from user input without canonicalization/validation
-- File operations escaping the expected directory; unchecked symlink following
-- Unrestricted file upload (type, size, destination)
+### 6. Report
 
-#### Credentials & Secrets
+Use the output format below. Keep the coverage list as working notes; report only findings, verification, and decision-relevant gaps.
 
-- Secrets, tokens, passwords logged, hardcoded, or committed
-- Secrets in config without env/secret-manager indirection
-- Sensitive data leaking into frontend bundles, client-side state, localStorage, or URLs
-- Missing redaction in logs / serialized output
+## Scope and evidence
 
-#### AuthN & AuthZ
+- Report defects introduced or made reachable by this change, including regressions in unchanged callers and missing companion edits. Anchor the finding to the changed line that causes the problem and name the affected caller; use a file-level location for a missing edit or deleted file when necessary.
+- A finding needs a concrete reachable scenario and consequence. Public APIs, persisted data, and untrusted inputs are boundaries too; current internal callers alone do not establish their full input contract.
+- Judge intent against requirements and established contracts. When intent is ambiguous, name the question and its impact instead of asserting a defect.
+- Keep severity independent of category, confidence, and fix size. Confidence comes from evidence; severity comes from impact. Do not suppress a security, correctness, or data-loss defect because fixing it is outside the branch's planned scope.
+- Prefer one finding per root cause, naming all materially affected paths. Make suggestions follow project patterns, then standard-library/platform behavior, before new abstractions or dependencies.
+- Missing tests alone are not a production bug. Tie test suggestions to a concrete risk or requirement. Keep style-only suggestions brief and separate from blocking defects; leave formatter/linter-only issues to existing automation.
 
-- Endpoints or routes missing authentication checks
-- Missing role/permission/ownership validation (IDOR: acting on IDs without ownership check)
-- Authorization enforced only client-side (hidden buttons ≠ security)
-- Token validation bypasses; insecure session/cookie flags (`HttpOnly`, `Secure`, `SameSite`)
+## Review checks
 
-#### Untrusted Data
+These are counterexample prompts, not automatic findings. Apply the checks relevant to the actual code and contracts.
 
-- Unsafe deserialization of untrusted input (polymorphic typing, pickle, `eval`-based parsing)
-- Missing validation at system boundaries (request bodies, query params, headers, file content, env vars, postMessage origins)
-- SSRF: URLs fetched server-side from user input without allow-listing
+### Correctness & data safety
 
-#### Network & Transport
+- **Requirements and logic:** normal supported workflows; inverted predicates; wrong variable/field/key; missing branches; off-by-one ranges; ordering, filtering, pagination, duplicates; zero/one/many elements; missing/null/empty/false/zero distinctions.
+- **Representation:** parsing and serialization round trips; overflow and precision; money rounding; units; time zones, DST, and expiry boundaries; encoding; identifier normalization; language-specific equality, coercion, and truthiness.
+- **Contracts and integration:** changed arguments, return shapes, errors, sync/async behavior, defaults, and feature flags agree with all affected callers; API producers and consumers agree; registration, routing, imports, build and deployment wiring reach the new code.
+- **State and concurrency:** valid state transitions; atomic check-and-act; lost updates; transaction scope; partial writes; duplicate requests and idempotency; retry after a side effect; ordering of concurrent responses; cache invalidation and stale state.
+- **Failure and lifecycle:** rejection/exception propagation; timeout and cancellation; rollback/compensation; resource cleanup on success and failure; loading/error/empty UI states; unmount/dispose; stale closures and effect dependencies.
+- **Compatibility and rollout:** existing stored records and old clients still work, or the break is explicitly coordinated; migrations preserve data and constraints; mixed-version deployments, fresh installs, upgrades, and rollback work where supported.
 
-- Trust-all TLS patterns, disabled certificate validation
-- HTTP for sensitive endpoints; CORS misconfiguration (wildcard origin + credentials)
-- Missing CSRF protection on state-changing requests
+### Security
 
-### P2 — Performance
+Trace untrusted input to the sensitive operation, checking existing protections at each boundary:
 
-#### General
+- **AuthN/AuthZ:** authentication and server-side role/ownership/tenant checks on every affected path; IDOR; token verification; cookie/session flags; CSRF on state changes; CORS and `postMessage` origin checks.
+- **Injection:** parameterized SQL and safe identifiers; shell/command execution; templates, `eval`, dynamic imports, unsafe deserialization; unescaped HTML/attributes and dangerous URL schemes.
+- **Files and network:** path traversal and symlink escape; upload type/size/destination; SSRF including redirects; TLS certificate validation and sensitive HTTP traffic.
+- **Secrets and privacy:** credentials or sensitive data committed, logged, serialized, bundled, or exposed through client state/URLs; excessive response fields; missing redaction.
+- **Abuse:** attacker-controlled allocation, recursion, regex cost, unbounded work, or missing limits that make a concrete denial-of-service path reachable.
 
-- O(n²) loops where a map/set gives O(n); repeated work a single pass covers
-- Large allocations or expensive construction (regex compilation, clients, parsers) inside hot loops
-- Missing resource cleanup (connections, file handles, streams, subscriptions) — use the language's scoped-resource idiom
-- Expensive computation repeated without memoization/caching where the project already caches
+### Performance & resource use
 
-#### Backend
+Tie findings to a reachable workload and its cost, using expected data sizes or existing limits:
 
-- N+1 query patterns; missing batching for bulk operations
-- Connection/statement/result leaks; missing pooling where the project pools
-- Blocking calls in async/reactive/virtual-thread contexts
-- Race conditions: check-then-act without atomicity; missing backpressure on unbounded queues
-- Unbuffered I/O; loading whole files when streaming suffices
+- N+1 queries; repeated scans/sorts or quadratic work; large allocations in hot loops; missing batching; blocking calls in async paths; unbounded queues or concurrency; connection/stream leaks.
+- Loading entire datasets/files where the supported workload needs pagination/streaming; fetch waterfalls; repeated network work; cache behavior and invalidation.
+- Frontend render/effect loops; unnecessary repeated expensive work; large lists, bundles, or eager routes; layout thrash; leaked listeners, timers, and subscriptions. Unstable props or absent memoization alone are not evidence of a performance defect.
 
-#### Frontend
+### Architecture, tests & usability
 
-- Unnecessary re-renders: unstable deps/props (inline objects/lambdas in hot paths), missing memoization where the framework expects it (`useMemo`/`computed`/`OnPush` — per the project's framework)
-- Effects with wrong/missing dependencies; state updates in render loops
-- Fetch waterfalls where requests could be parallel; missing request deduplication/caching the project's data layer provides
-- Large lists rendered without virtualization/pagination
-- Bundle bloat: heavy dependency added for something a few lines cover; missing lazy loading for large routes/components
-- Layout thrash: repeated DOM reads/writes interleaved; animations of layout properties instead of transform/opacity
-- Memory leaks: listeners, intervals, subscriptions not cleaned up on unmount/dispose
+- Follow this project's layering, dependency direction, and established helpers. Flag a structural choice when it causes a concrete correctness or maintenance problem, not merely because another design is possible.
+- Check whether tests exercise the changed contract and failure paths, whether assertions would catch the regression, and whether mocks bypass the behavior at risk.
+- Check accessibility as functionality: keyboard reachability, focus management, semantic controls, labels, accessible names, and error feedback. A blocked user workflow is a correctness issue, not automatically a style nit.
+- Check project-required localization, public documentation, and typing against the changed behavior. Optional naming, comment, and deduplication suggestions stay non-blocking.
 
-### P3 — Architecture & Correctness
+## Severity and verdict
 
-Judge against the project's established patterns, discovered in step 2:
+Assign severity by demonstrated impact, regardless of category:
 
-- New code follows the project's existing structure: DI/wiring style, module/layer boundaries, folder conventions
-- Code sits in the right layer — no business logic in controllers/components, no UI concerns in the domain layer
-- No circular dependencies; cross-module communication through the existing interfaces
-- Error handling matches the project's convention; no swallowed exceptions/rejections; errors at boundaries surfaced or logged, not silently dropped
-- API changes are backward compatible or the break is intentional and flagged
-- Frontend: state lives at the right level (server cache vs global store vs local state — per the project's stack); components stay presentational where the codebase separates container/presentation; no prop drilling where the project has an established context/store; data fetching follows the project's data layer, not ad-hoc `fetch` calls
-- Duplication of an existing utility/helper the codebase already has
-- Reuse over reinvention: prefer the project's existing patterns, then stdlib/platform, before new abstractions or dependencies
+- `blocker`: release cannot safely proceed; widespread outage, irreversible data loss, or comparably severe exposure on a supported path.
+- `critical`: serious security breach, data corruption, or failure of a core workflow under concrete conditions.
+- `major`: a supported scenario produces wrong results, fails, or suffers a material performance regression and needs correction before merge.
+- `minor`: limited, non-blocking impact with a practical workaround.
+- `info`: optional improvement, separate from defects.
 
-### P4 — Code Style
+Any supported `blocker`, `critical`, or `major` → **REQUEST CHANGES**. Only non-blocking findings → **APPROVE WITH COMMENTS**. No findings and no material gaps → **APPROVE**. If a material gap or unresolved concern prevents a decision, say **REVIEW INCOMPLETE** and name the required verification instead of inventing a finding or severity.
 
-Conformance with _this project's_ standards (lint config, formatter, neighbouring code):
+## Output format
 
-- Formatting matches the project formatter — flag only if no formatter runs in CI
-- Naming follows the codebase's conventions (casing, prefixes, test naming)
-- Idiomatic use of the language/framework version the project targets (modern syntax the codebase already uses)
-- Types: no new `any`/unchecked casts where the project is strictly typed; null contracts consistent with the codebase
-- Imports: no unused; ordering per project convention
-- Tests follow the project's structure (given/when/then or equivalent), naming, and fixtures; new logic has tests where the project tests comparable code
-- Frontend: semantic HTML over div soup; interactive elements are real `<button>`/`<a>`; images have alt text; form inputs have labels; keyboard focus not broken — accessibility basics are style-level, missing them on new UI is a finding
-- No hardcoded user-facing strings if the project has i18n
+```markdown
+## Review: <short summary>
 
-### P5 — Minor Improvements
+<Purpose and exact scope reviewed; 1–3 sentences.>
 
-Nice-to-have, non-blocking:
+### Findings
 
-- Typos in comments, log messages, UI copy, or identifiers
-- Missing or outdated doc comments on public API
-- Opportunity to extract a reusable function/constant/component
-- Log level appropriateness; leftover debug output (`console.log`, commented-out code)
-- Test coverage gaps for edge cases
-- Dead code or unused parameters introduced by the MR
-- More descriptive naming
+- **[severity] Short title** — `path/to/file:line-range`
+  Triggering input/state and affected caller → faulty behavior → consequence.
+  Evidence: reproduction/test result or the decisive code path; distinguish inference from execution.
+  Fix: smallest correct change or the invariant to restore.
 
----
+### Verification and gaps
 
-## Output Format
-
-Produce the review as a structured report using this format:
-
-```
-## MR Review: <short summary of what the MR does>
-
-### Overview
-<1-3 sentences describing the MR's purpose and scope>
-
-### P1 — Security
-<findings or "No issues found.">
-
-### P2 — Performance
-<findings or "No issues found.">
-
-### P3 — Architecture & Correctness
-<findings or "No issues found.">
-
-### P4 — Code Style
-<findings or "No issues found.">
-
-### P5 — Minor Improvements
-<findings or "No suggestions.">
+<Checks run and results; important untested paths or unavailable context; independent review or fallback.>
 
 ### Verdict
-<One of: APPROVE, APPROVE WITH COMMENTS, REQUEST CHANGES>
-<1-2 sentence rationale>
+
+<APPROVE | APPROVE WITH COMMENTS | REQUEST CHANGES | REVIEW INCOMPLETE> — <short rationale>
 ```
 
-**For each finding**, use this format:
-
-```
-- **[severity]** `file/path.ext:line` — description of the issue
-  > suggestion or fix
-```
-
-Where severity is: `blocker`, `critical`, `major`, `minor`, `info`
-
-**Severity mapping:**
-
-- P1 findings are `blocker` or `critical`
-- P2 findings are `critical` or `major`
-- P3 findings are `major` or `minor`
-- P4 findings are `minor`
-- P5 findings are `info`
-
-**Verdict rules:**
-
-- Any `blocker` or `critical` → REQUEST CHANGES
-- Only `major` or below → APPROVE WITH COMMENTS
-- Only `minor` / `info` → APPROVE
-- Nothing found → APPROVE
+Order findings by severity, then impact. Use precise, short line ranges. If none survive, say “No actionable findings” and report the actual verification limits. Keep optional suggestions separate; do not pad the report with empty category sections.

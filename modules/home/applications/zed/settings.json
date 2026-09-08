@@ -87,6 +87,7 @@
       "prettier": {
         "allowed": false
       },
+      "language_servers": ["!tailwindcss-language-server", "..."],
       "formatter": [
         {
           "language_server": {
@@ -100,6 +101,7 @@
       "prettier": {
         "allowed": false
       },
+      "language_servers": ["!tailwindcss-language-server", "..."],
       "formatter": [
         {
           "language_server": {
@@ -186,6 +188,7 @@
         "!vtsls",
         "!typescript-language-server",
         "!eslint",
+        "!tailwindcss-language-server",
         "..."
       ],
       "formatter": [
@@ -206,6 +209,7 @@
         "!vtsls",
         "!typescript-language-server",
         "!eslint",
+        "!tailwindcss-language-server",
         "..."
       ],
       "formatter": [

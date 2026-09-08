@@ -173,6 +173,7 @@
       desktop = mkNixosHost {
         hostname = "desktop";
         system = "x86_64-linux";
+        extraModules = [inputs.disko.nixosModules.disko];
       };
 
       "antoine-dell" = mkNixosHost {

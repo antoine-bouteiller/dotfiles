@@ -24,6 +24,7 @@ Hosts:
 | -------------- | ---------------- | ---------------------------------------- |
 | `work`       | `aarch64-darwin` | work MacBook                             |
 | `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (disko + secure boot) |
+| `desktop`      | `x86_64-linux`   | Windows dual boot (disko + secure boot)  |
 | `plex-server`  | `x86_64-linux`   | home media server                        |
 
 ## Layout
@@ -72,8 +73,6 @@ From a writable checkout of this flake, with new configuration files staged:
 
 ```sh
 nix run .#bootstrap -- plex-server
-# Or, once its hardware configuration has been generated:
-nix run .#bootstrap -- desktop
 ```
 
 Without a checkout, the wrapper clones the repository and forwards the arguments:
@@ -87,23 +86,46 @@ Env overrides: `DOTFILES_REPO` (clone URL), `DOTFILES_DIR` (checkout path, defau
 to a writable directory before generating hardware configuration.
 
 Bootstrap validates the NixOS configuration and checks that mounted root/EFI UUIDs
-match it and neither mount is a subdirectory bind mount. It works without disko. Existing Secure Boot keys
+match it and neither mount is a subdirectory bind mount. Existing Secure Boot keys
 and login passwords are retained; keys are created only for fresh Secure Boot
 installs, and incomplete or missing reinstall keys require restoration. This still
 writes a NixOS generation and bootloader: back up first. Keep existing SSH host keys
 and sops keys, especially on `plex-server`, whose secrets use its SSH host key.
 
-### Destructive installation (explicit opt-in)
+### Partitioning with disko (explicit opt-in)
+
+Both modes use the flake's pinned disko module and the host's `disko.nix`; hosts
+without one (`plex-server`) fail before touching any disk. The download wrapper
+accepts the same flags.
 
 ```sh
+nix run .#bootstrap -- desktop --format
 nix run .#bootstrap -- antoine-dell --destructive
-# The download wrapper also accepts: <flake-hostname> --destructive
 ```
 
-**This erases every disk declared by the host's disko configuration**, after
-configuration validation and disko's confirmation prompt. It uses the flake's
-pinned disko module. Hosts without disko (`plex-server` and `desktop`) cannot use
-this mode. Never use Dell's layout on a disk containing Windows.
+`--format` is non-destructive: it never clears a partition table that already has
+one, creates only declared partitions that do not exist yet (by number), and skips
+`mkfs`/`luksFormat`/`vgcreate`/`lvcreate`/`mkswap` on anything that already holds a
+signature, then mounts under `/mnt`. Undeclared partitions are never touched. It does
+rewrite the label, type code and GUID of every _declared_ partition number, so a
+`_index` that collides with a foreign partition corrupts its metadata: pin `_index`
+above existing partitions when sharing a disk. Dry-run first with
+`nix build --print-out-paths .#nixosConfigurations.<host>.config.system.build.formatMount`
+and read the generated script against `sudo sgdisk -p <device>`.
+
+`--destructive` **erases every disk declared by the host's disko configuration**
+after disko's confirmation prompt. Never use it on a disk containing Windows.
+
+#### Migrating `plex-server` to disko without reformatting
+
+Write `hosts/plex-server/disko.nix` mirroring the current layout exactly: same
+device, one partition per existing partition with matching `_index`, `size`,
+`type` and `format`, and the current mountpoints. Regenerate the hardware file with
+`nixos-generate-config --show-hardware-config --no-filesystems` (disko now owns
+`fileSystems`/`swapDevices`), import both, stage, then run `--format` from the ISO:
+every step is skipped except relabeling, and the filesystems get mounted for the
+regular reinstall. Filesystem UUIDs are preserved; PARTUUIDs are not, so nothing
+may reference `/dev/disk/by-partuuid`.
 
 ### First installation of `desktop` alongside Windows
 
@@ -112,30 +134,30 @@ this mode. Never use Dell's layout on a disk containing Windows.
   and shrink the Windows volume in Windows Disk Management.
 - Boot the ISO in UEFI mode. Temporarily disable Secure Boot if needed to boot the
   unsigned installer; do not clear the TPM.
-- Inspect `lsblk -o NAME,PATH,SIZE,FSTYPE,PARTTYPE,MOUNTPOINTS` and `sudo parted -l`.
-  Create/format **only new Linux partitions in unallocated space**. Dell's Linux
-  layout is LUKS2 containing LVM ext4 root and encrypted swap (at least RAM-sized
-  if hibernation is wanted). Desktop's disk layout is deliberately not predefined.
-- Never format Windows' existing EFI or recovery partitions. Allow 2 GiB for a new
-  FAT32 Linux EFI partition mounted at `/mnt/boot`; use the firmware boot menu for
-  Windows with separate EFI partitions. A sufficiently large shared EFI partition
-  can instead be reused without formatting, allowing automatic Windows detection.
+- Inspect `lsblk -o NAME,PATH,SIZE,FSTYPE,PARTTYPE,MOUNTPOINTS` and
+  `sudo sgdisk -p <device>`, then fill in the `CHECK` values in
+  `hosts/desktop/disko.nix`: the disk device, `_index` numbers above every Windows
+  partition, and the LUKS size (freed space minus the 2 GiB Linux EFI partition).
+  Sizes stay explicit because Windows recovery usually ends the disk. The layout
+  is Dell's (LUKS2 > LVM > swap + ext4 root) placed in the freed space; Windows'
+  EFI and recovery partitions are not declared and therefore never formatted. Use
+  the firmware boot menu to pick Windows, since the EFI partitions are separate.
 
-After mounting the final Linux root and EFI filesystems (and activating any swap),
-run from the writable checkout:
+From the writable checkout:
 
 ```sh
-sudo nixos-generate-config --root /mnt --show-hardware-config > hosts/desktop/hardware-configuration.nix
-# Review the generated devices and mounts before continuing.
-git add hosts/desktop/hardware-configuration.nix
-nix run .#bootstrap -- desktop
+sudo nixos-generate-config --show-hardware-config --no-filesystems > hosts/desktop/hardware-configuration.nix
+git add hosts/desktop/disko.nix hosts/desktop/hardware-configuration.nix
+nix run .#bootstrap -- desktop --format
 ```
 
-Keep the generated filesystem/swap declarations: desktop has no disko module.
-For TPM unlocking, add `crypttabExtraOpts = [ "tpm2-device=auto" ];` to the generated
-`boot.initrd.luks.devices.<name>` entry. For hibernation, set `boot.resumeDevice`
-to the encrypted swap LV's persistent path. GPU driver settings may also be needed;
-the generator does not select proprietary NVIDIA drivers.
+The hardware file needs no mounts (`--no-filesystems`: disko owns `fileSystems`,
+`swapDevices` and `boot.resumeDevice`). Bootstrap validates the configuration,
+then disko creates and mounts the Linux partitions and the install proceeds.
+`--format` is idempotent, so a reinstall reruns the same command onto the existing
+filesystems.
+GPU driver settings may also be needed; the generator does not select proprietary
+NVIDIA drivers.
 
 After reboot, keep the checkout including the hardware file at `~/dotfiles`.
 For a new Secure Boot installation, follow `apps/x86_64-linux/secure-boot` to enroll

@@ -2,15 +2,18 @@
 set -eu
 #
 # Install/reinstall onto existing filesystems mounted under /mnt.
-# Only --destructive partitions/formats disks, using the host's pinned disko config.
+# --format creates only the missing partitions/filesystems declared by the host's
+# pinned disko config and mounts them (existing ones are left as they are);
+# --destructive first erases every declared disk.
 #
 #   nix run .#bootstrap -- plex-server
+#   nix run .#bootstrap -- desktop --format
 #   nix run .#bootstrap -- antoine-dell --destructive
 #
 # See README.md for mounting, hardware generation and Secure Boot enrollment.
 
 usage() {
-  echo "usage: nix run .#bootstrap -- <flake-hostname> [--destructive]" >&2
+  echo "usage: nix run .#bootstrap -- <flake-hostname> [--format|--destructive]" >&2
   exit 1
 }
 host=${1:-}
@@ -18,8 +21,14 @@ case "$host" in
   ""|-*|*[!a-zA-Z0-9_-]*) usage ;;
 esac
 case "$#" in
-  1) destructive=false ;;
-  2) [ "$2" = "--destructive" ] || usage; destructive=true ;;
+  1) disko_mode= ;;
+  2)
+    case "$2" in
+      --format) disko_mode=format-mount attr=formatMount ;;
+      --destructive) disko_mode=destroy-format-mount attr=destroyFormatMount ;;
+      *) usage ;;
+    esac
+    ;;
   *) usage ;;
 esac
 
@@ -44,14 +53,17 @@ efi_mount=$(nix eval --raw "$config.boot.loader.efi.efiSysMountPoint")
 efi_device=$(nix eval --raw "$config.fileSystems.\"$efi_mount\".device")
 secure_boot=$(nix eval --json "$config.secureBoot.enable")
 
-if [ "$destructive" = true ]; then
+if [ -n "$disko_mode" ]; then
   # No disko module means this fails before touching any disks. Use the locked
   # module's generated script, not an independently downloaded disko version.
-  disko=$(nix build --no-link --print-out-paths "$config.system.build.destroyFormatMount")
-  echo "DESTRUCTIVE: erasing disks declared by ${host}; disko will ask for confirmation."
+  disko=$(nix build --no-link --print-out-paths "$config.system.build.$attr")
+  case "$disko_mode" in
+    destroy-format-mount) echo "DESTRUCTIVE: erasing disks declared by ${host}; disko will ask for confirmation." ;;
+    *) echo "Creating missing partitions/filesystems declared by ${host}; existing ones are kept." ;;
+  esac
   # Under curl | sh, interactive steps must read the terminal, not the script pipe.
   [ -t 0 ] || exec </dev/tty
-  sudo "$disko/bin/disko-destroy-format-mount"
+  sudo "$disko/bin/disko-$disko_mode"
 fi
 
 check_mount() {

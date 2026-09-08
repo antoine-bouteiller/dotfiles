@@ -12,6 +12,7 @@ in {
   imports =
     [
       ../base-nixos.nix
+      ./disko.nix
     ]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix;
 

@@ -140,9 +140,12 @@
           nixpkgs.lib.mapAttrs (_: cfg: cfg.system) self.darwinConfigurations
         );
         # `iso` is deliberately excluded: CI would build a full ISO on every push.
+        # Include desktop once its on-device hardware configuration is tracked.
         nixosChecks = nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) (
           nixpkgs.lib.mapAttrs (_: cfg: cfg.config.system.build.toplevel)
-          (builtins.removeAttrs self.nixosConfigurations ["iso"])
+          (builtins.removeAttrs self.nixosConfigurations (
+            ["iso"] ++ nixpkgs.lib.optional (!builtins.pathExists ./hosts/desktop/hardware-configuration.nix) "desktop"
+          ))
         );
       in
         darwinChecks // nixosChecks
@@ -164,6 +167,11 @@
         hostname = "plex-server";
         system = "x86_64-linux";
         extraModules = [inputs.autoscan.nixosModules.default];
+      };
+
+      desktop = mkNixosHost {
+        hostname = "desktop";
+        system = "x86_64-linux";
       };
 
       "antoine-dell" = mkNixosHost {

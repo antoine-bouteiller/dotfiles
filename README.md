@@ -60,13 +60,86 @@ git clone git@github.com:antoine-bouteiller/dotfiles.git ~/.dotfiles && cd ~/.do
 nix run nix-darwin -- switch --flake .#<flake-hostname>
 ```
 
-## From a bootable USB (fresh NixOS install)
+## From a bootable USB (NixOS install or reinstall)
 
-From the NixOS installer ISO, clone this flake and install a declared host:
+**Bootstrap does not partition or format by default.** From the live ISO, unlock
+any Linux LUKS container, activate LVM if used, and mount the intended Linux root
+at `/mnt` and its EFI partition at `/mnt/boot`. Inspect `lsblk -f` first and use the
+devices declared by the host's filesystem configuration. Do not run `mkfs` when
+reinstalling onto existing filesystems.
 
+From a writable checkout of this flake, with new configuration files staged:
+
+```sh
+nix run .#bootstrap -- plex-server
+# Or, once its hardware configuration has been generated:
+nix run .#bootstrap -- desktop
 ```
-curl -sL https://raw.githubusercontent.com/<owner>/<repo>/<branch>/bootstrap.sh | sh -s -- <flake-hostname>
+
+Without a checkout, the wrapper clones the repository and forwards the arguments:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/<branch>/bootstrap.sh | sh -s -- <flake-hostname>
 ```
 
-Env overrides: `DOTFILES_REPO` (clone URL), `DOTFILES_DIR` (checkout path, default `/tmp/dotfiles`).
-This erases every disk declared by the host's `disko.nix`; post-install steps are in `apps/x86_64-linux/bootstrap`.
+Env overrides: `DOTFILES_REPO` (clone URL), `DOTFILES_DIR` (checkout path, default
+`/tmp/dotfiles`). The ISO's embedded `/etc/dotfiles` is read-only; copy or clone it
+to a writable directory before generating hardware configuration.
+
+Bootstrap validates the NixOS configuration and checks that mounted root/EFI UUIDs
+match it and neither mount is a subdirectory bind mount. It works without disko. Existing Secure Boot keys
+and login passwords are retained; keys are created only for fresh Secure Boot
+installs, and incomplete or missing reinstall keys require restoration. This still
+writes a NixOS generation and bootloader: back up first. Keep existing SSH host keys
+and sops keys, especially on `plex-server`, whose secrets use its SSH host key.
+
+### Destructive installation (explicit opt-in)
+
+```sh
+nix run .#bootstrap -- antoine-dell --destructive
+# The download wrapper also accepts: <flake-hostname> --destructive
+```
+
+**This erases every disk declared by the host's disko configuration**, after
+configuration validation and disko's confirmation prompt. It uses the flake's
+pinned disko module. Hosts without disko (`plex-server` and `desktop`) cannot use
+this mode. Never use Dell's layout on a disk containing Windows.
+
+### First installation of `desktop` alongside Windows
+
+- Back up Windows and save its BitLocker/device-encryption recovery key off-device.
+  Suspend BitLocker protection before firmware changes, disable Windows Fast Startup,
+  and shrink the Windows volume in Windows Disk Management.
+- Boot the ISO in UEFI mode. Temporarily disable Secure Boot if needed to boot the
+  unsigned installer; do not clear the TPM.
+- Inspect `lsblk -o NAME,PATH,SIZE,FSTYPE,PARTTYPE,MOUNTPOINTS` and `sudo parted -l`.
+  Create/format **only new Linux partitions in unallocated space**. Dell's Linux
+  layout is LUKS2 containing LVM ext4 root and encrypted swap (at least RAM-sized
+  if hibernation is wanted). Desktop's disk layout is deliberately not predefined.
+- Never format Windows' existing EFI or recovery partitions. Allow 2 GiB for a new
+  FAT32 Linux EFI partition mounted at `/mnt/boot`; use the firmware boot menu for
+  Windows with separate EFI partitions. A sufficiently large shared EFI partition
+  can instead be reused without formatting, allowing automatic Windows detection.
+
+After mounting the final Linux root and EFI filesystems (and activating any swap),
+run from the writable checkout:
+
+```sh
+sudo nixos-generate-config --root /mnt --show-hardware-config > hosts/desktop/hardware-configuration.nix
+# Review the generated devices and mounts before continuing.
+git add hosts/desktop/hardware-configuration.nix
+nix run .#bootstrap -- desktop
+```
+
+Keep the generated filesystem/swap declarations: desktop has no disko module.
+For TPM unlocking, add `crypttabExtraOpts = [ "tpm2-device=auto" ];` to the generated
+`boot.initrd.luks.devices.<name>` entry. For hibernation, set `boot.resumeDevice`
+to the encrypted swap LV's persistent path. GPU driver settings may also be needed;
+the generator does not select proprietary NVIDIA drivers.
+
+After reboot, keep the checkout including the hardware file at `~/dotfiles`.
+For a new Secure Boot installation, follow `apps/x86_64-linux/secure-boot` to enroll
+keys with Microsoft trust retained, enable Secure Boot, then enroll the TPM2 slot.
+Keep the LUKS passphrase and Windows recovery key. Resume BitLocker protection only
+once both systems boot with the final Secure Boot settings. A reinstall with the
+same enrolled keys does not require replacing the firmware keys.

@@ -1,23 +1,27 @@
-#!/bin/sh -e
+#!/bin/sh
+set -eu
 #
-# Fresh NixOS install for a host already declared in this flake.
-# Run from the NixOS installer ISO, with this repo checked out and staged:
+# Install/reinstall onto existing filesystems mounted under /mnt.
+# Only --destructive partitions/formats disks, using the host's pinned disko config.
 #
-#   nix run --extra-experimental-features 'nix-command flakes' .#bootstrap -- antoine-dell
+#   nix run .#bootstrap -- plex-server
+#   nix run .#bootstrap -- antoine-dell --destructive
 #
-# Requires the host to have a disko config (hosts/<name>/disko.nix). Afterwards:
-#   1. restart, clone this repo, `nix run .#apply`
-#   2. `nix run .#secure-boot` to enroll the Secure Boot keys and the LUKS TPM2 slot
+# See README.md for mounting, hardware generation and Secure Boot enrollment.
 
-# Under `curl | sh` stdin is the pipe, so disko's wipe confirmation would read EOF
-# and abort. Reattach the terminal once for the whole script.
-[ -t 0 ] || exec </dev/tty
-
-host="$1"
-if [ -z "$host" ]; then
-  echo "usage: nix run .#bootstrap -- <flake-hostname>" >&2
+usage() {
+  echo "usage: nix run .#bootstrap -- <flake-hostname> [--destructive]" >&2
   exit 1
-fi
+}
+host=${1:-}
+case "$host" in
+  ""|-*|*[!a-zA-Z0-9_-]*) usage ;;
+esac
+case "$#" in
+  1) destructive=false ;;
+  2) [ "$2" = "--destructive" ] || usage; destructive=true ;;
+  *) usage ;;
+esac
 
 # The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
 # would serve (lanzaboote, custom pkgs) would otherwise be built from source.
@@ -29,22 +33,69 @@ extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq
 export NIX_CONFIG
 sudo() { command sudo --preserve-env=NIX_CONFIG "$@"; }
 
-echo "Partitioning, formatting and mounting..."
-sudo nix run github:nix-community/disko/latest -- --mode destroy,format,mount --flake ".#${host}"
+fail() { echo "$*" >&2; exit 1; }
+config=".#nixosConfigurations.${host}.config"
 
-# lanzaboote signs the very first generation, so the keys must exist before the
-# install; sbctl in the target system then finds them at /var/lib/sbctl.
-echo "Creating Secure Boot keys..."
-sudo install -d -m 700 /mnt/var/lib/sbctl
-sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock \
-  --export /mnt/var/lib/sbctl/keys --database-path /mnt/var/lib/sbctl/GUID
+# Force NixOS assertions (including missing hardware) before any target writes.
+echo "Validating ${host}..."
+nix eval --raw "$config.system.build.toplevel.drvPath" >/dev/null
+root_device=$(nix eval --raw "$config.fileSystems.\"/\".device")
+efi_mount=$(nix eval --raw "$config.boot.loader.efi.efiSysMountPoint")
+efi_device=$(nix eval --raw "$config.fileSystems.\"$efi_mount\".device")
+secure_boot=$(nix eval --json "$config.secureBoot.enable")
 
-echo "Installing..."
-sudo nixos-install --flake ".#${host}" --no-root-password
+if [ "$destructive" = true ]; then
+  # No disko module means this fails before touching any disks. Use the locked
+  # module's generated script, not an independently downloaded disko version.
+  disko=$(nix build --no-link --print-out-paths "$config.system.build.destroyFormatMount")
+  echo "DESTRUCTIVE: erasing disks declared by ${host}; disko will ask for confirmation."
+  # Under curl | sh, interactive steps must read the terminal, not the script pipe.
+  [ -t 0 ] || exec </dev/tty
+  sudo "$disko/bin/disko-destroy-format-mount"
+fi
 
-# No password is declared anywhere, so the account would be locked on first boot.
-echo "Setting the login password..."
-sudo nixos-enter --root /mnt -c 'passwd "$(id -nu 1000)"' ||
-  echo "Password not set. Re-run: sudo nixos-enter --root /mnt -c 'passwd \"\$(id -nu 1000)\"'" >&2
+check_mount() {
+  target=$1
+  device=$2
+  actual=$(sudo findmnt --raw --noheadings --mountpoint "$target" --output UUID,FSROOT) ||
+    fail "Mount $device at $target before running bootstrap."
+  expected=$(sudo blkid -s UUID -o value "$device") || fail "Cannot identify $device."
+  [ -n "$expected" ] && [ "$actual" = "$expected /" ] ||
+    fail "$target must mount the filesystem root of configured device $device; refusing to install."
+}
+# ponytail: current hosts use ext4 root and FAT EFI; add subvolume validation before supporting Btrfs.
+check_mount /mnt "$root_device"
+check_mount "/mnt$efi_mount" "$efi_device"
 
-echo "Install complete. Restart, then follow the post-install steps in apps/x86_64-linux/bootstrap."
+fresh_install=true
+sudo test ! -e /mnt/etc/shadow || fresh_install=false
+
+if [ "$secure_boot" = true ]; then
+  keydir=/mnt/var/lib/sbctl
+  if sudo test -e "$keydir"; then
+    # Refuse incomplete state instead of replacing firmware-enrolled keys.
+    for file in GUID keys/PK/PK.key keys/PK/PK.pem keys/KEK/KEK.key keys/KEK/KEK.pem keys/db/db.key keys/db/db.pem; do
+      sudo test -s "$keydir/$file" || fail "Incomplete Secure Boot keys: restore $keydir before installing."
+    done
+    echo "Preserving existing Secure Boot keys."
+  else
+    sudo test ! -e /mnt/etc/NIXOS || fail "Restore the installed system's Secure Boot keys to $keydir before reinstalling."
+    echo "Creating Secure Boot keys..."
+    sudo install -d -m 700 "$keydir"
+    sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock \
+      --export "$keydir/keys" --database-path "$keydir/GUID"
+  fi
+fi
+
+echo "Installing without formatting mounted filesystems..."
+sudo nixos-install --root /mnt --flake ".#${host}" --no-root-password
+
+# Fresh accounts would otherwise be locked. Do not reset reinstall credentials.
+if [ "$fresh_install" = true ]; then
+  echo "Setting the login password..."
+  [ -t 0 ] || exec </dev/tty
+  sudo nixos-enter --root /mnt -c 'passwd "$(id -nu 1000)"' ||
+    fail "Password not set. Re-run: sudo nixos-enter --root /mnt -c 'passwd \"\$(id -nu 1000)\"'"
+fi
+
+echo "Install complete. Restart; see README.md for post-install steps."

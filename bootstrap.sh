@@ -1,15 +1,16 @@
-#!/bin/sh -e
+#!/bin/sh
+set -eu
 #
-# Fresh NixOS install from the installer ISO, starting with nothing checked out:
+# NixOS install/reinstall from the installer ISO onto filesystems mounted at /mnt:
 #
 #   curl -sL https://raw.githubusercontent.com/antoine-bouteiller/dotfiles/main/bootstrap.sh | sh -s -- antoine-dell
 #
 # Clones this flake, then hands over to .#bootstrap (see apps/x86_64-linux/bootstrap
 # for what that does and the post-install steps).
 
-host="$1"
+host=${1:-}
 if [ -z "$host" ]; then
-  echo "usage: bootstrap.sh <flake-hostname>" >&2
+  echo "usage: bootstrap.sh <flake-hostname> [--destructive]" >&2
   exit 1
 fi
 
@@ -20,4 +21,4 @@ export NIX_CONFIG="extra-experimental-features = nix-command flakes"
 
 [ -d "$dir" ] || nix run nixpkgs#git -- clone --depth 1 "$repo" "$dir"
 cd "$dir"
-nix run .#bootstrap -- "$host"
+nix run .#bootstrap -- "$@"

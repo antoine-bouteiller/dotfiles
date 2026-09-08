@@ -42,6 +42,13 @@
           "run": "onSave"
         }
       }
+    },
+    // Zed's Java extension only knows jdtls; swap its binary for go-jls.
+    "jdtls": {
+      "binary": {
+        "path": "go-jls",
+        "arguments": ["--lsp"]
+      }
     }
   },
   "file_scan_exclusions": ["**/node_modules", "**/.direnv", "**/.worktree", "..."],

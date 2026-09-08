@@ -48,7 +48,7 @@ in
         customPkgs.comment-checker
         (rtk.overrideAttrs (_: {doCheck = false;}))
         vtsls
-        jdt-language-server
+        customPkgs.go-jls
       ];
 
       # Every agent reads ~/.agents/skills; claude wants its own copy under ~/.claude.

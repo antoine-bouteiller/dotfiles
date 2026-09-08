@@ -114,6 +114,7 @@
           claude-code = pkgs.callPackage ./pkgs/claude-code {};
           caddy-cloudflare = pkgs.callPackage ./pkgs/caddy-cloudflare {};
           fff-mcp = pkgs.callPackage ./pkgs/fff-mcp {};
+          go-jls = pkgs.callPackage ./pkgs/go-jls {};
           pi = pkgs.callPackage ./pkgs/pi {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {

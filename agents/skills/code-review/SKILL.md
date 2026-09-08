@@ -15,6 +15,8 @@ Find consequential defects introduced or exposed by the change. Discover broadly
 - For local changes, account for staged, unstaged, and relevant untracked files. Record the exact refs or working-tree scope being reviewed. Keep the checkout and user files intact; reviewing does not authorize fixes or publishing comments.
 - Read the request, linked requirements when available, commits, project instructions, and stack/tooling conventions. Separate intended behavior from what the implementation currently does.
 - Get the complete diff and changed-file list, including deletions, renames, tests, config, migrations, and dependency changes. Keep a working coverage list: changed file/behavior, affected callers, applicable checks, evidence, unresolved questions.
+- Load every path-scoped rule (project instructions, policy files) whose glob matches a changed file before judging guard or fail-open branches; cite the rule in the finding.
+- Spec and feature artifacts in the diff (`*.spec.mdx`, `*.feature.json`, verification-criteria statuses, `lastVerified` stamps) are reviewed files, not context: check their claims against the code.
 
 Done when the review range and intended behavior are explicit and every changed file is accounted for. Missing requirements or inaccessible context remain named gaps, not assumed facts.
 
@@ -33,11 +35,20 @@ Apply the review checks below to each affected behavior. For each applicable che
 
 Inspect what the tests actually assert, their fixtures, and mocks. Passing tests are evidence only for the paths they exercise. Look for omitted requirements, deleted safeguards, and coordinated changes that the branch forgot to make, not only suspicious added lines.
 
+Counterexample patterns that are easy to skip:
+
+- **Config/authoring boundary:** for every new or changed optional config field, trace the omitted and blank cases to their effect. When a fallback borrows another field's value, state what that value means on each type that inherits it. A structurally sensible default is not evidence.
+- **Asymmetry:** when a guard, validator, or branch covers one of N parallel fields, paths, or sites, list the siblings and justify each absence. Treat an unused production helper that duplicates an inline default as a lead, not noise.
+- **Negative space for registrations:** for each new mount, dispatch, or registration site, enumerate every place the config element can legally appear and confirm each is handled or rejected at load.
+- **Falsify tests and type tests:** write the wrong case (wrong `contextType`, a throw inside a callback) and check it is actually rejected or caught. A test proves only what fails without it.
+
 Done when every affected behavior has been checked against the applicable risk paths. Keep searching after the first finding; several symptoms may share a root cause, but independent defects still need discovery.
 
 ### 4. Independent discovery
 
 Before sharing your candidate findings, dispatch a read-only reviewer subagent with the exact review scope, intended behavior, changed-file list, and relevant project instructions. Ask it to trace callers and failure paths and find additional correctness, security, and data-loss defects independently, with concrete evidence. Give it the review checks below, not your draft or a delete-only mandate; ask it to review directly without spawning further reviewers.
+
+On diffs over ~100 files, split the independent review by subsystem (for example, backend validators / runtime / config+spec artifacts), one subagent per slice with that slice's counterexample list, rather than one general reviewer that overlaps your own pass.
 
 If delegation is unavailable, make a separate caller-first pass: start from consumers, stored data, and failure paths and work back toward the changed code. Record this limitation.
 
@@ -48,6 +59,9 @@ Done when the independent findings or fallback pass are available for reconcilia
 - Combine candidates by root cause. For each, identify the triggering input/state, reachable caller, faulty path, observable consequence, and how the change caused it.
 - Seek disconfirming evidence: upstream validation, authorization, transaction boundaries, framework guarantees, deliberate contract changes, or tests that exercise the exact case. Read the evidence behind reviewer disagreements; neither a second opinion nor a passing suite automatically invalidates a finding.
 - Run existing focused tests/checks where safe and feasible. Use a minimal non-destructive reproduction when needed; keep experiments out of the user's files and external services. A complete code-path demonstration is sufficient when execution is unavailable. Distinguish observed failures from reasoned ones.
+- A spec decision authorizing a weakening is intent evidence, not impact evidence: check the spec for contradicting decisions, then rate the weakening on consequence. Report "narrower than claimed" when the MR or spec headline overstates a check.
+- Keep severity unchanged when only extension or third-party code triggers the path and opening that path is the change's goal.
+- When a verification criterion names a runner, confirm the pipeline actually runs it (CI config, build files). Local green is not a gate.
 - Remove disproven, pre-existing, and speculative candidates using the scope rules. Retain supported defects even when the fix is large; recommend the smallest correct fix, or describe the required behavior if the remedy is uncertain.
 
 Done when every candidate is supported, disproven, or explicitly unresolved, and every changed file in the coverage list has been reviewed or named as a gap. An unresolved potentially serious defect or a material coverage gap prevents an unqualified approval.

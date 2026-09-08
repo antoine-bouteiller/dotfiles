@@ -33,6 +33,8 @@ in {
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia.open = true;
 
+  programs.coolercontrol.enable = true;
+
   # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
   # The noctalia dns-switcher plugin flips the active profile's ipv4.dns to a public
   # resolver when the ISP one filters a domain.

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 1 || -z "$1" || "$1" == -* ]]; then
+  echo "Usage: nix run .#apply-remote -- <user>@<vm-host>" >&2
+  exit 2
+fi
+
+: "${VM_USER:?Set VM_USER}"
+: "${WORK_EMAIL:?Set WORK_EMAIL}"
+
+remote_script=$(cat <<'REMOTE'
+set -euo pipefail
+if [[ $(id -un) != "$VM_USER" ]]; then
+  echo 'SSH login must match VM_USER' >&2
+  exit 1
+fi
+
+# Non-interactive login shells may not load an existing Nix installation.
+for profile in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh "$HOME/.nix-profile/etc/profile.d/nix.sh"; do
+  if ! command -v nix >/dev/null && [[ -f "$profile" ]]; then
+    . "$profile"
+  fi
+done
+if ! command -v nix >/dev/null; then
+  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+
+# Standalone Home Manager does not apply hosts/base.nix: trust its caches in the
+# daemon config before the first build, without replacing existing settings.
+sudo mkdir -p /etc/nix
+sudo tee /etc/nix/dotfiles.conf >/dev/null <<'NIX_CONFIG'
+extra-experimental-features = nix-command flakes
+extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
+extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=
+NIX_CONFIG
+if ! sudo grep -qxF "include dotfiles.conf" /etc/nix/nix.conf; then
+  printf '\n%s\n' "include dotfiles.conf" | sudo tee -a /etc/nix/nix.conf >/dev/null
+fi
+sudo systemctl restart nix-daemon
+
+if ! command -v git >/dev/null; then
+  git() { nix --extra-experimental-features "nix-command flakes" run nixpkgs#git -- "$@"; }
+fi
+if [[ ! -d "$HOME/dotfiles" ]]; then
+  git clone https://github.com/antoine-bouteiller/dotfiles.git "$HOME/dotfiles"
+  cd "$HOME/dotfiles"
+else
+  cd "$HOME/dotfiles"
+  git pull --ff-only
+fi
+nix --extra-experimental-features "nix-command flakes" build --impure .#homeConfigurations.work-vm.activationPackage
+./result/activate
+REMOTE
+)
+
+# Keep stdin attached to the terminal for installer/sudo prompts.
+printf -v remote_script 'export VM_USER=%q WORK_EMAIL=%q\n%s' "$VM_USER" "$WORK_EMAIL" "$remote_script"
+escaped_quote="'\''"
+exec ssh -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"

@@ -86,7 +86,9 @@
         "apply" = mkApp "apply" system;
         "clean" = mkApp "clean" system;
         "update" = mkApp "update" system;
-        "update-claude" = mkApp "update-claude" system;
+      }
+      // nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) {
+        "apply-remote" = mkApp "apply-remote" system;
       }
       // nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) {
         "bootstrap" = mkApp "bootstrap" system;

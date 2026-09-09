@@ -46,7 +46,7 @@ in
       home.packages = with pkgs; [
         # Utils
         customPkgs.comment-checker
-        (rtk.overrideAttrs (_: {doCheck = false;}))
+        rtk
         vtsls
       ];
 

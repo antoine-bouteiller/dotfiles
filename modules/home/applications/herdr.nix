@@ -2,14 +2,41 @@
   mkModule,
   inputs,
   pkgs,
+  config,
+  lib,
   ...
 } @ args: let
   package = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
+  # Saved SSH machines matching sopsAgeKeyHosts get the age key through `SendEnv SOPS_AGE_KEY`;
+  # sops reads SOPS_AGE_KEY before SOPS_AGE_KEY_FILE, so pi/runenv on the VM just work.
+  # Exported here, not in the shell, so the key only lives in herdr's process tree.
+  herdrWrapped = pkgs.writeShellScriptBin "herdr" ''
+    key_file="''${SOPS_AGE_KEY_FILE:-${config.home.homeDirectory}/.config/sops/age/keys.txt}"
+    if [[ -z "''${SOPS_AGE_KEY:-}" && -r "$key_file" ]]; then
+      export SOPS_AGE_KEY="$(<"$key_file")"
+    fi
+    exec ${lib.getExe package} "$@"
+  '';
 in
   mkModule args "local.home-manager.herdr" {
     description = "HerdR terminal session manager";
-    config = _: {
-      home.packages = [package];
+
+    options.sopsAgeKeyHosts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "ssh host patterns whose herdr machines receive the local sops age key as SOPS_AGE_KEY (sshd needs AcceptEnv SOPS_AGE_KEY).";
+    };
+
+    config = {cfg}: {
+      home.packages = [
+        (
+          if cfg.sopsAgeKeyHosts == []
+          then package
+          else herdrWrapped
+        )
+      ];
+      programs.ssh.settings = lib.genAttrs cfg.sopsAgeKeyHosts (_: {SendEnv = ["SOPS_AGE_KEY"];});
       xdg.configFile."herdr/config.toml" = {
         force = true;
         source = (pkgs.formats.toml {}).generate "herdr-config" {

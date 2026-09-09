@@ -12,6 +12,8 @@ in {
 
   local.home-manager = {
     workstation.enable = true;
+    # The work VM's sshd accepts SOPS_AGE_KEY (see apps/*/apply-remote).
+    herdr.sopsAgeKeyHosts = ["*.example.com"];
     agents = {
       pi.extraSecretFiles = ["${homeDirectory}/.dotfiles/secrets/work_env.yaml"];
       mcpServers = {

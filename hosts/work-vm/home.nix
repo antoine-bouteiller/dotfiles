@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }: {
@@ -25,6 +26,12 @@
     homeDirectory = "/home/${config.home.username}";
     stateVersion = "26.05";
     packages = [pkgs.bat];
+  };
+
+  # Standalone HM cannot change the login shell; hand interactive bash off to zsh.
+  programs.bash = {
+    enable = true;
+    initExtra = "exec ${lib.getExe pkgs.zsh} -l";
   };
 
   targets.genericLinux.enable = true;

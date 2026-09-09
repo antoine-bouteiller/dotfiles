@@ -6,7 +6,7 @@
 buildGoModule {
   pname = "go-jls";
   # No tagged releases yet (only v0.0.0); track main.
-  version = "0-unstable-2026-06-10";
+  version = "0.0.0-unstable-2026-06-10";
 
   src = fetchFromGitHub {
     owner = "kamichidu";

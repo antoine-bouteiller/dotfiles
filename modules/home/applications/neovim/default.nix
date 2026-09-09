@@ -1,4 +1,4 @@
-_: {
+{pkgs, ...}: {
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
@@ -10,6 +10,8 @@ _: {
     withRuby = false;
     vimAlias = true;
     viAlias = true;
+    # nvim-treesitter (main) needs the tree-sitter CLI; mason's prebuilt one requires a newer glibc than nike's host.
+    extraPackages = [pkgs.tree-sitter];
     initLua = ''
       require("config.lazy")
     '';

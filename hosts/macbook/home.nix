@@ -5,6 +5,7 @@
   ...
 }: let
   inherit (config.home) homeDirectory;
+  vmHosts = "*.example.com";
 in {
   imports = [
     ../../modules/home
@@ -13,7 +14,7 @@ in {
   local.home-manager = {
     workstation.enable = true;
     # The work VM's sshd accepts SOPS_AGE_KEY (see apps/*/apply-remote).
-    herdr.sopsAgeKeyHosts = ["*.example.com"];
+    herdr.sopsAgeKeyHosts = [vmHosts];
     agents = {
       pi.extraSecretFiles = ["${homeDirectory}/.dotfiles/secrets/work_env.yaml"];
       mcpServers = {
@@ -77,6 +78,17 @@ in {
         path = "~/.gitconfig-github";
       }
     ];
+  };
+
+  # git+ssh on the VM uses this machine's key through agent forwarding, like apply-remote's `ssh -A`.
+  # The launchd ssh-agent starts empty: AddKeysToAgent loads id_ed25519 into it on
+  # first use (declarative `ssh-add`), so there is a key to forward.
+  programs.ssh.settings = {
+    "*" = {
+      AddKeysToAgent = "yes";
+      IdentityFile = "~/.ssh/id_ed25519";
+    };
+    ${vmHosts}.ForwardAgent = true;
   };
 
   home.file.".gitconfig-github" = {

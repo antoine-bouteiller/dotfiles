@@ -44,7 +44,7 @@ if ! command -v git >/dev/null; then
   git() { nix --extra-experimental-features "nix-command flakes" run nixpkgs#git -- "$@"; }
 fi
 if [[ ! -d "$HOME/dotfiles" ]]; then
-  git clone https://github.com/antoine-bouteiller/dotfiles.git "$HOME/dotfiles"
+  git clone git@github.com:antoine-bouteiller/dotfiles.git "$HOME/dotfiles"
   cd "$HOME/dotfiles"
 else
   cd "$HOME/dotfiles"
@@ -55,7 +55,8 @@ nix --extra-experimental-features "nix-command flakes" build --impure .#homeConf
 REMOTE
 )
 
-# Keep stdin attached to the terminal for installer/sudo prompts.
+# Keep stdin attached to the terminal for installer/sudo prompts; forward the
+# local ssh agent so the remote can authenticate with the local key.
 printf -v remote_script 'export VM_USER=%q WORK_EMAIL=%q\n%s' "$VM_USER" "$WORK_EMAIL" "$remote_script"
 escaped_quote="'\''"
-exec ssh -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"
+exec ssh -A -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"

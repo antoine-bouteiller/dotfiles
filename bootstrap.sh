@@ -10,7 +10,7 @@ set -eu
 
 host=${1:-}
 if [ -z "$host" ]; then
-  echo "usage: bootstrap.sh <flake-hostname> [--format|--destructive]" >&2
+  echo "usage: bootstrap.sh <flake-hostname>" >&2
   exit 1
 fi
 

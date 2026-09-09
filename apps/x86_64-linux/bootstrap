@@ -1,36 +1,20 @@
 #!/bin/sh
 set -eu
 #
-# Install/reinstall onto existing filesystems mounted under /mnt.
-# --format creates only the missing partitions/filesystems declared by the host's
-# pinned disko config and mounts them (existing ones are left as they are);
-# --destructive first erases every declared disk.
+# Install/reinstall onto existing filesystems mounted under /mnt. Never partitions
+# or formats: see README.md for the manual layout, mounting and Secure Boot steps.
 #
 #   nix run .#bootstrap -- plex-server
-#   nix run .#bootstrap -- desktop --format
-#   nix run .#bootstrap -- antoine-dell --destructive
-#
-# See README.md for mounting, hardware generation and Secure Boot enrollment.
 
 usage() {
-  echo "usage: nix run .#bootstrap -- <flake-hostname> [--format|--destructive]" >&2
+  echo "usage: nix run .#bootstrap -- <flake-hostname>" >&2
   exit 1
 }
 host=${1:-}
 case "$host" in
   ""|-*|*[!a-zA-Z0-9_-]*) usage ;;
 esac
-case "$#" in
-  1) disko_mode= ;;
-  2)
-    case "$2" in
-      --format) disko_mode=format-mount attr=formatMount ;;
-      --destructive) disko_mode=destroy-format-mount attr=destroyFormatMount ;;
-      *) usage ;;
-    esac
-    ;;
-  *) usage ;;
-esac
+[ "$#" -eq 1 ] || usage
 
 # The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
 # would serve (lanzaboote, custom pkgs) would otherwise be built from source.
@@ -52,19 +36,6 @@ root_device=$(nix eval --raw "$config.fileSystems.\"/\".device")
 efi_mount=$(nix eval --raw "$config.boot.loader.efi.efiSysMountPoint")
 efi_device=$(nix eval --raw "$config.fileSystems.\"$efi_mount\".device")
 secure_boot=$(nix eval --json "$config.secureBoot.enable")
-
-if [ -n "$disko_mode" ]; then
-  # No disko module means this fails before touching any disks. Use the locked
-  # module's generated script, not an independently downloaded disko version.
-  disko=$(nix build --no-link --print-out-paths "$config.system.build.$attr")
-  case "$disko_mode" in
-    destroy-format-mount) echo "DESTRUCTIVE: erasing disks declared by ${host}; disko will ask for confirmation." ;;
-    *) echo "Creating missing partitions/filesystems declared by ${host}; existing ones are kept." ;;
-  esac
-  # Under curl | sh, interactive steps must read the terminal, not the script pipe.
-  [ -t 0 ] || exec </dev/tty
-  sudo "$disko/bin/disko-$disko_mode"
-fi
 
 check_mount() {
   target=$1
@@ -105,6 +76,7 @@ sudo nixos-install --root /mnt --flake ".#${host}" --no-root-password
 # Fresh accounts would otherwise be locked. Do not reset reinstall credentials.
 if [ "$fresh_install" = true ]; then
   echo "Setting the login password..."
+  # Under curl | sh, interactive steps must read the terminal, not the script pipe.
   [ -t 0 ] || exec </dev/tty
   sudo nixos-enter --root /mnt -c 'passwd "$(id -nu 1000)"' ||
     fail "Password not set. Re-run: sudo nixos-enter --root /mnt -c 'passwd \"\$(id -nu 1000)\"'"

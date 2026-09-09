@@ -8,10 +8,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     lanzaboote = {
       url = "github:nix-community/lanzaboote/v1.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -181,26 +177,19 @@
       plex-server = mkNixosHost {
         hostname = "plex-server";
         system = "x86_64-linux";
-        extraModules = [
-          inputs.autoscan.nixosModules.default
-          inputs.disko.nixosModules.disko
-        ];
+        extraModules = [inputs.autoscan.nixosModules.default];
       };
 
       desktop = mkNixosHost {
         hostname = "desktop";
         system = "x86_64-linux";
-        extraModules = [inputs.disko.nixosModules.disko];
       };
 
       "antoine-dell" = mkNixosHost {
         name = "dell";
         hostname = "antoine-dell";
         system = "x86_64-linux";
-        extraModules = [
-          inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia
-          inputs.disko.nixosModules.disko
-        ];
+        extraModules = [inputs.nixos-hardware.nixosModules.dell-xps-15-9500-nvidia];
       };
     };
   };

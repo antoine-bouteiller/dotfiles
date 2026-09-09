@@ -1,6 +1,5 @@
 {
   globals,
-  inputs,
   modulesPath,
   pkgs,
   self,
@@ -15,7 +14,6 @@
     pkgs.parted
     pkgs.gptfdisk
     pkgs.sops
-    inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko
   ];
 
   # Carry the flake so a reinstall needs no clone. The sops age keys live

@@ -11,10 +11,7 @@
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports =
-    [
-      ../base-nixos.nix
-      ./disko.nix
-    ]
+    [../base-nixos.nix]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix;
 
   assertions = [

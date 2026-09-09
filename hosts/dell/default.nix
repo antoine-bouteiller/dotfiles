@@ -12,7 +12,6 @@
 in {
   imports = [
     ../base-nixos.nix
-    ./disko.nix
     ./hardware-configuration.nix
   ];
 

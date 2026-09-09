@@ -20,12 +20,12 @@ Nix flake configuring every machine I use, declaratively: system config via
 
 Hosts:
 
-| Host           | System           | Role                                     |
-| -------------- | ---------------- | ---------------------------------------- |
-| `macbook`      | `aarch64-darwin` | work MacBook                             |
-| `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (disko + secure boot) |
-| `desktop`      | `x86_64-linux`   | Windows dual boot (disko + secure boot)  |
-| `plex-server`  | `x86_64-linux`   | home media server                        |
+| Host           | System           | Role                                    |
+| -------------- | ---------------- | --------------------------------------- |
+| `macbook`      | `aarch64-darwin` | work MacBook                            |
+| `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (LUKS + secure boot) |
+| `desktop`      | `x86_64-linux`   | Windows dual boot (LUKS + secure boot)  |
+| `plex-server`  | `x86_64-linux`   | home media server                       |
 
 ## Layout
 
@@ -102,39 +102,35 @@ installs, and incomplete or missing reinstall keys require restoration. This sti
 writes a NixOS generation and bootloader: back up first. Keep existing SSH host keys
 and sops keys, especially on `plex-server`, whose secrets use its SSH host key.
 
-### Partitioning with disko (explicit opt-in)
+### Partitioning a new disk (`antoine-dell`, `desktop`)
 
-Both modes use the flake's pinned disko module and the host's `disko.nix`; hosts
-without one fail before touching any disk. The download wrapper accepts the same
-flags.
+Bootstrap never partitions or formats. Both hosts declare the same layout in their
+`hardware-configuration.nix`, addressed by GPT partition label rather than UUID so a
+fresh disk needs no config change: ESP labelled `disk-main-ESP`, and a LUKS2
+partition labelled `disk-main-luks` holding LVM volume group `vg` with LVs `swap`
+(>= RAM, for hibernate) and `root` (ext4). From the ISO, on an empty disk:
 
 ```sh
-nix run .#bootstrap -- desktop --format
-nix run .#bootstrap -- antoine-dell --destructive
+disk=/dev/nvme0n1
+sudo sgdisk --zap-all "$disk"
+sudo sgdisk -n 1:0:+1G -t 1:EF00 -c 1:disk-main-ESP "$disk"
+sudo sgdisk -n 2:0:0 -t 2:8309 -c 2:disk-main-luks "$disk"
+sudo cryptsetup luksFormat /dev/disk/by-partlabel/disk-main-luks
+sudo cryptsetup open /dev/disk/by-partlabel/disk-main-luks cryptroot
+sudo vgcreate vg /dev/mapper/cryptroot
+sudo lvcreate -L 20G -n swap vg   # 32G on desktop
+sudo lvcreate -l 100%FREE -n root vg
+sudo mkfs.vfat -F 32 /dev/disk/by-partlabel/disk-main-ESP
+sudo mkswap /dev/vg/swap
+sudo mkfs.ext4 /dev/vg/root
+sudo mount /dev/vg/root /mnt
+sudo mount --mkdir -o fmask=0077,dmask=0077 /dev/disk/by-partlabel/disk-main-ESP /mnt/boot
 ```
 
-`--format` is non-destructive: it never clears a partition table that already has
-one, creates only declared partitions that do not exist yet (by number), and skips
-`mkfs`/`luksFormat`/`vgcreate`/`lvcreate`/`mkswap` on anything that already holds a
-signature, then mounts under `/mnt`. Undeclared partitions are never touched. It does
-rewrite the label, type code and GUID of every _declared_ partition number, so a
-`_index` that collides with a foreign partition corrupts its metadata: pin `_index`
-above existing partitions when sharing a disk. Dry-run first with
-`nix build --print-out-paths .#nixosConfigurations.<host>.config.system.build.formatMount`
-and read the generated script against `sudo sgdisk -p <device>`.
+On a reinstall, skip `sgdisk`/`luksFormat`/`vgcreate`/`lvcreate`/`mkfs`: `cryptsetup open`,
+`sudo vgchange -ay`, mount, then run bootstrap.
 
-`--destructive` **erases every disk declared by the host's disko configuration**
-after disko's confirmation prompt. Never use it on a disk containing Windows.
-
-#### `plex-server`
-
-`hosts/plex-server/disko.nix` declares the system disk plus the `media` and `backup`
-data disks, with `disko.enableConfig = false` so the live host keeps mounting its
-filesystems from `hardware-configuration.nix`. Only `--format` is safe there: it
-adopts the existing partitions and mounts them. **`--destructive` erases the media
-and backup disks too.**
-
-### First installation of `desktop` alongside Windows
+#### `desktop` alongside Windows
 
 - Back up Windows and save its BitLocker/device-encryption recovery key off-device.
   Suspend BitLocker protection before firmware changes, disable Windows Fast Startup,
@@ -142,27 +138,20 @@ and backup disks too.**
 - Boot the ISO in UEFI mode. Temporarily disable Secure Boot if needed to boot the
   unsigned installer; do not clear the TPM.
 - Inspect `lsblk -o NAME,PATH,SIZE,FSTYPE,PARTTYPE,MOUNTPOINTS` and
-  `sudo sgdisk -p <device>`, then fill in the `CHECK` values in
-  `hosts/desktop/disko.nix`: the disk device, `_index` numbers above every Windows
-  partition, and the LUKS size (freed space minus the 2 GiB Linux EFI partition).
-  Sizes stay explicit because Windows recovery usually ends the disk. The layout
-  is Dell's (LUKS2 > LVM > swap + ext4 root) placed in the freed space; Windows'
-  EFI and recovery partitions are not declared and therefore never formatted. Use
-  the firmware boot menu to pick Windows, since the EFI partitions are separate.
+  `sudo sgdisk -p <device>`. Do **not** `--zap-all`; create the two partitions above in
+  the freed space with numbers above every Windows partition (e.g. `-n 5:0:+2G` and
+  `-n 6:0:+93G`), with explicit sizes because Windows recovery usually ends the disk.
+  Windows' own EFI partition stays separate, so pick Windows from the firmware boot menu.
 
 From the writable checkout:
 
 ```sh
-sudo nixos-generate-config --show-hardware-config --no-filesystems > hosts/desktop/hardware-configuration.nix
-git add hosts/desktop/disko.nix hosts/desktop/hardware-configuration.nix
-nix run .#bootstrap -- desktop --format
+sudo nixos-generate-config --show-hardware-config --no-filesystems
+# merge the module lists into hosts/desktop/hardware-configuration.nix, keep its filesystem block
+git add hosts/desktop/hardware-configuration.nix
+nix run .#bootstrap -- desktop
 ```
 
-The hardware file needs no mounts (`--no-filesystems`: disko owns `fileSystems`,
-`swapDevices` and `boot.resumeDevice`). Bootstrap validates the configuration,
-then disko creates and mounts the Linux partitions and the install proceeds.
-`--format` is idempotent, so a reinstall reruns the same command onto the existing
-filesystems.
 GPU driver settings may also be needed; the generator does not select proprietary
 NVIDIA drivers.
 

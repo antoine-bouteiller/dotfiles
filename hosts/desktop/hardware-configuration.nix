@@ -1,6 +1,6 @@
 # Minimal hand-written stand-in for `nixos-generate-config`. Refresh on the installed
-# machine with `nixos-generate-config --show-hardware-config --no-filesystems`:
-# fileSystems/swapDevices come from ./disko.nix and would collide.
+# machine with `nixos-generate-config --show-hardware-config --no-filesystems` and
+# keep the filesystem block below (LVM paths, not by-uuid).
 {
   config,
   lib,
@@ -22,6 +22,34 @@
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [];
+
+  # Single LUKS2 container holding an LVM VG (swap + root); the ESP sits beside it.
+  # Swap is an LV rather than a swapfile: hibernate resumes from /dev/vg/swap and
+  # needs no resume_offset. Partition labels are set at partitioning time (README).
+  boot.initrd.luks.devices.cryptroot = {
+    device = "/dev/disk/by-partlabel/disk-main-luks";
+    allowDiscards = true; # NVMe TRIM through the LUKS mapping
+    # TPM2 slot is enrolled post-install by `nix run .#secure-boot`; the passphrase
+    # stays as the recovery path.
+    crypttabExtraOpts = ["tpm2-device=auto"];
+  };
+  boot.initrd.services.lvm.enable = true;
+
+  fileSystems."/" = {
+    device = "/dev/vg/root";
+    fsType = "ext4";
+  };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-partlabel/disk-main-ESP";
+    fsType = "vfat";
+    options = [
+      "fmask=0077"
+      "dmask=0077"
+    ];
+  };
+  # 32G >= RAM, else hibernate fails to write its image.
+  swapDevices = [{device = "/dev/vg/swap";}];
+  boot.resumeDevice = "/dev/vg/swap";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

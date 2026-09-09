@@ -10,7 +10,6 @@ in {
   imports = [
     ../base-nixos.nix
     ./media
-    ./disko.nix
     ./hardware-configuration.nix
   ];
 

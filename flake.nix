@@ -130,7 +130,12 @@
     checks = forAllSystems (
       system: let
         darwinChecks = nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) (
-          nixpkgs.lib.mapAttrs (_: cfg: cfg.system) self.darwinConfigurations
+          # ponytail: CI omits the builder VM; restore coverage when CI has a Linux builder.
+          nixpkgs.lib.mapAttrs (_: cfg:
+            (cfg.extendModules {
+              modules = [{nix.linux-builder.enable = nixpkgs.lib.mkForce false;}];
+            }).system)
+          self.darwinConfigurations
         );
         # `iso` is deliberately excluded: CI would build a full ISO on every push.
         # Include desktop once its on-device hardware configuration is tracked.

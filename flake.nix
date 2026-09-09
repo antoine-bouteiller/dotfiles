@@ -167,7 +167,10 @@
       plex-server = mkNixosHost {
         hostname = "plex-server";
         system = "x86_64-linux";
-        extraModules = [inputs.autoscan.nixosModules.default];
+        extraModules = [
+          inputs.autoscan.nixosModules.default
+          inputs.disko.nixosModules.disko
+        ];
       };
 
       desktop = mkNixosHost {

@@ -149,13 +149,29 @@
           ))
         );
       in
-        darwinChecks // nixosChecks
+        darwinChecks
+        // nixosChecks
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          work-vm = self.homeConfigurations.work-vm.activationPackage;
+        }
     );
 
     darwinConfigurations."lv6cfqjl6l-macos" = mkDarwinHost {
       name = "work";
       hostname = "lv6cfqjl6l-macos";
       system = "aarch64-darwin";
+    };
+
+    homeConfigurations.work-vm = inputs.home-manager.lib.homeManagerConfiguration {
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfree = true;
+      };
+      extraSpecialArgs = {
+        inherit inputs globals;
+        mkModule = import ./lib/module.nix nixpkgs.lib;
+      };
+      modules = [./hosts/work-vm/home.nix];
     };
 
     nixosConfigurations = {

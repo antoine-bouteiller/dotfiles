@@ -1,7 +1,5 @@
 #!/bin/sh -e
 
-shift 2>/dev/null || true
-
 echo "Applying NixOS configuration..."
 nh os switch . --impure "$@"
 echo "Switch to new generation complete!"

@@ -30,9 +30,19 @@ def fetch_latest_version []: nothing -> string {
   | str trim --left --char "v"
 }
 
+# `nix hash convert` (modern Nix) and `nix hash to-sri` (Lix, older Nix) both
+# produce SRI form.
+def sri_hash [checksum: string]: nothing -> string {
+  try {
+    nix hash convert --hash-algo sha256 --to sri $checksum | str trim
+  } catch {
+    nix hash to-sri --type sha256 $checksum | str trim
+  }
+}
+
 def prefetch_hash [url: string]: nothing -> string {
   let hex = nix-prefetch-url --type sha256 $url | lines | last
-  nix hash convert --hash-algo sha256 --to sri $hex | str trim
+  sri_hash $hex
 }
 
 def main [] {

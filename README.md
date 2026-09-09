@@ -95,8 +95,8 @@ and sops keys, especially on `plex-server`, whose secrets use its SSH host key.
 ### Partitioning with disko (explicit opt-in)
 
 Both modes use the flake's pinned disko module and the host's `disko.nix`; hosts
-without one (`plex-server`) fail before touching any disk. The download wrapper
-accepts the same flags.
+without one fail before touching any disk. The download wrapper accepts the same
+flags.
 
 ```sh
 nix run .#bootstrap -- desktop --format
@@ -116,16 +116,13 @@ and read the generated script against `sudo sgdisk -p <device>`.
 `--destructive` **erases every disk declared by the host's disko configuration**
 after disko's confirmation prompt. Never use it on a disk containing Windows.
 
-#### Migrating `plex-server` to disko without reformatting
+#### `plex-server`
 
-Write `hosts/plex-server/disko.nix` mirroring the current layout exactly: same
-device, one partition per existing partition with matching `_index`, `size`,
-`type` and `format`, and the current mountpoints. Regenerate the hardware file with
-`nixos-generate-config --show-hardware-config --no-filesystems` (disko now owns
-`fileSystems`/`swapDevices`), import both, stage, then run `--format` from the ISO:
-every step is skipped except relabeling, and the filesystems get mounted for the
-regular reinstall. Filesystem UUIDs are preserved; PARTUUIDs are not, so nothing
-may reference `/dev/disk/by-partuuid`.
+`hosts/plex-server/disko.nix` declares the system disk plus the `media` and `backup`
+data disks, with `disko.enableConfig = false` so the live host keeps mounting its
+filesystems from `hardware-configuration.nix`. Only `--format` is safe there: it
+adopts the existing partitions and mounts them. **`--destructive` erases the media
+and backup disks too.**
 
 ### First installation of `desktop` alongside Windows
 

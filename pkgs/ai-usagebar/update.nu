@@ -22,6 +22,16 @@ def gh_headers []: nothing -> list<string> {
   if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
 }
 
+# `nix hash convert` (modern Nix) and `nix hash to-sri` (Lix, older Nix) both
+# produce SRI form.
+def sri_hash [checksum: string]: nothing -> string {
+  try {
+    nix hash convert --hash-algo sha256 --to sri $checksum | str trim
+  } catch {
+    nix hash to-sri --type sha256 $checksum | str trim
+  }
+}
+
 def main [] {
   let sources_path = root_dir | path join "sources.json"
   let current_version = open $sources_path | get version
@@ -42,7 +52,7 @@ def main [] {
   for platform in ($platforms | transpose nix_platform arch) {
     let url = $"($base)/ai-usagebar-linux-($platform.arch).tar.gz"
     let hex = http get $"($url).sha256" | decode utf-8 | str trim | split row " " | first
-    let hash = nix hash convert --hash-algo sha256 $hex | str trim
+    let hash = sri_hash $hex
     $platforms_data = $platforms_data | insert $platform.nix_platform {url: $url, hash: $hash}
     print $"  ($platform.nix_platform): ($hash)"
   }

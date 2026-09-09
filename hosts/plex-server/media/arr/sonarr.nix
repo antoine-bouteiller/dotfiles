@@ -35,6 +35,8 @@ in {
   };
 
   systemd.tmpfiles.rules = [
+    # The module only provisions StateDirectory for its default dataDir.
+    "d ${constants.sonarr.dataDir} 0775 ${constants.sonarr.user} ${constants.sonarr.group} - -"
     "d '${constants.paths.mediaDir}/torrents/sonarr' 0775 ${constants.libraryOwner.user} ${constants.libraryOwner.group} - -"
   ];
 

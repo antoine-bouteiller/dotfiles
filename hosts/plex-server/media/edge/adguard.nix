@@ -5,6 +5,10 @@
   ...
 }: let
   localDomains = lib.unique (map (service: service.domain) (lib.attrValues config.local.media));
+  python = pkgs.python3.withPackages (ps: [ps.pyyaml]);
+  rewrites = ./adguard-rewrites.py;
+  adguardYaml = "/var/lib/AdGuardHome/AdGuardHome.yaml";
+  handoffDir = "/run/adguardhome-tailscale-rewrites";
 in {
   config = {
     local.media.adguard = {
@@ -40,86 +44,63 @@ in {
       };
     };
 
-    systemd.services.adguardhome-tailscale-rewrites = {
-      description = "Point AdGuard Home local DNS rewrites at the Tailscale IP";
+    # AdGuard is the host's only resolver, so it must start without Tailscale.
+    # A bounded timer publishes the desired rewrites into a root-owned runtime
+    # directory and queues a native restart only when they changed; AdGuard's own
+    # pre-start hook applies them while the daemon is stopped, never touching the
+    # live YAML. Doing the lookup inside AdGuard is impossible: its sandbox has no
+    # AF_UNIX for the tailscaled socket.
+    systemd.tmpfiles.rules = ["d ${handoffDir} 0755 root root - -"];
 
-      after = ["tailscaled.service"];
-      wants = ["tailscaled.service"];
-      before = ["adguardhome.service"];
-      wantedBy = ["multi-user.target"];
+    systemd.timers.adguardhome-tailscale-rewrites = {
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnBootSec = "30s";
+        OnUnitInactiveSec = "1min";
+      };
+    };
+
+    systemd.services.adguardhome-tailscale-rewrites = {
+      description = "Reconcile AdGuard Home local DNS rewrites with the Tailscale IP";
 
       path = [
         pkgs.coreutils
         pkgs.tailscale
-        (pkgs.python3.withPackages (ps: [ps.pyyaml]))
+        pkgs.systemd
+        python
       ];
 
-      environment.LOCAL_DNS_DOMAINS = builtins.concatStringsSep " " localDomains;
+      environment = {
+        ADGUARD_YAML = adguardYaml;
+        REWRITES_DESIRED = "${handoffDir}/desired.json";
+        LOCAL_DNS_DOMAINS = builtins.concatStringsSep " " localDomains;
+      };
 
       serviceConfig = {
         Type = "oneshot";
-        RemainAfterExit = true;
+        TimeoutStartSec = "10s";
       };
 
       script = ''
-        set -euo pipefail
-
-        echo "Waiting for Tailscale IPv4 address..."
-        while true; do
-          tailscale_ip=$(tailscale ip -4 2>/dev/null || true)
-          if [ -n "$tailscale_ip" ]; then
-            break
-          fi
-          sleep 2
-        done
-        export tailscale_ip
-        echo "Tailscale IP found: $tailscale_ip"
-
-        python - <<'PY'
-        import os
-        import sys
-        import tempfile
-        from pathlib import Path
-        import yaml
-
-        config_path = Path("/var/lib/AdGuardHome/AdGuardHome.yaml")
-        tailscale_ip = os.environ["tailscale_ip"]
-        domains = os.environ.get("LOCAL_DNS_DOMAINS", "").split()
-
-        if config_path.exists():
-            with config_path.open() as f:
-                config = yaml.safe_load(f) or {}
-        else:
-            config = {}
-
-        filtering = config.setdefault("filtering", {})
-        managed_rewrites = [
-            {"domain": domain, "answer": tailscale_ip, "enabled": True}
-            for domain in domains
-        ]
-
-        if filtering.get("rewrites") == managed_rewrites and filtering.get("rewrites_enabled", True):
-            print("Configuration is already up to date.")
-            sys.exit(0)
-
-        filtering["rewrites_enabled"] = True
-        filtering["rewrites"] = managed_rewrites
-
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile("w", dir=config_path.parent, delete=False) as tf:
-            yaml.safe_dump(config, tf, sort_keys=False)
-            temp_name = tf.name
-
-        os.replace(temp_name, config_path)
-
-        # Inherit ownership from the systemd-managed parent folder
-        dir_stat = config_path.parent.stat()
-        os.chown(config_path, dir_stat.st_uid, dir_stat.st_gid)
-        os.chmod(config_path, 0o600)
-
-        print("AdGuard Home configuration updated successfully.")
-        PY
+        ip=$(timeout 5s tailscale ip -4 2>/dev/null) || ip=
+        if [ -z "$ip" ]; then
+          echo "No Tailscale IPv4 address; leaving DNS rewrites unchanged"
+          exit 0
+        fi
+        rc=0
+        # shellcheck disable=SC2086
+        python ${rewrites} check "$ADGUARD_YAML" "$REWRITES_DESIRED" "$ip" $LOCAL_DNS_DOMAINS || rc=$?
+        case $rc in
+          0) ;;
+          1) systemctl --no-block try-restart adguardhome.service ;;
+          *) exit "$rc" ;;
+        esac
       '';
     };
+
+    systemd.services.adguardhome.preStart = lib.mkAfter ''
+      ${python}/bin/python ${rewrites} apply ${handoffDir}/desired.json ${adguardYaml} \
+        || echo "AdGuard rewrite update failed; retaining working DNS configuration" >&2
+    '';
   };
 }

@@ -4,15 +4,18 @@
   osConfig,
   pkgs,
   lib,
+  inputs,
   ...
 } @ args:
 mkModule args "local.home-manager.zed" {
   description = "zed editor";
   config = _: let
     inherit (config.lib.file) mkOutOfStoreSymlink;
+    customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
     zedDit = "${osConfig.flakePath}/modules/home/applications/zed";
   in {
-    home.packages = lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [pkgs.zed-editor];
+    # settings.json points the jdtls extension at go-jls; Darwin gets the editor from Homebrew.
+    home.packages = [customPkgs.go-jls] ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [pkgs.zed-editor];
 
     programs.zsh.shellAliases = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) {
       zed = "zeditor";

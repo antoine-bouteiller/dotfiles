@@ -45,23 +45,14 @@ sudo systemctl restart nix-daemon
 echo 'AcceptEnv SOPS_AGE_KEY' | sudo tee /etc/ssh/sshd_config.d/50-sops-age.conf >/dev/null
 sudo systemctl reload ssh
 
-if ! command -v git >/dev/null; then
-  git() { nix --extra-experimental-features "nix-command flakes" run nixpkgs#git -- "$@"; }
-fi
-if [[ ! -d "$HOME/dotfiles" ]]; then
-  git clone git@github.com:antoine-bouteiller/dotfiles.git "$HOME/dotfiles"
-  cd "$HOME/dotfiles"
-else
-  cd "$HOME/dotfiles"
-  git pull --ff-only
-fi
-nix --extra-experimental-features "nix-command flakes" build --impure .#homeConfigurations.work-vm.activationPackage
-./result/activate
+# No checkout on the VM: build straight from GitHub (always deploys main).
+out=$(nix --extra-experimental-features "nix-command flakes" build --impure --no-link --print-out-paths \
+  github:antoine-bouteiller/dotfiles#homeConfigurations.work-vm.activationPackage)
+"$out/activate"
 REMOTE
 )
 
-# Keep stdin attached to the terminal for installer/sudo prompts; forward the
-# local ssh agent so the remote can authenticate with the local key.
+# Keep stdin attached to the terminal for installer/sudo prompts.
 printf -v remote_script 'export VM_USER=%q WORK_EMAIL=%q\n%s' "$VM_USER" "$WORK_EMAIL" "$remote_script"
 escaped_quote="'\''"
-exec ssh -A -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"
+exec ssh -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"

@@ -1,11 +1,11 @@
 {
   inputs,
-  globals,
+  host,
   config,
   pkgs,
   ...
 }: let
-  inherit (globals) user;
+  inherit (host) user;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
@@ -77,10 +77,6 @@ in {
 
   home-manager = {
     useGlobalPkgs = true;
-    extraSpecialArgs = {
-      inherit inputs globals;
-      hostUser = user;
-    };
     users.${user} = import ./home.nix;
   };
 

@@ -11,9 +11,14 @@
     sops-nix
     ;
   mkModule = import ./module.nix nixpkgs.lib;
-  commonSpecialArgs = {inherit inputs globals mkModule self;};
-  # Home-manager modules don't inherit the system specialArgs.
-  hmSpecialArgs = {home-manager.extraSpecialArgs = {inherit mkModule;};};
+  # The iso host has no user entry.
+  mkSpecialArgs = name: let
+    host = globals.hosts.${name} or {};
+  in {
+    common = {inherit inputs globals host mkModule self;};
+    # Home-manager modules don't inherit the system specialArgs.
+    hm = {home-manager.extraSpecialArgs = {inherit inputs globals host mkModule;};};
+  };
 in {
   mkDarwinHost = {
     hostname,
@@ -22,14 +27,15 @@ in {
     extraModules ? [],
   }: let
     hostDir = self + "/hosts/${name}";
+    specialArgs = mkSpecialArgs name;
   in
     darwin.lib.darwinSystem {
       inherit system;
-      specialArgs = commonSpecialArgs;
+      specialArgs = specialArgs.common;
       modules =
         [
           home-manager.darwinModules.home-manager
-          hmSpecialArgs
+          specialArgs.hm
           # Declared here rather than in modules/common, because it is set here and
           # the iso host imports no common modules at all.
           (self + "/modules/common/host-dir.nix")
@@ -49,14 +55,15 @@ in {
     extraModules ? [],
   }: let
     hostDir = self + "/hosts/${name}";
+    specialArgs = mkSpecialArgs name;
   in
     nixpkgs.lib.nixosSystem {
       inherit system;
-      specialArgs = commonSpecialArgs;
+      specialArgs = specialArgs.common;
       modules =
         [
           home-manager.nixosModules.home-manager
-          hmSpecialArgs
+          specialArgs.hm
           sops-nix.nixosModules.sops
           (self + "/modules/common/host-dir.nix")
           {

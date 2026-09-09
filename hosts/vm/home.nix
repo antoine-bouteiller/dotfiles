@@ -1,5 +1,5 @@
 {
-  config,
+  host,
   inputs,
   lib,
   pkgs,
@@ -22,8 +22,8 @@
   };
 
   home = {
-    username = (let value = builtins.getEnv "VM_USER"; in if value == "" then throw "Set VM_USER and evaluate with --impure" else value);
-    homeDirectory = "/home/${config.home.username}";
+    username = host.user;
+    homeDirectory = "/home/${host.user}";
     stateVersion = "26.05";
     packages = [pkgs.bat];
   };

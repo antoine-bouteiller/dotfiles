@@ -166,6 +166,7 @@
       };
       extraSpecialArgs = {
         inherit inputs globals;
+        host = globals.hosts.vm;
         mkModule = import ./lib/module.nix nixpkgs.lib;
       };
       modules = [./hosts/vm/home.nix];

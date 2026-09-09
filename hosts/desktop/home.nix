@@ -1,6 +1,6 @@
 {
   lib,
-  hostUser,
+  host,
   ...
 }: {
   imports = [
@@ -11,8 +11,8 @@
 
   home = {
     enableNixpkgsReleaseCheck = false;
-    username = hostUser;
-    homeDirectory = lib.mkForce "/home/${hostUser}";
+    username = host.user;
+    homeDirectory = lib.mkForce "/home/${host.user}";
     stateVersion = "26.05";
   };
 }

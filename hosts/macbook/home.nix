@@ -1,5 +1,4 @@
 {
-  globals,
   pkgs,
   config,
   ...
@@ -66,20 +65,6 @@ in {
     NODE_PATH = "${homeDirectory}/.npm-packages/lib/node_modules";
   };
 
-  programs.git = {
-    settings.user.email = (let value = builtins.getEnv "WORK_EMAIL"; in if value == "" then throw "Set WORK_EMAIL and evaluate with --impure" else value);
-    includes = [
-      {
-        condition = "hasconfig:remote.*.url:git@github.com:*/**";
-        path = "~/.gitconfig-github";
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://github.com/**";
-        path = "~/.gitconfig-github";
-      }
-    ];
-  };
-
   # git+ssh on the VM uses this machine's key through agent forwarding, like apply-remote's `ssh -A`.
   # The launchd ssh-agent starts empty: AddKeysToAgent loads id_ed25519 into it on
   # first use (declarative `ssh-add`), so there is a key to forward.
@@ -89,13 +74,6 @@ in {
       IdentityFile = "~/.ssh/id_ed25519";
     };
     ${vmHosts}.ForwardAgent = true;
-  };
-
-  home.file.".gitconfig-github" = {
-    text = ''
-      [user]
-        email = ${globals.email}
-    '';
   };
 
   home.file.".npmrc".text = ''

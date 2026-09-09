@@ -1,11 +1,11 @@
 {
   config,
   globals,
-  inputs,
+  host,
   pkgs,
   ...
 }: let
-  user = "antoineb";
+  inherit (host) user;
 in {
   imports = [
     ../base-nixos.nix
@@ -30,10 +30,6 @@ in {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = {
-      inherit inputs globals;
-      hostUser = user;
-    };
     users.${user} = import ./home.nix;
   };
 

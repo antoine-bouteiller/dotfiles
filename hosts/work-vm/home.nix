@@ -10,6 +10,7 @@
 
   local.home-manager = {
     shell-tools.enable = true;
+    herdr.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;

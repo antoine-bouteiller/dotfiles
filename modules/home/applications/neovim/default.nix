@@ -10,7 +10,7 @@
     withRuby = false;
     vimAlias = true;
     viAlias = true;
-    # nvim-treesitter (main) needs the tree-sitter CLI; mason's prebuilt one requires a newer glibc than nike's host.
+    # nvim-treesitter (main) needs the tree-sitter CLI; mason's prebuilt one requires a newer glibc than the standalone HM host.
     extraPackages = [pkgs.tree-sitter];
     initLua = ''
       require("config.lazy")

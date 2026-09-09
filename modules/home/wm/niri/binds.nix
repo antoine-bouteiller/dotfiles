@@ -1,5 +1,5 @@
 # Every niri keybind, rendered as the lines of a `binds` node. The half that
-# work's paneru config renders too comes from ../keymap.nix; the rest is
+# the paneru config renders too comes from ../keymap.nix; the rest is
 # niri/noctalia-only and stays here.
 {lib}: let
   apps = {

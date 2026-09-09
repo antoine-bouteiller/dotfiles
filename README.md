@@ -22,7 +22,7 @@ Hosts:
 
 | Host           | System           | Role                                     |
 | -------------- | ---------------- | ---------------------------------------- |
-| `work`       | `aarch64-darwin` | work MacBook                             |
+| `macbook`      | `aarch64-darwin` | work MacBook                             |
 | `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (disko + secure boot) |
 | `desktop`      | `x86_64-linux`   | Windows dual boot (disko + secure boot)  |
 | `plex-server`  | `x86_64-linux`   | home media server                        |

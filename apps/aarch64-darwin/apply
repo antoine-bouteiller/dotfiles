@@ -1,6 +1,6 @@
 #!/bin/sh -e
-
+. "$(dirname "$0")/../host-attr.sh"
 
 echo "Applying darwin configuration..."
-nh darwin switch . --impure "$@"
+nh darwin switch . --impure -H "$(host_attr darwin)" "$@"
 echo "Switch to new generation complete!"

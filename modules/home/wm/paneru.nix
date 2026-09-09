@@ -7,7 +7,7 @@
   keymap = import ./keymap.nix;
   inherit (import ../../../lib/palette.nix {inherit lib;}) colors;
 
-  # Option sits where SUPER does on dell, two keys left of the spacebar. Cmd is
+  # Option sits where SUPER does under niri, two keys left of the spacebar. Cmd is
   # left to macOS, which already owns Cmd+W and friends. Ctrl joins it because
   # the Apple fr layout puts a character on every alt+<key>: alt+shift+l is a
   # pipe, alt+arrow is word-wise motion. Ctrl+alt types nothing at all, and niri
@@ -54,7 +54,7 @@
       ])
       keymap.workspaceKeys);
 in
-  # The module is inert until enabled, and it asserts macOS itself: dell tiles
+  # The module is inert until enabled, and it asserts macOS itself: Linux hosts tile
   # with niri and never sets the toggle.
   mkModule args "local.home-manager.paneru" {
     description = "the Paneru sliding window manager";

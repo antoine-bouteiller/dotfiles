@@ -1,4 +1,4 @@
-# Bindings shared between niri on dell and paneru on work; the action set is the
+# Bindings shared between niri on Linux and paneru on macOS; the action set is the
 # intersection of the two, anything one-sided stays in its own renderer. Both are
 # scrollable-tiling, so the vocabulary is columns and rows rather than a tree.
 #

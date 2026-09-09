@@ -149,17 +149,17 @@
         darwinChecks
         // nixosChecks
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          work-vm = self.homeConfigurations.work-vm.activationPackage;
+          vm = self.homeConfigurations.vm.activationPackage;
         }
     );
 
     darwinConfigurations."lv6cfqjl6l-macos" = mkDarwinHost {
-      name = "work";
+      name = "macbook";
       hostname = "lv6cfqjl6l-macos";
       system = "aarch64-darwin";
     };
 
-    homeConfigurations.work-vm = inputs.home-manager.lib.homeManagerConfiguration {
+    homeConfigurations.vm = inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = import nixpkgs {
         system = "x86_64-linux";
         config.allowUnfree = true;
@@ -168,7 +168,7 @@
         inherit inputs globals;
         mkModule = import ./lib/module.nix nixpkgs.lib;
       };
-      modules = [./hosts/work-vm/home.nix];
+      modules = [./hosts/vm/home.nix];
     };
 
     nixosConfigurations = {

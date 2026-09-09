@@ -60,7 +60,7 @@ mkModule args "local.nixos.desktop" {
     # swaylock, sudo and polkit-1 keep fingerprint; tty login loses it, being this stack.
     security.pam.services.login.fprintAuth = false;
 
-    # The key left of the spacebar -- Alt here, Cmd on the MacBook -- becomes a layer
+    # The key left of the spacebar -- Alt on a PC keyboard, Cmd on a Mac -- becomes a layer
     # carrying Ctrl, so the same physical key copies and closes tabs on both machines.
     # keyd remaps below the compositor, so this covers every app.
     #

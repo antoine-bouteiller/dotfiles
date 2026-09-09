@@ -50,10 +50,6 @@
       url = "github:karinushka/paneru";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {
       url = "github:vercel-labs/agent-browser";
@@ -127,12 +123,6 @@
           neostation = pkgs.callPackage ./pkgs/neostation {};
           ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
         }
-    );
-
-    # treefmt (alejandra/deadnix/statix/oxfmt/renovate-validator).
-    # Run with `nix fmt`; also invoked by the git pre-commit hook.
-    formatter = forAllSystems (
-      system: (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
     );
 
     checks = forAllSystems (

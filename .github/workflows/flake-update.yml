@@ -27,8 +27,11 @@ jobs:
           GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
         run: nix run --impure .#update
 
+      - name: Update dev flake.lock
+        run: nix flake update --flake ./dev
+
       - name: Format
-        run: nix fmt
+        run: nix run ./dev
 
       - name: Open auto-merging pull request
         env:

@@ -38,15 +38,25 @@ Hosts:
 
 ## Commands
 
-| Command                              | Effect                                                       |
-| ------------------------------------ | ------------------------------------------------------------ |
-| `nix run .#apply`                    | `darwin-rebuild`/`nixos-rebuild switch` for the current host |
-| `nix run .#update`                   | `nix flake update` + run every package's `update.nu`         |
-| `nix run .#clean`                    | GC all but the 2 latest generations                          |
-| `nix build .#checks.<system>.<host>` | dry build a host (CI builds all)                             |
-| `nix fmt`                            | treefmt (alejandra, deadnix, statix, oxfmt)                  |
+| Command                              | Effect                                                          |
+| ------------------------------------ | --------------------------------------------------------------- |
+| `nix run .#apply`                    | `darwin-rebuild`/`nixos-rebuild switch` for the current host    |
+| `nix run .#update`                   | `nix flake update` + run every package's `update.nu`            |
+| `nix run .#clean`                    | GC all but the 2 latest generations                             |
+| `nix build .#checks.<system>.<host>` | dry build a host (CI builds all)                                |
+| `nix run ./dev`                      | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator) |
 
 Flakes ignore untracked files: `git add` new `.nix` files before applying.
+
+## Development
+
+Run `direnv allow` from the repository root (or `nix develop ./dev`). The independent
+`dev/` flake provides treefmt and gitleaks; `git-hooks.nix` installs their pre-commit hooks.
+These tools are not installed by the host configurations. Pre-commit preserves unstaged
+changes; when formatting changes a file, re-stage it and retry the commit.
+
+Use `treefmt` in the dev shell or `nix run ./dev` from the repository root.
+Update the dev inputs separately with `nix flake update --flake ./dev`; CI updates both locks weekly.
 
 # Install
 

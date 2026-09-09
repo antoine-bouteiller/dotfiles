@@ -1,7 +1,6 @@
 {
   mkModule,
   pkgs,
-  inputs,
   ...
 } @ args: let
   zoxideInit = pkgs.runCommand "zoxide-init.zsh" {} ''
@@ -18,11 +17,8 @@
   '';
 in
   mkModule args "local.home-manager.shell-tools" {
-    description = "shell tools (zoxide, direnv, carapace, mise, treefmt)";
+    description = "shell tools (zoxide, direnv, carapace, mise)";
     config = _: {
-      # Same treefmt wrapper `nix fmt` uses (config baked in), so `treefmt` works anywhere.
-      home.packages = [inputs.self.formatter.${pkgs.stdenv.hostPlatform.system}];
-
       programs = {
         zoxide = {
           enable = true;

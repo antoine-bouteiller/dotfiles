@@ -21,6 +21,22 @@
     };
   };
 
+  programs.mcp.servers = {
+    linear = {
+      type = "http";
+      url = "https://mcp.linear.app/mcp";
+      headers.Authorization = "Bearer \${LINEAR_TOKEN}";
+    };
+    figma = {
+      type = "http";
+      url = "https://mcp.figma.com/mcp";
+      oauth = {
+        clientName = "Claude Code";
+        scope = "mcp:connect";
+      };
+    };
+  };
+
   home = {
     username = host.user;
     homeDirectory = "/home/${host.user}";

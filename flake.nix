@@ -72,7 +72,8 @@
     in {
       type = "app";
       program = "${(pkgs.writeScriptBin scriptName ''
-        #!/usr/bin/env bash
+        #!${pkgs.bash}/bin/bash
+        export PATH="${pkgs.bash}/bin:$PATH"
         echo "Running ${scriptName} for ${system}"
         exec ${self}/apps/${system}/${scriptName} "$@"
       '')}/bin/${scriptName}";

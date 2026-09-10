@@ -1,4 +1,5 @@
 {
+  config,
   host,
   inputs,
   lib,
@@ -13,6 +14,7 @@
 
   local.home-manager = {
     shell-tools.enable = true;
+    zsh.localConfigFile = "${config.home.homeDirectory}/.local/share/dotfiles/zvm";
     herdr.enable = true;
     agents = {
       enable = true;

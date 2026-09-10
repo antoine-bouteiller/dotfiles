@@ -2,8 +2,16 @@
   config,
   lib,
   ...
-}: {
-  programs.zsh = {
+}: let
+  localConfigFile = lib.escapeShellArg config.local.home-manager.zsh.localConfigFile;
+in {
+  options.local.home-manager.zsh.localConfigFile = lib.mkOption {
+    type = lib.types.str;
+    default = "${config.local.home-manager.sourcePath}/.zlocal";
+    description = "Optional local zsh configuration sourced at shell startup.";
+  };
+
+  config.programs.zsh = {
     enable = true;
     enableCompletion = true;
     autosuggestion.enable = true;
@@ -76,7 +84,7 @@
         zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
 
         # Source local/work config
-        [[ -f ${config.local.home-manager.sourcePath}/.zlocal ]] && source ${config.local.home-manager.sourcePath}/.zlocal
+        [[ -f ${localConfigFile} ]] && source ${localConfigFile}
       '')
     ];
   };

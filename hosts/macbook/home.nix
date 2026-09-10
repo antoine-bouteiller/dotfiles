@@ -9,6 +9,7 @@
 in {
   local.home-manager = {
     workstation.enable = true;
+    zsh.localConfigFile = "${homeDirectory}/.local/share/dotfiles/zmacos";
     # The work VM's sshd accepts SOPS_AGE_KEY (see apps/*/apply-remote).
     herdr.sopsAgeKeyHosts = [vmHosts];
     agents = {

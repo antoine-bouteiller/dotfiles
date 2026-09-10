@@ -22,25 +22,11 @@ in
       ./meridian.nix
     ];
 
-    options = {
-      mcpServers = lib.mkOption {
-        type = lib.types.attrsOf lib.types.attrs;
-        default = {};
-        description = ''
-          MCP servers attrset, forwarded to the shared `programs.mcp.servers`.
-          Every agent CLI with enableMcpIntegration = true (claude-code today;
-          codex/antigravity-cli later) picks these up.
-        '';
-      };
-    };
     # claude-code.enable and pi.enable are declared by the sub-modules that own them.
 
-    # Shared across every agent CLI: MCP servers, util packages and the skill tree.
+    # Shared across every agent CLI: MCP integration, util packages and the skill tree.
     config = {cfg}: {
-      programs.mcp = {
-        enable = cfg.mcpServers != {};
-        servers = cfg.mcpServers;
-      };
+      programs.mcp.enable = lib.mkDefault (config.programs.mcp.servers != {});
 
       home.packages = with pkgs; [
         # Utils

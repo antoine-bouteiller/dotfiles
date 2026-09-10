@@ -5,7 +5,21 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  # HerdR's daemon and panes survive SSH connections. Keep their inherited path
+  # stable, without letting short-lived SSH probes displace a working connection.
+  sshAgentSocket = ''
+    if [[ -n "''${SSH_CONNECTION:-}" ]]; then
+      if [[ -n "''${SSH_AUTH_SOCK:-}" &&
+            "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" &&
+            -S "$SSH_AUTH_SOCK" && ! -S "$HOME/.ssh/agent.sock" ]]; then
+        mkdir -p -m 700 -- "$HOME/.ssh"
+        ln -sfn -- "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
+      fi
+      export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
+    fi
+  '';
+in {
   imports = [../../modules/home];
 
   # Shared modules use the checkout path normally supplied by NixOS/nix-darwin.
@@ -60,8 +74,11 @@
   # Standalone HM cannot change the login shell; hand interactive bash off to zsh.
   programs.bash = {
     enable = true;
+    # Must run before the interactive guard: HerdR starts via `ssh host command`.
+    bashrcExtra = sshAgentSocket;
     initExtra = "exec ${lib.getExe pkgs.zsh} -l";
   };
+  programs.zsh.envExtra = sshAgentSocket;
 
   targets.genericLinux.enable = true;
   programs.home-manager.enable = true;

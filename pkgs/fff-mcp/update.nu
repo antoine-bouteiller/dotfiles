@@ -1,6 +1,8 @@
 #!/usr/bin/env nix
 #! nix shell --inputs-from . nixpkgs#nushell -c nu
 
+use ../update-utils.nu [root_dir github_headers to_sri]
+
 const repo = "dmtrKovalenko/fff"
 const platforms = {
   "aarch64-darwin": "aarch64-apple-darwin"
@@ -8,38 +10,13 @@ const platforms = {
   "aarch64-linux": "aarch64-unknown-linux-gnu"
 }
 
-def root_dir []: nothing -> string {
-  # When run as a flake updateScript, FILE_PWD is the read-only /nix/store
-  # copy — write to the git checkout (CWD = repo root) instead.
-  if ($env.FILE_PWD | str starts-with "/nix/store") {
-    $env.PWD | path join "pkgs" ($env.FILE_PWD | path basename)
-  } else {
-    $env.FILE_PWD
-  }
-}
-
-# Unauthenticated api.github.com allows 60 req/h per IP, which CI runners share.
-def gh_headers []: nothing -> list<string> {
-  if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
-}
-
 def fetch_latest_tag []: nothing -> string {
-  http get -H (gh_headers) $"https://api.github.com/repos/($repo)/releases/latest"
+  http get -H (github_headers) $"https://api.github.com/repos/($repo)/releases/latest"
   | get tag_name
 }
 
-# `nix hash convert` (modern Nix) and `nix hash to-sri` (Lix, older Nix) both
-# produce SRI form.
-def sri_hash [checksum: string]: nothing -> string {
-  try {
-    nix hash convert --hash-algo sha256 --to sri $checksum | str trim
-  } catch {
-    nix hash to-sri --type sha256 $checksum | str trim
-  }
-}
-
 def main [] {
-  let sources_path = root_dir | path join "sources.json"
+  let sources_path = root_dir $env.FILE_PWD $env.PWD | path join "sources.json"
   let current_version = open $sources_path | get version
   let latest_tag = fetch_latest_tag
   let latest_version = $latest_tag | str replace -r '^v' ''
@@ -58,7 +35,7 @@ def main [] {
   for platform in ($platforms | transpose nix_platform target) {
     let url = $"($base)/fff-mcp-($platform.target)"
     let hex = http get $"($url).sha256" | decode utf-8 | str trim | split row " " | first
-    let hash = sri_hash $hex
+    let hash = to_sri $hex
     $platforms_data = $platforms_data | insert $platform.nix_platform {url: $url, hash: $hash}
     print $"  ($platform.nix_platform): ($hash)"
   }

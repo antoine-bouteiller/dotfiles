@@ -1,23 +1,15 @@
 #!/usr/bin/env nix
 #! nix shell --inputs-from . nixpkgs#nushell nixpkgs#nix-update -c nu
 
-const owner_repo = "code-yeongyu/go-claude-code-comment-checker"
+use ../update-utils.nu [root_dir github_headers]
 
-def root_dir []: nothing -> string {
-  # When run as a flake updateScript, FILE_PWD is the read-only /nix/store
-  # copy — write to the git checkout (CWD = repo root) instead.
-  if ($env.FILE_PWD | str starts-with "/nix/store") {
-    $env.PWD | path join "pkgs" ($env.FILE_PWD | path basename)
-  } else {
-    $env.FILE_PWD
-  }
-}
+const owner_repo = "code-yeongyu/go-claude-code-comment-checker"
 
 # The tree-sitter-language-pack release we must pre-fetch is whatever version
 # comment-checker pins in its Cargo.lock — read it straight from the tag so the
 # parser bundle can never drift away from the crate that consumes it.
 def tslp_version [pkg_version: string]: nothing -> string {
-  let headers = if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
+  let headers = github_headers
   http get -H $headers $"https://raw.githubusercontent.com/($owner_repo)/v($pkg_version)/Cargo.lock"
   | split row "[[package]]"
   | where {|block| $block =~ '(?m)^name = "tree-sitter-language-pack"$'}
@@ -36,7 +28,7 @@ def main [] {
   # Bump version + src hash + cargoHash for the GitHub release.
   ^nix-update --flake comment-checker
 
-  let default_nix = root_dir | path join "default.nix"
+  let default_nix = root_dir $env.FILE_PWD $env.PWD | path join "default.nix"
   let pkg_version = (^nix eval --raw ".#comment-checker.version")
   let tslp = (tslp_version $pkg_version)
   print $"comment-checker ($pkg_version) pins tree-sitter-language-pack v($tslp)"

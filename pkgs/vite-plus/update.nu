@@ -1,22 +1,14 @@
 #!/usr/bin/env nix
 #! nix shell --inputs-from . nixpkgs#nushell nixpkgs#nodejs_24 -c nu
 
+use ../update-utils.nu root_dir
+
 const npm_registry = "https://registry.npmjs.org"
 const platforms = {
   "x86_64-linux": "linux-x64-gnu"
   "aarch64-linux": "linux-arm64-gnu"
   "x86_64-darwin": "darwin-x64"
   "aarch64-darwin": "darwin-arm64"
-}
-
-def root_dir []: nothing -> string {
-  # When run as a flake updateScript, FILE_PWD is the read-only /nix/store
-  # copy — write to the git checkout (CWD = repo root) instead.
-  if ($env.FILE_PWD | str starts-with "/nix/store") {
-    $env.PWD | path join "pkgs" ($env.FILE_PWD | path basename)
-  } else {
-    $env.FILE_PWD
-  }
 }
 
 def fetch_latest_version []: nothing -> string {
@@ -30,12 +22,12 @@ def fetch_platform_dist [npm_suffix: string, version: string]: nothing -> record
 }
 
 def get_current_version []: nothing -> string {
-  open (root_dir | path join "sources.json")
+  open (root_dir $env.FILE_PWD $env.PWD | path join "sources.json")
   | get version
 }
 
 def update_npm_lockfile [version: string] {
-  let npm_dir = root_dir | path join "npm"
+  let npm_dir = root_dir $env.FILE_PWD $env.PWD | path join "npm"
   let package_json_path = $npm_dir | path join "package.json"
   let package_json = {
     name: "vp-wrapper"
@@ -57,7 +49,7 @@ def update_npm_lockfile [version: string] {
 }
 
 def update_sources_json [version: string, platforms_data: record] {
-  let sources_path = root_dir | path join "sources.json"
+  let sources_path = root_dir $env.FILE_PWD $env.PWD | path join "sources.json"
   let sources_data = {
     version: $version
     platforms: $platforms_data

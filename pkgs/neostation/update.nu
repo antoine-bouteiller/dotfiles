@@ -1,25 +1,12 @@
 #!/usr/bin/env nix
 #! nix shell --inputs-from . nixpkgs#nushell -c nu
 
+use ../update-utils.nu [root_dir github_headers]
+
 const github_repo = "misobadev/neostation-frontend"
 
-def root_dir []: nothing -> string {
-  # When run as a flake updateScript, FILE_PWD is the read-only /nix/store
-  # copy — write to the git checkout (CWD = repo root) instead.
-  if ($env.FILE_PWD | str starts-with "/nix/store") {
-    $env.PWD | path join "pkgs" ($env.FILE_PWD | path basename)
-  } else {
-    $env.FILE_PWD
-  }
-}
-
-# Unauthenticated api.github.com allows 60 req/h per IP, which CI runners share.
-def gh_headers []: nothing -> list<string> {
-  if ($env.GH_TOKEN? | is-not-empty) { [Authorization $"Bearer ($env.GH_TOKEN)"] } else { [] }
-}
-
 def fetch_latest_version []: nothing -> string {
-  http get -H (gh_headers) $"https://api.github.com/repos/($github_repo)/releases/latest"
+  http get -H (github_headers) $"https://api.github.com/repos/($github_repo)/releases/latest"
   | get tag_name
   | str replace -r '^v' ''
 }
@@ -30,7 +17,7 @@ def prefetch_hash [version: string, arch: string]: nothing -> string {
 }
 
 def main [] {
-  let sources_path = root_dir | path join "sources.json"
+  let sources_path = root_dir $env.FILE_PWD $env.PWD | path join "sources.json"
   let sources = open $sources_path
   let latest_version = fetch_latest_version
 

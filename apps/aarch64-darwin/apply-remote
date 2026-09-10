@@ -47,7 +47,7 @@ sudo systemctl reload ssh
 
 # No checkout on the VM: build straight from GitHub over SSH via the forwarded
 # agent (always deploys main).
-out=$(nix --extra-experimental-features "nix-command flakes" build --impure --no-link --print-out-paths \
+out=$(nix --extra-experimental-features "nix-command flakes" build --impure --refresh --no-link --print-out-paths \
   "git+ssh://git@github.com/antoine-bouteiller/dotfiles?ref=main#homeConfigurations.vm.activationPackage")
 "$out/activate"
 REMOTE

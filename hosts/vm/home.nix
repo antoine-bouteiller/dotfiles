@@ -43,7 +43,13 @@
     username = host.user;
     homeDirectory = "/home/${host.user}";
     stateVersion = "26.05";
-    packages = [pkgs.bat];
+    packages = with pkgs; [
+      bat
+      yamllint
+      agent-browser
+      sonarqube-cli
+      glab
+    ];
     # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
     sessionVariables.JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";
   };

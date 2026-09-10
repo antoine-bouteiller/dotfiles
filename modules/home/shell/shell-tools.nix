@@ -42,6 +42,19 @@ in
         mise = {
           enable = true;
           enableZshIntegration = false;
+          globalConfig = {
+            tools = {
+              bitwarden = "latest";
+              bun = "latest";
+              dotnet = "10";
+              herdr = "latest";
+              hunk = "latest";
+              node = "24";
+              python = "3.13";
+              uv = "latest";
+            };
+            settings.node.corepack = true;
+          };
         };
 
         zsh.envExtra = ''

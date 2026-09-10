@@ -26,25 +26,28 @@ Hosts:
 | `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (LUKS + secure boot) |
 | `desktop`      | `x86_64-linux`   | Windows dual boot (LUKS + secure boot)  |
 | `plex-server`  | `x86_64-linux`   | home media server                       |
+| `vm`           | `x86_64-linux`   | standalone Home Manager VM (`VM_USER`)     |
 
 ## Layout
 
 - `flake.nix` — inputs, hosts, packages, apps; `globals.nix` — name/email/SSH keys.
 - `hosts/<name>/` — per-machine system + home config, on top of `hosts/base*.nix`.
-- `home-manager/` — per-application user config (`applications/`) and shell setup (`shell/`).
-- `modules/` — reusable NixOS/darwin modules (auto-upgrade, secure boot, gaming, …).
-- `pkgs/` — custom derivations exported from `flake.packages`, each self-updating via `update.nu`.
-- `apps/<system>/` — imperative scripts exposed as `nix run .#<name>`.
+- `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules, including `applications/<app>/` and `shell/`.
+- `pkgs/` — custom derivations exported from `flake.packages`; `update-utils.nu` supplies `root_dir`, `github_headers`, and `to_sri` to package `update.nu` scripts.
+- `apps/<system>/` — imperative scripts exposed as `nix run .#<name>`; `mkApp` pins Bash. `apps/aarch64-darwin/update` links to `../x86_64-linux/update`, so the invoked path selects its platform.
 
 ## Commands
 
-| Command                              | Effect                                                          |
-| ------------------------------------ | --------------------------------------------------------------- |
-| `nix run .#apply`                    | `darwin-rebuild`/`nixos-rebuild switch` for the current host    |
-| `nix run .#update`                   | `nix flake update` + run every package's `update.nu`            |
-| `nix run .#clean`                    | GC all but the 2 latest generations                             |
-| `nix build .#checks.<system>.<host>` | dry build a host (CI builds all)                                |
-| `nix run ./dev`                      | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator) |
+| Command                                    | Effect                                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------- |
+| `nix run .#apply`                          | `darwin-rebuild`/`nixos-rebuild switch` for the current host                     |
+| `nix run .#update`                         | `nix flake update` + run every package's `update.nu`                             |
+| `nix run .#clean`                          | GC all but the 2 latest generations                                              |
+| `nix build .#checks.<system>.<host>`       | dry build a host (CI builds all)                                                 |
+| `nix run ./dev`                            | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)                  |
+| `nix run .#apply-remote -- ${VM_USER}@<vm-host>` | deploy GitHub `main` to the standalone VM without a checkout (not local changes) |
+
+`apply-remote` targets the standalone Home Manager `vm`, not the nix-darwin Linux-builder VM.
 
 Flakes ignore untracked files: `git add` new `.nix` files before applying.
 

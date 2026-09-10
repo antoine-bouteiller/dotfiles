@@ -12,6 +12,28 @@ mkModule args "local.nixos.desktop" {
   config = _: {
     programs.niri.enable = true;
 
+    # DHCP DNS is used per-network (required for captive portals); these are fallbacks.
+    # The noctalia dns-switcher plugin flips the active profile's ipv4.dns to a public
+    # resolver when the ISP one filters a domain.
+    networking.networkmanager.dns = "systemd-resolved";
+    services.resolved = {
+      enable = true;
+      settings.Resolve.FallbackDNS = ["1.1.1.1" "9.9.9.9"];
+    };
+
+    security.rtkit.enable = true;
+    services.pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+
+    hardware.bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+    };
+
     # A splash instead of the boot log. The kernel and udev have to be quietened
     # separately, or their messages tear through the splash; the LUKS passphrase
     # prompt is drawn by plymouth itself under the systemd initrd.
@@ -84,6 +106,8 @@ mkModule args "local.nixos.desktop" {
     };
 
     environment.sessionVariables.NIXOS_OZONE_WL = 1;
+
+    environment.systemPackages = [pkgs.xwayland-satellite];
 
     # noctalia's gtk template applies itself through gsettings.
     programs.dconf.enable = true;

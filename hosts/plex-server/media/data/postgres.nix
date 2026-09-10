@@ -74,15 +74,6 @@ in {
       "--pwfile=${config.sops.secrets."postgres/password".path}"
     ];
 
-    extensions = ps: [
-      ps.pgvector
-      ps.vectorchord
-    ];
-    settings = {
-      shared_preload_libraries = ["vchord.so"];
-      search_path = "\"$user\", public, vectors";
-    };
-
     # ident map: allow pgbouncer OS user to connect as each service DB user
     identMap =
       lib.concatMapStringsSep "\n" (e: "pgbouncer_map pgbouncer ${e.user}") databases
@@ -107,7 +98,7 @@ in {
       databases;
   };
 
-  # Auto-generate ALTER OWNER for extraDatabases + custom setupScripts
+  # Auto-generate ALTER OWNER for extraDatabases
   systemd.services.postgresql-setup.script = let
     ownershipScripts = lib.concatMapStringsSep "\n" (
       e:
@@ -115,16 +106,6 @@ in {
           e.extraDatabases or []
         )
     ) (builtins.filter (e: (e.extraDatabases or []) != []) databases);
-    customScripts = lib.concatMapStringsSep "\n" (e: e.setupScript or "") (
-      builtins.filter (e: (e.setupScript or "") != "") databases
-    );
   in
-    lib.mkAfter (
-      lib.concatStringsSep "\n" (
-        builtins.filter (s: s != "") [
-          ownershipScripts
-          customScripts
-        ]
-      )
-    );
+    lib.mkAfter "${ownershipScripts}\n";
 }

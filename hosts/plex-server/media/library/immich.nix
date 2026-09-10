@@ -33,10 +33,5 @@ in {
     };
   };
 
-  systemd.services.immich-server = {
-    after = ["postgresql.service"];
-    requires = ["postgresql.service"];
-  };
-
   users.users.immich.extraGroups = [constants.libraryOwner.group];
 }

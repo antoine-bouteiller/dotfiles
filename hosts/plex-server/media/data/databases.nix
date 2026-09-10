@@ -25,9 +25,5 @@
   {
     name = "immich";
     user = "immich";
-    setupScript = ''
-      psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vector"
-      psql -d immich -tAc "CREATE EXTENSION IF NOT EXISTS vchord CASCADE"
-    '';
   }
 ]

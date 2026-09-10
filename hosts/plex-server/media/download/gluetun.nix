@@ -3,8 +3,6 @@
   pkgs,
   ...
 }: {
-  # podman + oci-containers backend are already enabled by ./byparr.nix.
-
   # Gluetun defaults Proton's WireGuard address to IPv4 10.2.0.2/32.
   sops.secrets."proton/private_key" = {};
 

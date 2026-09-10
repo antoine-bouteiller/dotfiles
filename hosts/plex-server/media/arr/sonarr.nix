@@ -1,44 +1,20 @@
 {
   config,
-  pkgs,
+  lib,
   ...
 }: let
   constants = import ../shared/constants.nix;
-in {
-  services.sonarr = {
-    enable = true;
-    dataDir = constants.sonarr.dataDir;
-    group = constants.libraryOwner.group;
-
-    settings = {
-      server.bindAddress = "127.0.0.1";
-      auth.method = "external";
-      postgres = {
-        host = "/run/pgbouncer";
-        port = 5432;
-        user = "sonarr";
-        mainDb = "sonarr";
-        logDb = "sonarr-log";
-      };
-    };
-  };
-
-  local.media.sonarr = {
-    port = config.services.sonarr.settings.server.port;
-    auth = true;
-  };
-
-  systemd.services.sonarr = {
-    after = ["pgbouncer.service"];
-    requires = ["pgbouncer.service"];
-    serviceConfig.UMask = pkgs.lib.mkForce "002";
-  };
-
-  systemd.tmpfiles.rules = [
-    # The module only provisions StateDirectory for its default dataDir.
-    "d ${constants.sonarr.dataDir} 0775 ${constants.sonarr.user} ${constants.sonarr.group} - -"
-    "d '${constants.paths.mediaDir}/torrents/sonarr' 0775 ${constants.libraryOwner.user} ${constants.libraryOwner.group} - -"
-  ];
-
-  users.users.sonarr.extraGroups = [constants.libraryOwner.group];
-}
+in
+  lib.mkMerge [
+    (import ./shared.nix {
+      inherit config lib;
+      name = "sonarr";
+      managesMedia = true;
+    })
+    {
+      systemd.tmpfiles.rules = [
+        # The module only provisions StateDirectory for its default dataDir.
+        "d ${constants.sonarr.dataDir} 0775 ${constants.sonarr.user} ${constants.sonarr.group} - -"
+      ];
+    }
+  ]

@@ -19,7 +19,10 @@
     agents = {
       enable = true;
       claude-code.enable = true;
-      pi.enable = true;
+      pi = {
+        enable = true;
+        extraSecretFiles = ["${config.local.home-manager.sourcePath}/secrets/work_env.yaml"];
+      };
     };
   };
 

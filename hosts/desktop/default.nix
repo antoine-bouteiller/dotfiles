@@ -2,6 +2,7 @@
   config,
   host,
   lib,
+  pkgs,
   ...
 }: let
   inherit (host) user;
@@ -22,6 +23,12 @@ in {
   local.nixos.workstation.enable = true;
   local.nixos.gaming.enable = true;
   secureBoot.enable = true;
+
+  # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's
+  # CEF bootstrap UI off-center and crops it. Force Steam's own 2x scaling.
+  programs.steam.package = pkgs.steam.override {
+    extraEnv.STEAM_FORCE_DESKTOPUI_SCALING = "2";
+  };
 
   # RTX 2080 SUPER (Turing): supported by the open kernel module.
   services.xserver.videoDrivers = ["nvidia"];

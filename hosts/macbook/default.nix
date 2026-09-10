@@ -75,11 +75,6 @@ in {
     ];
   };
 
-  home-manager = {
-    useGlobalPkgs = true;
-    users.${user} = import ./home.nix;
-  };
-
   system = {
     checks.verifyNixPath = false;
     primaryUser = user;

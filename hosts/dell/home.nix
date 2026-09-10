@@ -1,18 +1,5 @@
-{
-  lib,
-  host,
-  ...
-}: {
-  imports = [
-    ../../modules/home
-  ];
-
+_: {
   local.home-manager.workstation.enable = true;
 
-  home = {
-    enableNixpkgsReleaseCheck = false;
-    username = host.user;
-    homeDirectory = lib.mkForce "/home/${host.user}";
-    stateVersion = "26.05";
-  };
+  home.stateVersion = "26.05";
 }

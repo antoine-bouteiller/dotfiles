@@ -16,8 +16,6 @@
     host = globals.hosts.${name} or {};
   in {
     common = {inherit inputs globals host mkModule self;};
-    # Home-manager modules don't inherit the system specialArgs.
-    hm = {home-manager.extraSpecialArgs = {inherit inputs globals host mkModule;};};
   };
 in {
   mkDarwinHost = {
@@ -35,7 +33,6 @@ in {
       modules =
         [
           home-manager.darwinModules.home-manager
-          specialArgs.hm
           # Declared here rather than in modules/common, because it is set here and
           # the iso host imports no common modules at all.
           (self + "/modules/common/host-dir.nix")
@@ -63,7 +60,6 @@ in {
       modules =
         [
           home-manager.nixosModules.home-manager
-          specialArgs.hm
           sops-nix.nixosModules.sops
           (self + "/modules/common/host-dir.nix")
           {

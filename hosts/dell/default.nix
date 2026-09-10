@@ -1,6 +1,5 @@
 {
   config,
-  globals,
   host,
   inputs,
   lib,
@@ -108,22 +107,6 @@ in {
 
   # Lid open resumes via a full boot; skip the systemd-boot picker (hold a key to show it).
   boot.loader.timeout = 0;
-
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.${user} = import ./home.nix;
-  };
-
-  users.defaultUserShell = pkgs.zsh;
-  users.users.${user} = {
-    isNormalUser = true;
-    description = globals.name;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-    ];
-  };
 
   system.stateVersion = "25.11";
 }

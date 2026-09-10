@@ -1,4 +1,6 @@
 {
+  globals,
+  host,
   lib,
   pkgs,
   ...
@@ -75,7 +77,14 @@ in {
     ]);
   };
 
-  users.defaultUserShell = pkgs.zsh;
+  users = {
+    defaultUserShell = pkgs.zsh;
+    users.${host.user} = {
+      isNormalUser = true;
+      description = globals.name;
+      extraGroups = ["networkmanager" "wheel"];
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     home-manager

@@ -25,13 +25,6 @@ in {
     };
   };
 
-  # Home manager
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.${user} = import ./home.nix;
-  };
-
   # Auto upgrade
   autoUpgrade = {
     enable = true;
@@ -60,13 +53,7 @@ in {
 
   # Users
   users.users.${user} = {
-    isNormalUser = true;
-    description = globals.name;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "media"
-    ];
+    extraGroups = ["media"];
     openssh.authorizedKeys.keys = globals.sshKeys;
   };
   users.groups.media = {};

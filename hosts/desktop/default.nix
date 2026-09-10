@@ -1,6 +1,5 @@
 {
   config,
-  globals,
   host,
   inputs,
   lib,
@@ -85,22 +84,6 @@ in {
 
   # Keep the OS picker visible for Windows dual boot.
   boot.loader.timeout = 5;
-
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.${user} = import ./home.nix;
-  };
-
-  users.defaultUserShell = pkgs.zsh;
-  users.users.${user} = {
-    isNormalUser = true;
-    description = globals.name;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-    ];
-  };
 
   system.stateVersion = "26.05";
 }

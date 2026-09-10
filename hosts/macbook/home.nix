@@ -6,10 +6,6 @@
   inherit (config.home) homeDirectory;
   vmHosts = "*.example.com";
 in {
-  imports = [
-    ../../modules/home
-  ];
-
   local.home-manager = {
     workstation.enable = true;
     # The work VM's sshd accepts SOPS_AGE_KEY (see apps/*/apply-remote).
@@ -51,7 +47,6 @@ in {
   };
 
   home = {
-    enableNixpkgsReleaseCheck = false;
     packages = [
       pkgs.dockutil
     ];

@@ -42,6 +42,8 @@
     homeDirectory = "/home/${host.user}";
     stateVersion = "26.05";
     packages = [pkgs.bat];
+    # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
+    sessionVariables.JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";
   };
 
   # Standalone HM cannot change the login shell; hand interactive bash off to zsh.

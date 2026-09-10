@@ -1,7 +1,6 @@
 {
   mkModule,
   config,
-  osConfig,
   lib,
   pkgs,
   inputs,
@@ -11,9 +10,9 @@
   inherit (config.lib.file) mkOutOfStoreSymlink;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
-  piDir = "${osConfig.flakePath}/agents/pi";
+  piDir = "${config.local.home-manager.sourcePath}/agents/pi";
 
-  secretFiles = ["${osConfig.flakePath}/secrets/agent.yaml"] ++ agents.pi.extraSecretFiles;
+  secretFiles = ["${config.local.home-manager.sourcePath}/secrets/agent.yaml"] ++ agents.pi.extraSecretFiles;
 
   # pi runs with the agent API keys decrypted into its own process only.
   # sops exec-env takes one file, so each extra file wraps the command in another layer.

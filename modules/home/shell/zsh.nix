@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  osConfig,
   ...
 }: {
   programs.zsh = {
@@ -35,7 +34,7 @@
         bua = "bup && bcup --greedy && bcn";
         please = "sudo";
         zshrc = "\${EDITOR:-nvim} $HOME/.zshrc";
-        zdot = "cd ${osConfig.flakePath}";
+        zdot = "cd ${config.local.home-manager.sourcePath}";
       }
       # Needs polkit, which only a graphical session has.
       // lib.optionalAttrs config.local.home-manager.desktop.enable {sudo = "pkexec";};
@@ -77,7 +76,7 @@
         zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
 
         # Source local/work config
-        [[ -f ${osConfig.flakePath}/.zlocal ]] && source ${osConfig.flakePath}/.zlocal
+        [[ -f ${config.local.home-manager.sourcePath}/.zlocal ]] && source ${config.local.home-manager.sourcePath}/.zlocal
       '')
     ];
   };

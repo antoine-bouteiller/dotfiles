@@ -1,7 +1,6 @@
 {
   mkModule,
   config,
-  osConfig,
   lib,
   pkgs,
   inputs,
@@ -11,7 +10,7 @@
   inherit (config.lib.file) mkOutOfStoreSymlink;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
-  claudeDir = "${osConfig.flakePath}/agents/claude-code";
+  claudeDir = "${config.local.home-manager.sourcePath}/agents/claude-code";
 
   topLevelFiles = [
     "CLAUDE.md"

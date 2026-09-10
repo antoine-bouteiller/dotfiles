@@ -9,7 +9,7 @@
 
   # Shared modules use the checkout path normally supplied by NixOS/nix-darwin.
   # apply-remote builds from GitHub without a checkout, so point at the flake's store copy.
-  _module.args.osConfig.flakePath = "${inputs.self}";
+  local.home-manager.sourcePath = "${inputs.self}";
 
   local.home-manager = {
     shell-tools.enable = true;

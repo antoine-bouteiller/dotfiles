@@ -14,6 +14,13 @@
     users.${host.user} = import (config.local.hostDir + "/home.nix");
     sharedModules = [
       ../home
+      ({
+        osConfig,
+        lib,
+        ...
+      }: {
+        local.home-manager.sourcePath = lib.mkDefault osConfig.flakePath;
+      })
       {
         home.enableNixpkgsReleaseCheck = false;
       }

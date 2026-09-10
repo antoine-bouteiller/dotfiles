@@ -1,7 +1,6 @@
 {
   mkModule,
   config,
-  osConfig,
   lib,
   pkgs,
   inputs,
@@ -12,7 +11,7 @@
   skillFiles = import ./skills.nix {
     inherit lib inputs;
     inherit (config.lib.file) mkOutOfStoreSymlink;
-    agentsDir = "${osConfig.flakePath}/agents";
+    agentsDir = "${config.local.home-manager.sourcePath}/agents";
   };
 in
   mkModule args "local.home-manager.agents" {

@@ -81,7 +81,7 @@ in {
         mnemonicPrefix = true;
       };
       commit = {
-        gpgsign = true;
+        gpgsign = false;
         verbose = true;
       };
       column.ui = "auto";

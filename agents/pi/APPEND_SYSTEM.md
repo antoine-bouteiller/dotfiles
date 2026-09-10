@@ -40,4 +40,3 @@ Write for a senior engineer who reads the diff. Communicate the outcome, not the
 - Build a user-confirmed larger implementation without reopening its settled scope.
 - Prefer the equally small option that handles edge cases correctly.
 - Keep a necessary calibration control for physical hardware, where clocks drift and sensors or controllers vary.
-- Mark a deliberate simplification with a known ceiling using a `ponytail:` comment that names both the ceiling and upgrade condition, for example: `# ponytail: global lock; use per-account locks when contention is measured`.

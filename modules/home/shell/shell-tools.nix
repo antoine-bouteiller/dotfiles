@@ -44,12 +44,8 @@ in
           enableZshIntegration = false;
           globalConfig = {
             tools = {
-              bitwarden = "latest";
               bun = "latest";
-              dotnet = "10";
-              herdr = "latest";
-              hunk = "latest";
-              node = "24";
+              node = "lts";
               python = "3.13";
               uv = "latest";
             };

@@ -6,6 +6,14 @@
   paths = {
     app = "/var/lib";
     mediaDir = "/mnt/media";
+    backupDir = "/mnt/backup";
+  };
+
+  # Whole-disk identities verified on plex-server (2026-09-11).
+  disks = {
+    root = "/dev/disk/by-id/ata-Samsung_SSD_860_EVO_250GB_S3YJNX0KA37441A";
+    media = "/dev/disk/by-id/ata-WDC_WD80EFPX-68C4ZN0_WD-RD3XYHLG";
+    backup = "/dev/disk/by-id/ata-ST1000DM010-2EP102_ZN10VPN1";
   };
 
   libraryOwner = {

@@ -15,6 +15,13 @@ in {
   config = lib.mkIf (cfg.enable && cfg.pi.enable) {
     home.packages = [package];
 
+    xdg.configFile."meridian/sdk-features.json" = {
+      force = true;
+      text = builtins.toJSON {
+        pi.codeSystemPrompt = false;
+      };
+    };
+
     systemd.user.services.meridian = lib.mkIf (!isDarwin) {
       Unit.Description = "Meridian agent";
       Service = {

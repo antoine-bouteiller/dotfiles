@@ -60,6 +60,8 @@ in {
     username = host.user;
     homeDirectory = "/home/${host.user}";
     stateVersion = "26.05";
+    # Ansible owns the login profile; keep Home Manager from managing it.
+    file.".bash_profile".enable = false;
     packages = with pkgs; [
       bat
       yamllint

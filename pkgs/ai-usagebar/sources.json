@@ -1,13 +1,13 @@
 {
-  "version": "1.14.0",
+  "version": "1.16.0",
   "platforms": {
     "x86_64-linux": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.14.0/ai-usagebar-linux-x86_64.tar.gz",
-      "hash": "sha256-dwsihdCjy9Sly1GSVEk9ImNlbKBinugGKWrpLPXtbAg="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.16.0/ai-usagebar-linux-x86_64.tar.gz",
+      "hash": "sha256-lT8FRZJozi//GX0JZ6pyovq6Is2z7qGYJiiAgcTGHnI="
     },
     "aarch64-linux": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.14.0/ai-usagebar-linux-aarch64.tar.gz",
-      "hash": "sha256-wFvhjFRYN4nIoBC0kGHU4kivTIdU0KckYq0OT2U1Lc8="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.16.0/ai-usagebar-linux-aarch64.tar.gz",
+      "hash": "sha256-87Hb1/6V2sVQxmqYac6CabS7RdAFPQix8c4N4EY6Y8E="
     }
   }
 }

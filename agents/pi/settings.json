@@ -6,7 +6,8 @@
   "enabledModels": [
     "azure-openai-responses/gpt-6-astra",
     "anthropic/claude-sonnet-5",
-    "anthropic/claude-opus-5"
+    "anthropic/claude-opus-5",
+    "anthropic/claude-fable-5-1"
   ],
   "packages": [
     "npm:@ff-labs/pi-fff",

@@ -1,10 +1,4 @@
-# Bindings shared between niri on Linux and paneru on macOS; the action set is the
-# intersection of the two, anything one-sided stays in its own renderer. Both are
-# scrollable-tiling, so the vocabulary is columns and rows rather than a tree.
-#
-# Keys are named by physical position using US layout names, which is how paneru
-# labels macOS virtual keycodes and what the niri renderer turns into fr keysyms.
-# Both being positional is what makes one entry hit the same key under azerty.
+# Niri tiling bindings use US physical positions, mapped to fr/azerty keysyms.
 {
   # niri resolves binds through the active xkb layout, so every US position is
   # spelled as the keysym that position emits under fr/azerty.
@@ -32,25 +26,6 @@
     r = "R";
   };
 
-  # paneru resolves a key name through the active macOS layout before falling
-  # back to its positional table, so any name that is a character the layout
-  # emits elsewhere lands on the wrong key: "1" matches the numeric keypad,
-  # since Apple French puts "&" on the top row. Spell those positions as the
-  # character they emit; letters and word-names like "semicolon" resolve
-  # positionally on their own.
-  appleFrench = {
-    "1" = "&";
-    "2" = "é";
-    "3" = "\"";
-    "4" = "'";
-    "5" = "(";
-    "6" = "§";
-    "7" = "è";
-    "8" = "!";
-    "9" = "ç";
-    "0" = "à";
-  };
-
   # Rendered bare to focus and with SHIFT to move the focused window.
   directions = ["left" "right" "up" "down"];
 
@@ -63,7 +38,7 @@
     right = "semicolon";
   };
 
-  # Column widths both sides cycle through, as fractions of the screen.
+  # Column widths to cycle through, as fractions of the screen.
   presetWidths = [0.33333 0.5 0.66667 1.0];
 
   # Top-row digits, 0 being the tenth workspace.
@@ -75,9 +50,7 @@
       key = "v";
       mods = ["Shift"];
     }
-    # Cycling presets is the only width command paneru has; niri's pixel
-    # resize stays on its own side. `once` because holding the key would
-    # otherwise run through the whole preset list.
+    # `once` because holding the key would run through the whole preset list.
     {
       action = "cycleWidth";
       key = "r";

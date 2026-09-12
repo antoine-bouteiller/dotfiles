@@ -42,10 +42,6 @@
     };
     meridian.url = "github:rynfar/meridian";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    paneru = {
-      url = "github:karinushka/paneru";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {
       url = "github:vercel-labs/agent-browser";

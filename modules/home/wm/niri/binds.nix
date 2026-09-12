@@ -1,6 +1,4 @@
-# Every niri keybind, rendered as the lines of a `binds` node. The half that
-# the paneru config renders too comes from ../keymap.nix; the rest is
-# niri/noctalia-only and stays here.
+# Every niri keybind, rendered as the lines of a `binds` node.
 {lib}: let
   apps = {
     terminal = "foot";
@@ -10,15 +8,11 @@
   };
   mod = "Mod";
 
-  # The shared keys are physical positions, hence the azerty keysym each one
+  # The keys are physical positions, hence the azerty keysym each one
   # emits: under fr the key labelled W sits where US has Z.
   keymap = import ../keymap.nix;
   key = name: keymap.azerty.${name};
   chord = mods: k: lib.concatStringsSep "+" ([mod] ++ mods ++ [k]);
-  # The shared layer carries Ctrl on both sides: on macOS every alt+<key> combo
-  # types a character under the Apple fr layout, so paneru needs a second
-  # modifier, and matching it here keeps one muscle memory across both hosts.
-  sharedChord = mods: chord (["Ctrl"] ++ mods);
 
   # niri binds repeat while held; only spawns and toggles opt out.
   mkBind = props: keys: action: let
@@ -56,35 +50,34 @@
     up = "Up";
     down = "Down";
   };
-  # Each direction answers to its arrow and to the shared vim-style letter.
+  # Each direction answers to its arrow and to the vim-style letter.
   keysFor = dir: [directionKeys.${dir} (key keymap.directionLetters.${dir})];
 
-  sharedBinds =
+  tilingBinds =
     map (
       b:
         (
           if b.once or false
           then once
           else bind
-        ) (sharedChord (b.mods or []) (key b.key))
+        ) (chord (b.mods or []) (key b.key))
         dispatchers.${b.action}
     )
     keymap.binds
     ++ lib.concatMap (
       dir:
         lib.concatMap (k: [
-          (bind (sharedChord [] k) focusDirection.${dir})
-          (bind (sharedChord ["Shift"] k) moveDirection.${dir})
+          (bind (chord [] k) focusDirection.${dir})
+          (bind (chord ["Shift"] k) moveDirection.${dir})
         ]) (keysFor dir)
     )
     keymap.directions
     ++ lib.concatLists (lib.imap1 (index: k: [
-        (once (sharedChord [] (key k)) "focus-workspace ${toString index}")
-        (once (sharedChord ["Shift"] (key k)) "move-window-to-workspace ${toString index}")
+        (once (chord [] (key k)) "focus-workspace ${toString index}")
+        (once (chord ["Shift"] (key k)) "move-window-to-workspace ${toString index}")
       ])
       keymap.workspaceKeys);
 
-  # Niri-only: paneru has no equivalent, so these stay out of the shared keymap.
   monitorBinds =
     lib.concatMap (
       dir:
@@ -111,7 +104,7 @@ in
     (once "${mod}+S" (noctalia ["panel-toggle" "control-center"]))
     (once "${mod}+Escape" (noctalia ["panel-toggle" "session"]))
     (once "${mod}+I" (noctalia ["settings-open"]))
-    (once "${mod}+Shift+${key "l"}" (noctalia ["session" "lock"]))
+    (once "${mod}+Ctrl+Q" (noctalia ["session" "lock"]))
     (once "${mod}+V" (noctalia ["panel-toggle" "clipboard"]))
     # The launcher's emoji provider is triggered by typing its prefix.
     (once "Ctrl+${mod}+E" (noctalia ["panel-open" "launcher" "/emo "]))
@@ -140,5 +133,5 @@ in
     (lockedRepeat "XF86AudioRaiseVolume" (noctalia ["volume-up"]))
     (lockedRepeat "XF86AudioLowerVolume" (noctalia ["volume-down"]))
   ]
-  ++ sharedBinds
+  ++ tilingBinds
   ++ monitorBinds

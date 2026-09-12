@@ -1,6 +1,5 @@
-# Minimal hand-written stand-in for `nixos-generate-config`. Refresh on the installed
-# machine with `nixos-generate-config --show-hardware-config --no-filesystems` and
-# keep the filesystem block below (LVM paths, not by-uuid).
+# Refresh hardware detection with `nixos-generate-config --show-hardware-config --no-filesystems`
+# and keep the UUID-based storage configuration below.
 {
   config,
   lib,
@@ -19,15 +18,13 @@
     "usb_storage"
     "sd_mod"
   ];
-  boot.initrd.kernelModules = [];
+  boot.initrd.kernelModules = ["dm-snapshot"];
   boot.kernelModules = ["kvm-intel"];
   boot.extraModulePackages = [];
 
-  # Single LUKS2 container holding an LVM VG (swap + root); the ESP sits beside it.
-  # Swap is an LV rather than a swapfile: hibernate resumes from /dev/vg/swap and
-  # needs no resume_offset. Partition labels are set at partitioning time (README).
+  # Single LUKS2 container holding an LVM root volume; no disk swap.
   boot.initrd.luks.devices.cryptroot = {
-    device = "/dev/disk/by-partlabel/disk-main-luks";
+    device = "/dev/disk/by-uuid/44f94999-339e-4976-a55f-f05fc19cf30e";
     allowDiscards = true; # NVMe TRIM through the LUKS mapping
     # TPM2 slot is enrolled post-install by `nix run .#secure-boot`; the passphrase
     # stays as the recovery path.
@@ -36,20 +33,18 @@
   boot.initrd.services.lvm.enable = true;
 
   fileSystems."/" = {
-    device = "/dev/vg/root";
+    device = "/dev/disk/by-uuid/9bdd1509-3485-4ec9-afcb-301ffee62e2f";
     fsType = "ext4";
   };
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partlabel/disk-main-ESP";
+    device = "/dev/disk/by-uuid/D0FA-A16E";
     fsType = "vfat";
     options = [
       "fmask=0077"
       "dmask=0077"
     ];
   };
-  # 32G >= RAM, else hibernate fails to write its image.
-  swapDevices = [{device = "/dev/vg/swap";}];
-  boot.resumeDevice = "/dev/vg/swap";
+  swapDevices = [];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

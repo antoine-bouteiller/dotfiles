@@ -16,3 +16,4 @@ result
 .direnv
 .pre-commit-config.yaml
 tests
+.private

@@ -24,8 +24,7 @@ in {
         plugin_settings."felipeartur/ai-usagebar".panel_open_near_click = true;
         # The ISP resolver filters some domains; switch to a public one when needed.
         plugin_settings."nightwatch75/dns-switcher" = {
-          providers = "cloudflare,quad9,google";
-          custom_1 = "Bytel = 192.168.1.254";
+          providers = "cloudflare";
         };
         bar.default = {
           start = ["launcher" "niri-display" "workspaces"];

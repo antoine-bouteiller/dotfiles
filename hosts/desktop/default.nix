@@ -34,6 +34,28 @@ in {
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia.open = true;
 
+  # Publish both connected displays as sinks so Noctalia can switch between them.
+  services.pipewire.wireplumber.extraConfig."51-nvidia-dual-output" = {
+    "monitor.alsa.rules" = [
+      {
+        matches = [{"device.name" = "alsa_card.pci-0000_01_00.1";}];
+        actions.update-props = {
+          "device.profile-set" = "${pkgs.writeText "nvidia-dual-output.conf" ''
+            .include ${pkgs.pipewire}/share/alsa-card-profile/mixer/profile-sets/default.conf
+
+            [General]
+            auto-profiles = no
+
+            [Profile dual-stereo]
+            description = Monitor and TV stereo outputs
+            output-mappings = hdmi-stereo hdmi-stereo-extra1
+          ''}";
+          "device.profile" = "dual-stereo";
+        };
+      }
+    ];
+  };
+
   programs.coolercontrol.enable = true;
   services.hardware.openrgb.enable = true;
 

@@ -1,4 +1,28 @@
-_: {
+{
+  lib,
+  pkgs,
+  ...
+}: let
+  displaySwitch = pkgs.writeShellApplication {
+    name = "desktop-display-switch";
+    runtimeInputs = [pkgs.coreutils pkgs.jq pkgs.niri pkgs.systemd];
+    text = builtins.readFile ./display-switch.sh;
+  };
+in {
+  systemd.user.services.desktop-display-switch = {
+    Unit = {
+      Description = "Select DP-1 settings from the connected Samsung display's EDID";
+      After = ["niri.service"];
+      PartOf = ["graphical-session.target"];
+    };
+    Service = {
+      ExecStart = lib.getExe displaySwitch;
+      Restart = "always";
+      RestartSec = 2;
+    };
+    Install.WantedBy = ["graphical-session.target"];
+  };
+
   home.stateVersion = "26.05";
 
   local.home-manager.desktop.extraNiriConfig = ''

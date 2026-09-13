@@ -35,6 +35,7 @@ in {
   hardware.nvidia.open = true;
 
   programs.coolercontrol.enable = true;
+  services.hardware.openrgb.enable = true;
 
   # Keep the OS picker visible for Windows dual boot.
   boot.loader.timeout = 5;

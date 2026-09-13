@@ -19,7 +19,7 @@
     "sd_mod"
   ];
   boot.initrd.kernelModules = ["dm-snapshot"];
-  boot.kernelModules = ["kvm-intel"];
+  boot.kernelModules = ["kvm-intel" "nct6775"];
   boot.extraModulePackages = [];
 
   # Single LUKS2 container holding an LVM root volume; no disk swap.

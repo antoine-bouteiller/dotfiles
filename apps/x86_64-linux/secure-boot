@@ -41,8 +41,11 @@ if ! secure_boot_enabled; then
   fi
   # lanzaboote bundles the kernel and initrd into signed UKIs, so the raw
   # /EFI/nixos/* blobs left next to them are expected to be unsigned.
-  echo "Verifying that every file in the ESP is signed..."
-  unsigned=$(sudo sbctl verify | grep 'is not signed' | grep -v '/EFI/nixos/' || true)
+  # sbctl verifies against our local db key, not Microsoft's. Windows files
+  # keep their vendor signatures; --microsoft below enrolls their trust roots.
+  # Firmware, not this local-key check, validates the Windows bootloader.
+  echo "Verifying local signatures (excluding raw NixOS blobs and Windows files)..."
+  unsigned=$(sudo sbctl verify | grep 'is not signed' | grep -Ev '/EFI/(nixos|Microsoft/Boot)/' || true)
   [ -z "$unsigned" ] || {
     echo "$unsigned" >&2
     exit 1

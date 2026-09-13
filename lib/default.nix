@@ -13,7 +13,7 @@
   mkModule = import ./module.nix nixpkgs.lib;
   # The iso host has no user entry.
   mkSpecialArgs = name: let
-    host = globals.hosts.${name} or {};
+    host = (globals.hosts.${name} or {}) // {inherit name;};
   in {
     common = {inherit inputs globals host mkModule self;};
   };

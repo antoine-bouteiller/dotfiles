@@ -1,6 +1,12 @@
-#!/bin/sh -e
-. "$(dirname "$0")/../host-attr.sh"
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../private-config.sh"
+
+private_config_init
+private_config_split_nh_args "$@"
 
 echo "Applying NixOS configuration..."
-nh os switch . --impure -H "$(host_attr nixos)" "$@"
+host=$(host_attr nixos)
+nh os switch "$PRIVATE_CONFIG_PUBLIC_REF" -H "$host" "${PRIVATE_CONFIG_NH_ARGS[@]}" -- \
+  "${PRIVATE_CONFIG_CALLER_NIX_ARGS[@]}" "${PRIVATE_CONFIG_NIX_ARGS[@]}"
 echo "Switch to new generation complete!"

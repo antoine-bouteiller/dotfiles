@@ -1,5 +1,4 @@
 {
-  config,
   host,
   inputs,
   lib,
@@ -28,15 +27,11 @@ in {
 
   local.home-manager = {
     shell-tools.enable = true;
-    zsh.localConfigFile = "${config.home.homeDirectory}/.local/share/dotfiles/zvm";
     herdr.enable = true;
     agents = {
       enable = true;
       claude-code.enable = true;
-      pi = {
-        enable = true;
-        extraSecretFiles = ["${config.local.home-manager.sourcePath}/secrets/work_env.yaml"];
-      };
+      pi.enable = true;
     };
   };
 

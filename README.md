@@ -26,7 +26,7 @@ Hosts:
 | `antoine-dell` | `x86_64-linux`   | Dell XPS 15 laptop (LUKS + secure boot) |
 | `desktop`      | `x86_64-linux`   | Windows dual boot (LUKS + secure boot)  |
 | `plex-server`  | `x86_64-linux`   | home media server                       |
-| `vm`           | `x86_64-linux`   | standalone Home Manager VM (`VM_USER`)  |
+| `vm`           | `x86_64-linux`   | standalone Home Manager VM              |
 
 ## Layout
 
@@ -38,18 +38,62 @@ Hosts:
 
 ## Commands
 
-| Command                                          | Effect                                                                           |
-| ------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `nix run .#apply`                                | `darwin-rebuild`/`nixos-rebuild switch` for the current host                     |
-| `nix run .#update`                               | `nix flake update` + run every package's `update.nu`                             |
-| `nix run .#clean`                                | GC all but the 2 latest generations                                              |
-| `nix build .#checks.<system>.<host>`             | dry build a host (CI builds all)                                                 |
-| `nix run ./dev`                                  | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)                  |
-| `nix run .#apply-remote -- ${VM_USER}@<vm-host>` | deploy GitHub `main` to the standalone VM without a checkout (not local changes) |
+| Command                                      | Effect                                                                           |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `nix run .#apply`                            | `darwin-rebuild`/`nixos-rebuild switch` for the current host                     |
+| `nix run .#update`                           | `nix flake update` + run every package's `update.nu`                             |
+| `nix run .#clean`                            | GC all but the 2 latest generations                                              |
+| `nix build .#checks.<system>.<host>`         | dry build a host (CI builds all)                                                 |
+| `nix run ./dev`                              | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)                  |
+| `nix run .#apply-remote -- <user>@<vm-host>` | deploy GitHub `main` to the standalone VM without a checkout (not local changes) |
 
 `apply-remote` targets the standalone Home Manager `vm`, not the nix-darwin Linux-builder VM.
 
 Flakes ignore untracked files: `git add` new `.nix` files before applying.
+
+## Private configuration
+
+The public flake works without private data. Its `privateConfig` input defaults to the
+tracked `private-config/` fixture, whose VM username is the `ci-user` fixture. An
+independent, ignored Git checkout at `.private/` may replace it; it must be a directory,
+not a symlink. Private `default.nix` can optionally provide `hosts.vm.user`; private
+`home.nix` is an optional Home Manager module shared by the configured hosts. No legacy
+environment variables are required. Keep identities, work-only shell settings, and
+encrypted SOPS data in that checkout, not in this repository.
+
+Local `apply` commands select `.private/` automatically when it is present. Both the
+public checkout and private checkout are read as Git snapshots, so stage newly added
+private files such as `default.nix` or `home.nix` before applying. Do not use a
+`path:<public-root>` reference: its ignored private checkout and `.git` data can be copied
+to the Nix store. Use a `git+file` reference instead:
+
+```sh
+nix eval --no-write-lock-file \
+  --override-input privateConfig "git+file://$(git rev-parse --show-toplevel)/.private" \
+  .#homeConfigurations.vm.config.home.username
+```
+
+`apply-remote` always pins the freshly advertised public `main` revision. It uses a
+private override only when `.private/` is clean, on an attached branch, and that branch's
+`origin` tip is exactly `HEAD`; it does not commit or push for you. A VM deployment needs
+a non-`ci-user` `hosts.vm.user` from private configuration.
+
+Public Git uses `programs.git.settings.user.email = globals.email`, the GitHub default.
+Private native Git configuration conditionally supplies the GitLab email for any matching
+GitLab remote hostname, including SCP (`git@host:path`), HTTPS, and `ssh://` URLs;
+configured aliases and ports are private configuration. A matching remote wins even when
+a repository also has GitHub remotes. A repository-local `user.email` wins over either
+configuration. This is remote matching, not push-destination selection.
+
+Nix evaluations copy the selected private source, identity values, and plain shell values
+to the world-readable Nix store; this exposure is accepted by the user. SOPS ciphertext
+remains encrypted in the store and is decrypted at runtime, not during environment
+evaluation.
+
+The legacy `~/.local/share/dotfiles/zmacos` and `zvm` links are temporary compatibility
+links. Retain the private checkout, its backup, and its remote; remove those links only
+after a successful activation. In particular, do not run `git clean -ffdx` casually: it
+can destroy the nested ignored `.private` repository.
 
 ## Development
 
@@ -60,6 +104,10 @@ changes; when formatting changes a file, re-stage it and retry the commit.
 
 Use `treefmt` in the dev shell or `nix run ./dev` from the repository root.
 Update the dev inputs separately with `nix flake update --flake ./dev`; CI updates both locks weekly.
+
+`bash dev/test_private_config.sh --check-local-migration` is one-time migration evidence
+tied to the private checkout's original `HEAD`, not an enduring post-commit regression.
+Normal public tests remain runnable without that private checkout.
 
 # Install
 

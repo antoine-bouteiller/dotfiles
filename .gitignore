@@ -1,3 +1,6 @@
+# private migration repository
+/.private/
+
 # zsh
 .antidote/
 .zcompcache/

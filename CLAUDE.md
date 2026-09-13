@@ -6,7 +6,8 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 ## Critical
 
 - **`git add` before applying.** Flakes ignore untracked files — a new `.nix` file is invisible to
-  the build until staged. Stage first, then apply.
+  the build until staged. Stage first, then apply. This includes new `.private/default.nix` and
+  `.private/home.nix` when the optional private checkout is in use.
 - **Format with `nix run ./dev`** (or `treefmt` inside the dev shell); config in `dev/treefmt.nix`.
   The independent `dev/` flake keeps formatting tools out of host installations.
 - **Enter the dev shell with `direnv allow` or `nix develop ./dev`.** `git-hooks.nix` installs
@@ -25,7 +26,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 ## Layout
 
 - `flake.nix` — hosts wired via `mkDarwinHost`/`mkNixosHost` (`lib/default.nix`); `globals.nix` = name/email/keys.
-- `hosts/<name>/{default,home}.nix` + `hosts/base*.nix` — per-machine config. Integrated hosts: `dell`, `desktop`, `plex-server`, `macbook`; `vm` is standalone Home Manager for `VM_USER`; `iso` has neither common modules nor Home Manager.
+- `hosts/<name>/{default,home}.nix` + `hosts/base*.nix` — per-machine config. Integrated hosts: `dell`, `desktop`, `plex-server`, `macbook`; `vm` is standalone Home Manager for optional private `hosts.vm.user` (public `ci-user` fixture); `iso` has neither common modules nor Home Manager.
 - `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules (`applications/<app>/`, `shell/`).
 - `pkgs/<name>/` — custom derivations with `passthru.updateScript` → `update.nu`; `pkgs/update-utils.nu` exports `root_dir`, `github_headers`, and `to_sri` for updater scripts.
 - `apps/<system>/` — app scripts. `flake.nix` `mkApp` pins Bash; `apps/aarch64-darwin/update` is a symlink to `../x86_64-linux/update`, selecting its platform from the invoked path.
@@ -35,11 +36,20 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 
 - Integrated Home Manager imports `hosts/<name>/home.nix` for `host.user`, shares `modules/home`, disables the release check, and forwards special args; `hosts/base-nixos.nix` owns the normal Linux user, while standalone `vm` imports its home directly with explicit identity.
 - `local.home-manager.sourcePath` is the runtime path for agent files, Pi secrets, Zed files, and zsh; integrated homes default to `flakePath`, while `vm` uses `${inputs.self}` for checkout-free remote deployment.
+- `privateConfig` is an optional non-flake input. The tracked `private-config/` fixture is empty;
+  `.private/` is an independent ignored Git repository selected by local apply scripts. Its
+  `default.nix` may set `hosts.vm.user`; its optional `home.nix` is the single shared private
+  Home Manager hook. Private modules own work identity and host-specific work shell settings.
+  `.private/` must be a directory rather than a symlink. No legacy environment variables are
+  required. Never copy private values into public files or output them in diagnostics.
 - `local.nixos.workstation` selects desktop, the Home Manager workstation profile, and shared `dell`/`desktop` packages; `local.nixos.desktop` owns resolved, PipeWire, Bluetooth, and xwayland-satellite; Darwin selects the Home Manager profile directly.
 - `local.home-manager.desktop` owns Niri and terminal selection; use `desktop.extraNiriConfig` for host outputs and keep Steam scaling plus `eDP-1` in host files.
 - Set MCP servers with `programs.mcp.servers`; agents enable `programs.mcp` when servers exist.
 - Shared Servarr integration is `hosts/plex-server/media/arr/shared.nix`; upstream Immich owns database extensions/setup; the download bundle owns Podman.
-- `nix run .#apply-remote -- ${VM_USER}@<vm-host>` deploys GitHub `main` to standalone `vm`, not local changes or the nix-darwin Linux-builder VM.
+- `nix run .#apply-remote -- <user>@<vm-host>` deploys a freshly pinned public `main` revision
+  to standalone `vm`, never local changes. It accepts private configuration only from a clean,
+  attached private branch whose `origin` tip equals `HEAD`; it evaluates the pinned VM username
+  before bootstrap and requires that SSH login to match it.
 
 ## Patterns
 

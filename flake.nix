@@ -47,6 +47,11 @@
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
+    # Optional public fixture; private deployments can override this non-flake input.
+    privateConfig = {
+      url = "path:./private-config";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -54,7 +59,7 @@
     nixpkgs,
     ...
   } @ inputs: let
-    globals = import ./globals.nix;
+    globals = import ./globals.nix {inherit inputs;};
     libHelpers = import ./lib {inherit inputs globals self;};
     inherit (libHelpers) mkDarwinHost mkNixosHost;
 
@@ -159,7 +164,7 @@
       };
       extraSpecialArgs = {
         inherit inputs globals;
-        host = globals.hosts.vm;
+        host = globals.hosts.vm // {name = "vm";};
         mkModule = import ./lib/module.nix nixpkgs.lib;
       };
       modules = [./hosts/vm/home.nix];

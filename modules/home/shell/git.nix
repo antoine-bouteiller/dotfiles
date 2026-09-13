@@ -1,7 +1,6 @@
 {
   config,
   globals,
-  host,
   lib,
   ...
 }: let
@@ -61,8 +60,7 @@ in {
     };
     settings = {
       user = {
-        inherit (globals) name;
-        email = host.gitEmail or globals.email;
+        inherit (globals) name email;
       };
       init.defaultBranch = "main";
       alias = {
@@ -98,22 +96,7 @@ in {
       gpg.ssh.allowedSignersFile = allowedSignersFile;
       user.signingkey = signingKeyPath;
     };
-    includes = [
-      {
-        condition = "hasconfig:remote.*.url:git@github.com:*/**";
-        path = "~/.gitconfig-github";
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://github.com/**";
-        path = "~/.gitconfig-github";
-      }
-    ];
   };
-
-  home.file.".gitconfig-github".text = ''
-    [user]
-      email = ${globals.email}
-  '';
 
   programs.delta = {
     enable = true;

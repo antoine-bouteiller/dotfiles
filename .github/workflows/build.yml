@@ -10,10 +10,6 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  VM_USER: ci-user
-  WORK_EMAIL: ci@example.com
-
 jobs:
   discover:
     runs-on: ubuntu-latest
@@ -35,7 +31,7 @@ jobs:
           for entry in x86_64-linux:ubuntu-latest aarch64-darwin:macos-latest; do
             system=${entry%%:*}
             runner=${entry##*:}
-            hosts=$(nix eval --json --impure ".#checks.$system" --apply 'builtins.attrNames')
+            hosts=$(nix eval --json ".#checks.$system" --apply 'builtins.attrNames')
             include=$(jq -c --argjson hosts "$hosts" --arg system "$system" --arg runner "$runner" \
               '. + [$hosts[] | {system: $system, runner: $runner, host: .}]' <<<"$include")
           done
@@ -81,4 +77,4 @@ jobs:
           pushFilter: "(\\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$)"
 
       - name: Build ${{ matrix.host }}
-        run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --impure --no-link --print-build-logs
+        run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --no-link --print-build-logs

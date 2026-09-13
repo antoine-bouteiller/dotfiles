@@ -637,6 +637,19 @@
         "type": "github"
       }
     },
+    "privateConfig": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-wTey49j3rQn4DulQMbphCcRTjX0rU8R2aWNwgXilKZk=",
+        "path": "./private-config",
+        "type": "path"
+      },
+      "original": {
+        "path": "./private-config",
+        "type": "path"
+      }
+    },
     "root": {
       "inputs": {
         "agent-browser-skill": "agent-browser-skill",
@@ -652,6 +665,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
+        "privateConfig": "privateConfig",
         "sops-nix": "sops-nix"
       }
     },

@@ -1,60 +1,57 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../private-config.sh"
 
-if [[ $# -ne 1 || -z "$1" || "$1" == -* ]]; then
+if [[ $# -ne 1 || ! $1 =~ ^[a-z_][a-z0-9_-]{0,31}@((([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)|(\[[0-9A-Fa-f:.]+\]))$ ]]; then
   echo "Usage: nix run .#apply-remote -- <user>@<vm-host>" >&2
   exit 2
 fi
-
-: "${VM_USER:?Set VM_USER}"
-: "${WORK_EMAIL:?Set WORK_EMAIL}"
-
-remote_script=$(cat <<'REMOTE'
-set -euo pipefail
-if [[ $(id -un) != "$VM_USER" ]]; then
-  echo 'SSH login must match VM_USER' >&2
+target=$1
+private_config_remote_init
+expected_user=$(nix --extra-experimental-features 'nix-command flakes' eval --raw \
+  "$PRIVATE_CONFIG_PUBLIC_REF#homeConfigurations.vm.config.home.username" "${PRIVATE_CONFIG_NIX_ARGS[@]}")
+if [[ -z $expected_user || $expected_user == ci-user ]]; then
+  echo 'remote deployment requires a configured non-CI vm home username' >&2
   exit 1
 fi
 
-# Non-interactive login shells may not load an existing Nix installation.
+remote_script=$(cat <<'REMOTE'
+set -euo pipefail
+if [[ $(id -un) != "$EXPECTED_USER" ]]; then
+  echo 'SSH login must match the evaluated VM home username' >&2
+  exit 1
+fi
 for profile in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh "$HOME/.nix-profile/etc/profile.d/nix.sh"; do
-  if ! command -v nix >/dev/null && [[ -f "$profile" ]]; then
-    . "$profile"
-  fi
+  if ! command -v nix >/dev/null && [[ -f "$profile" ]]; then . "$profile"; fi
 done
 if ! command -v nix >/dev/null; then
   curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
   . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 fi
-
-# Standalone Home Manager does not apply hosts/base.nix: trust its caches in the
-# daemon config before the first build, without replacing existing settings.
-sudo mkdir -p /etc/nix
+sudo mkdir -p /etc/nix /etc/ssh/sshd_config.d
 sudo tee /etc/nix/dotfiles.conf >/dev/null <<'NIX_CONFIG'
 extra-experimental-features = nix-command flakes
 extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
 extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=
 NIX_CONFIG
-if ! sudo grep -qxF "include dotfiles.conf" /etc/nix/nix.conf; then
-  printf '\n%s\n' "include dotfiles.conf" | sudo tee -a /etc/nix/nix.conf >/dev/null
+if ! sudo grep -qxF 'include dotfiles.conf' /etc/nix/nix.conf 2>/dev/null; then
+  printf '\ninclude dotfiles.conf\n' | sudo tee -a /etc/nix/nix.conf >/dev/null
 fi
 sudo systemctl restart nix-daemon
-
-# Let the local `vm` helper forward the sops age key with SendEnv; the stock sshd
-# only accepts LANG and LC_*.
 echo 'AcceptEnv SOPS_AGE_KEY' | sudo tee /etc/ssh/sshd_config.d/50-sops-age.conf >/dev/null
 sudo systemctl reload ssh
-
-# No checkout on the VM: build straight from GitHub over SSH via the forwarded
-# agent (always deploys main).
-out=$(nix --extra-experimental-features "nix-command flakes" build --impure --refresh --no-link --print-out-paths \
-  "git+ssh://git@github.com/antoine-bouteiller/dotfiles?ref=main#homeConfigurations.vm.activationPackage")
+build_args=(--no-write-lock-file)
+if [[ -n $PRIVATE_OVERRIDE ]]; then build_args+=(--override-input privateConfig "$PRIVATE_OVERRIDE"); fi
+out=$(nix --extra-experimental-features 'nix-command flakes' build --no-link --print-out-paths \
+  "$PUBLIC_REF#homeConfigurations.vm.activationPackage" "${build_args[@]}")
 "$out/activate"
 REMOTE
 )
-
-# Keep stdin attached to the terminal for installer/sudo prompts; forward the
-# agent so the VM can fetch the flake over SSH.
-printf -v remote_script 'export VM_USER=%q WORK_EMAIL=%q\n%s' "$VM_USER" "$WORK_EMAIL" "$remote_script"
-escaped_quote="'\''"
-exec ssh -A -t -- "$1" "bash -l -c '${remote_script//\'/$escaped_quote}'"
+shell_quote() {
+  printf "'%s'" "${1//\'/\'\"\'\"\'}"
+}
+printf -v remote_script 'EXPECTED_USER=%s\nPUBLIC_REF=%s\nPRIVATE_OVERRIDE=%s\n%s' \
+  "$(shell_quote "$expected_user")" "$(shell_quote "$PRIVATE_CONFIG_PUBLIC_REF")" \
+  "$(shell_quote "$PRIVATE_CONFIG_REMOTE_OVERRIDE")" "$remote_script"
+remote_command="bash -l -c $(shell_quote "$remote_script")"
+exec ssh -A -o SendEnv=SOPS_AGE_KEY -t -- "$target" "$remote_command"

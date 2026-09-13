@@ -20,6 +20,7 @@ in {
           "raycursive/niri-displays"
           "felipeartur/ai-usagebar"
           "nightwatch75/dns-switcher"
+          "davemhammer/tailscale"
         ];
         plugin_settings."felipeartur/ai-usagebar".panel_open_near_click = true;
         # The ISP resolver filters some domains; switch to a public one when needed.
@@ -36,6 +37,7 @@ in {
             "notifications"
             "clipboard"
             "network"
+            "tailscale"
             "bluetooth"
             "volume"
             "brightness"
@@ -47,6 +49,7 @@ in {
           "ai-usagebar".type = "felipeartur/ai-usagebar:bar";
           "niri-display".type = "raycursive/niri-displays:bar";
           "dns-switcher".type = "nightwatch75/dns-switcher:dns-switcher";
+          "tailscale".type = "davemhammer/tailscale:status";
           media.enabled = false;
         };
         control_center = {

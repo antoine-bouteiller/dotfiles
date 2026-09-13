@@ -5,5 +5,6 @@
     ./gaming.nix
     ./profiles/workstation.nix
     ./secure-boot.nix
+    ./tailscale.nix
   ];
 }

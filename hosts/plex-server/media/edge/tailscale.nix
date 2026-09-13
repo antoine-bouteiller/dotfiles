@@ -5,13 +5,7 @@
   # Then configure Tailscale DNS in the admin console:
   #   - Add a restricted nameserver for the public media domain.
   #   - Use this host's `tailscale ip -4` address as the nameserver.
-  services.tailscale = {
-    enable = true;
-  };
-
-  systemd.services.tailscaled.serviceConfig.Environment = [
-    "TS_DEBUG_FIREWALL_MODE=nftables"
-  ];
+  local.nixos.tailscale.enable = true;
 
   # Keep tailnet DNS enabled globally, but do not install it on this IPv4-only host.
   services.tailscale.extraSetFlags = [

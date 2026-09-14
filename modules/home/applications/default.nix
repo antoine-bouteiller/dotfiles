@@ -6,7 +6,7 @@
     ./lazygit.nix
     ./herdr.nix
     ./hunk.nix
-    ./zed
+    ./zed.nix
     ./agents
   ];
 }

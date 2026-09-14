@@ -112,6 +112,7 @@
           fff-mcp = pkgs.callPackage ./pkgs/fff-mcp {};
           go-jls = pkgs.callPackage ./pkgs/go-jls {};
           pi = pkgs.callPackage ./pkgs/pi {};
+          engram = pkgs.callPackage ./pkgs/engram {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           nearby-file-share = pkgs.callPackage ./pkgs/nearby-file-share.nix {};

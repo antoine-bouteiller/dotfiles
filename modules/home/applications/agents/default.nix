@@ -20,6 +20,7 @@ in
     imports = [
       ./claude-code.nix
       ./pi.nix
+      ./engram
       ./meridian.nix
     ];
 

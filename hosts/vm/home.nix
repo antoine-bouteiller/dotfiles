@@ -1,4 +1,5 @@
 {
+  config,
   host,
   inputs,
   lib,
@@ -76,6 +77,10 @@ in {
     initExtra = "exec ${lib.getExe pkgs.zsh} -l";
   };
   programs.zsh.envExtra = sshAgentSocket;
+
+  systemd.user.services.engram-sync = lib.mkIf (config.local.home-manager.agents.engram.gitRemote != null) {
+    Service.Environment = ["SSH_AUTH_SOCK=%h/.ssh/agent.sock"];
+  };
 
   targets.genericLinux.enable = true;
   programs.home-manager.enable = true;

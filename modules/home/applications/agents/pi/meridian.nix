@@ -27,8 +27,6 @@ in {
       Service = {
         ExecStart = lib.getExe package;
         Environment = [
-          # ponytail: caps peak claude processes (~400MB RSS each); raise if the
-          # host gets more RAM/swap and spawn EAGAIN stops appearing
           "MERIDIAN_MAX_CONCURRENT=4"
           "MERIDIAN_NO_FILE_CHANGES=1"
           "MERIDIAN_TELEMETRY_PERSIST=1"

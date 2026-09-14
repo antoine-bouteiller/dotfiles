@@ -35,7 +35,8 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 ## Ownership
 
 - Integrated Home Manager imports `hosts/<name>/home.nix` for `host.user`, shares `modules/home`, disables the release check, and forwards special args; `hosts/base-nixos.nix` owns the normal Linux user, while standalone `vm` imports its home directly with explicit identity.
-- `local.home-manager.sourcePath` is the runtime path for agent files, Pi secrets, Zed files, and zsh; integrated homes default to `flakePath`, while `vm` uses `${inputs.self}` for checkout-free remote deployment.
+- Agent modules and assets live in `modules/home/applications/agents/{claude-code,pi,skills}`. Only skills use out-of-store links; agent context, settings, and hooks come from the Nix store.
+- `local.home-manager.sourcePath` is the runtime path for agent skills, Pi secrets, Zed files, and zsh; integrated homes default to `flakePath`, while `vm` uses `${inputs.self}` for checkout-free remote deployment.
 - `privateConfig` is an optional non-flake input. The tracked `private-config/` fixture is empty;
   `.private/` is an independent ignored Git repository selected by local apply scripts. Its
   `default.nix` may set `hosts.vm.user`; its optional `home.nix` is the single shared private

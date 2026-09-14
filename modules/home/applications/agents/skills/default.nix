@@ -1,5 +1,5 @@
-# Skill discovery: the local tree lives at the repo root (`agents/skills`) so it can be
-# edited in place, and every SKILL.md-bearing directory becomes one entry. Renders the
+# Skill discovery: the local skills/ tree stays editable in place, and every
+# SKILL.md-bearing directory becomes one entry. Renders the
 # home.file set for a single agent dir, e.g. ".agents" or ".claude".
 {
   lib,
@@ -8,7 +8,7 @@
   agentsDir,
   extraSkills ? {},
 }: let
-  root = ../../../../agents/skills;
+  root = ./.;
 
   findSkills = relPath: let
     fullPath = root + (lib.optionalString (relPath != "") "/${relPath}");

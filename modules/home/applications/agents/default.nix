@@ -8,20 +8,19 @@
 } @ args: let
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 
-  skillFiles = import ./skills.nix {
+  skillFiles = import ./skills {
     inherit lib inputs;
     inherit (config.local.home-manager.agents) extraSkills;
     inherit (config.lib.file) mkOutOfStoreSymlink;
-    agentsDir = "${config.local.home-manager.sourcePath}/agents";
+    agentsDir = "${config.local.home-manager.sourcePath}/modules/home/applications/agents";
   };
 in
   mkModule args "local.home-manager.agents" {
     description = "agent CLIs";
     imports = [
-      ./claude-code.nix
-      ./pi.nix
+      ./claude-code
+      ./pi
       ./engram
-      ./meridian.nix
     ];
 
     options.extraSkills = lib.mkOption {

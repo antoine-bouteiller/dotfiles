@@ -10,6 +10,7 @@
 
   skillFiles = import ./skills.nix {
     inherit lib inputs;
+    inherit (config.local.home-manager.agents) extraSkills;
     inherit (config.lib.file) mkOutOfStoreSymlink;
     agentsDir = "${config.local.home-manager.sourcePath}/agents";
   };
@@ -21,6 +22,12 @@ in
       ./pi.nix
       ./meridian.nix
     ];
+
+    options.extraSkills = lib.mkOption {
+      type = lib.types.attrsOf lib.types.path;
+      default = {};
+      description = "Additional skill directories, keyed by skill name, shared by all agents.";
+    };
 
     # claude-code.enable and pi.enable are declared by the sub-modules that own them.
 

@@ -6,6 +6,7 @@
   inputs,
   mkOutOfStoreSymlink,
   agentsDir,
+  extraSkills ? {},
 }: let
   root = ../../../../agents/skills;
 
@@ -55,5 +56,5 @@ in
         name = "${dir}/skills/${name}";
         value.source = path;
       })
-      externalSkills
+      (externalSkills // extraSkills)
     )

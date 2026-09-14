@@ -1,92 +1,78 @@
 ---
 name: implement
-description: "Implement a piece of work based on a plan, spec, or set of tickets."
+description: Execute an agreed plan, spec, or set of tickets with scoped implementation, review, and verification.
 disable-model-invocation: true
 ---
 
 # Implement
 
-Execute the work by dispatching one small, scoped subagent per task, reviewing each result, and
-committing each coherent unit of work. You coordinate; subagents write code. Your context stays
-clean for coordination.
+Deliver the requested behavior, using scoped implementers and review where they improve execution.
+Preserve the surrounding authorization for edits, tests, commits, and external actions.
 
-## 1. Frame the work
+## Frame the work
 
-Identify the target and read it, plus the code it touches:
+Read the target and affected code. For a plan, read linked specs and the authoritative task state,
+then set `status: in-progress`. Folder plans keep state in their index. For specs or tickets, derive
+ordered tasks with one checkable outcome and suitable verification each.
 
-- **A plan** (`.plan/<slug>.md`) — the task list is given. Set `status: in-progress`, create one todo
-  per task, and read the spec it references when there is one.
-- **A spec or tickets** — derive the task list yourself: ordered, each task one checkable outcome
-  with one runnable verification. When the work exceeds roughly three tasks, stop and use
-  `writing-plan` first.
+Resolve task dependencies, shared write paths, and contract changes before implementation. Use
+the `writing-plan` skill when the work needs a durable execution plan; when
+implementation is already requested, continue after planning without a new handoff approval.
+Routine choices can be recorded as assumptions; ask about unresolved material scope or contract
+choices.
 
-Scan the task list once for contradictions — tasks that fight each other, or share a file in the
-wrong order — and resolve them before dispatching. Then draft the branch's commit map by intent,
-independent of task boundaries. A typical plan should land as two to five commits; exceed that only
-when every extra commit is independently useful to review or revert. Done when every task names real
-paths and a runnable check, and every task belongs to a planned commit.
+When committing is authorized, group tasks into coherent commits by intent. Keep a contract change
+with its required callers and tests. There is no target number of tasks or commits.
 
-## 2. Dispatch one implementer per task
+## Implement scoped tasks
 
-One task, one subagent, one dispatch at a time. Never run two implementers whose write paths
-overlap.
+Use one scoped implementer per substantive task when delegation is available and permitted.
+Independent tasks may run concurrently only when their write paths and interfaces do not conflict.
+Batch repeated mechanical edits. Work locally when delegation is unavailable or adds little value.
 
-The brief is the single source of requirements. It carries: the task's goal, exact
-repository-relative paths, the change with its exact values and signatures, the behavior to
-preserve, the verification command, and the interfaces or decisions from earlier tasks the task
-cannot know. It carries nothing else — no session history, no prior-task summaries, no "read the
-whole plan".
+Give each implementer the goal, paths, relevant project instructions, required behavior and
+invariants, agreed interfaces, and verification. Include enough context to make correct decisions;
+avoid prescribing incidental signatures or implementation choices the design leaves open.
+Implementers report the change, evidence, and concerns; they do not commit or recursively delegate.
 
-Instruct each implementer to work test-first (`tdd`) at the task's seams: failing test, minimal
-code, refactor. It runs the task's verification and reports status, the diff summary, test output,
-and concerns — it does not commit and does not spawn its own subagents.
+Use the `writing-tests` skill for behavior changes where test-first development is appropriate, reusing
+agreed test boundaries. Mechanical, documentation, and low-impact configuration changes need
+proportionate validation rather than artificial failing tests. Use available models according to
+task difficulty and environment policy; no particular model alias is required.
 
-Batch same-shape trivial edits — the same one-line change repeated across files — into one dispatch
-reviewed as one unit.
+## Review and verify
 
-Match the model to the task: cheap for mechanical single-file work with complete instructions,
-standard for multi-file integration, most capable for design judgment and the final review.
+Check both requirement satisfaction and code correctness before accepting a task. Use a fresh
+reviewer for substantial or risky changes when available, passing the task, diff, and relevant
+context. For small changes or without delegation, make a separate local review pass.
 
-## 3. Review each task
+Inspect verification evidence. Rerun a check when the evidence is missing, stale, or insufficient,
+rather than duplicating every successful run. After corrections, rerun affected checks.
+Return findings to the implementer or fix them locally with the same review standard. If three
+correction rounds make no progress, reassess the approach or seek an independent diagnosis;
+report a concrete blocker when progress needs information or access you do not have.
 
-Run the task's verification yourself, then dispatch a fresh `reviewer` with the task diff and the
-brief. Two verdicts are required: the change satisfies the task, and the code holds up. Approve
-nothing missing either.
+## Record and commit
 
-Feed findings back to the implementer that wrote the code, at most three rounds; escalate to a fresh
-implementer on a stronger model after that. Never fix findings yourself — controller fixes skip
-review and pollute your context. Minor findings go to the log for the final review, not into the
-loop.
+Tick tasks and acceptance criteria only when supported by evidence. Record deviations, important
+decisions, deferred non-blocking findings, and commit hashes when applicable in the plan's `Log`.
+For consequential routine decisions use `Ruling: <decision> — <reason> — <cost if wrong>`.
+After interruption, reconcile the plan with the actual worktree before resuming.
 
-## 4. Commit and record
+If commits are authorized, stage only the intended unit and follow
+the `conventional-commit` skill. Reuse previously authorized commit boundaries.
+Otherwise leave verified changes ready for review. Keep plan files out of commits unless requested.
+Rewrite existing history only when that rewrite is authorized; a preferred commit map is not
+permission to autosquash or rebase shared work.
 
-Follow the commit map, not the task list. A commit is one **standalone** change: it states one intent,
-leaves the tree building and its tests passing, and reads on its own in the log without the tasks
-around it. Several approved tasks usually make one — a contract and its tests, or a migration and all
-its call sites. Hold approved tasks until the mapped unit is whole, then commit it with a message
-following `../conventional-commit/SKILL.md`. Commit before the next task would mix a second intent or
-before finishing. Fold later corrections into their owning commit with fixup/autosquash; the final
-branch must match the map rather than expose implementation chronology.
+## Finish
 
-When the target is a plan, tick each task and any satisfied acceptance criteria as it is approved,
-and append the outcome to `Log` at each commit — commit range, deviations, deferred findings. **The
-plan is the state**: it, not your memory, is what survives compaction. Reread it after any
-interruption and resume at the first unticked task, with any approved-but-uncommitted work still in
-the worktree.
+Run the plan's final verification and the repository checks warranted by the change, including the
+full suite when required or needed to cover shared behavior. Review the combined result, using
+the `code-review` skill for substantial changes. Correct blocking findings and verify
+the resulting changes before declaring completion.
 
-## 5. Finish
-
-Run typecheck and the full test suite. Run the plan's final verification, tick the remaining
-acceptance criteria, set `status: done`. Review the whole branch with `code-review` on the most
-capable model, dispatch one fix wave for its findings, and report: what shipped, what was deferred,
-and every ruling you made with what it costs if wrong.
-
-## Rulings, not stalls
-
-A running implementation does not wait on the user. Ambiguities, plan defects, and conflicts are
-yours to decide — the spec binds, the plan argues from it, your judgment settles the rest. Record
-each as `Ruling: <decision> — <why> — <cost if wrong>` in the plan's `Log` and keep going.
-
-Stop and ask only for: an irreversible or destructive operation, a security-sensitive action, a side
-effect outside this worktree (merge, push to a shared branch, publish), or a defect that leaves every
-path forward a guess.
+Set `status: done` only when tasks, acceptance criteria, required checks, and final review are
+satisfied. Otherwise record the remaining work or concrete blocker. Report the outcome, verification,
+and material limitations. Continue within existing authorization; ask only for missing consequential
+decisions or actions that require new permission.

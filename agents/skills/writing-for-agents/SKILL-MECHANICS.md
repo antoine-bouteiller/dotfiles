@@ -1,22 +1,50 @@
 # Skill mechanics
 
-The skill-specific branch of [`writing-for-agents`](SKILL.md): what changes when the document is a skill — frontmatter, the invocation choice, and router skills. Everything else about writing it is the universal reference in `SKILL.md`.
+Keep required `name` and `description` frontmatter concise and useful for discovery. Match the
+directory name to the skill name and preserve supported optional metadata. Put workflow instructions
+in the body; descriptions carry the capability and selection criteria, not the procedure.
 
-## Invocation
+On Codex, consult the installed native `skill-creator` when initialization, packaging tools, or
+metadata editing is needed. Use its current schemas and helpers rather than copying them here.
+The writing principles in this skill also apply to hosts without that native skill.
 
-Two choices, trading the two loads:
+## Supporting resources
 
-- A **model-invoked** skill keeps a `description`, so the agent can fire it autonomously — and other skills can reach it. You can still type its name: model-invocation always _includes_ user reach; a description only ever adds agent discovery, never removes the human's. The description is the skill's top-level context pointer, forced to stay loaded at all times — permanent context load in exchange for discoverability. A model-invoked skill whose content is all reference is also one home for shared reference: another skill can invoke it, so reference needed by several skills lives in one place. Mechanics: omit `disable-model-invocation`, and write a model-facing description carrying the trigger branches (the pointer-writing rules in `SKILL.md` apply in full).
-- A **user-invoked** skill strips the description from the agent's reach: only the human typing its name can invoke it, and no other skill can. Zero context load, but it spends cognitive load — you are the index that must remember it exists. Mechanics: set `disable-model-invocation: true`; the `description` becomes human-facing — a one-line summary, trigger lists stripped.
+Use references for substantial conditional guidance, with a link explaining when to read each one.
+Use scripts when they avoid repeatedly recreating logic or materially improve execution reliability;
+run new or changed scripts to verify them. Use assets for files copied or adapted into the output,
+not as instructions to load by default. Create each resource only when its concrete benefit justifies it.
 
-Pick model-invocation only when the agent must reach the skill on its own, or another skill must. If it only ever fires by hand, make it user-invoked and pay no context load.
+## Invocation across hosts
 
-Shared reference that two user-invoked skills both need can live in neither — with no descriptions, neither can fire the other. Push it to a plain file outside the skill system: external reference any skill can point at.
+Automatic discovery is the default. Preserve an existing invocation policy; choose explicit-only
+for a new skill only when the user requests it. Sensitive operations alone do not justify disabling
+discovery: require authorization at the action boundary. Preserve unrelated UI, policy, and
+dependency fields when changing metadata; a generator that replaces a file may discard them.
 
-## Splitting by invocation
+This repository shares skill folders across agent hosts:
 
-The invocation cut of splitting (the sequence cut lives in `SKILL.md`): split off a model-invoked skill when you have a distinct leading word that should trigger it on its own — a trigger word you actually use in your prompts — or another skill must reach it. You pay context load for the new always-loaded description, so that independent reach has to be worth it.
+- **Codex:** `agents/openai.yaml` controls implicit invocation with
+  `policy.allow_implicit_invocation: false`.
+- **Claude Code:** `disable-model-invocation: true` in `SKILL.md` controls automatic invocation.
+  Keep that field for existing explicit-only skills alongside the Codex policy.
+- **Other hosts:** check their supported metadata rather than assuming either setting applies.
 
-## Router skills
+Refer to other skills by their registered names, for example, "Use the `writing-tests` skill."
+Use relative links for supporting documents such as `PLAN-FORMAT.md` or `mocking.md`, rather than
+for another skill's entrypoint. A named reference does not change invocation policy or grant
+additional execution permissions. Keep shared references inside their owning skill and link to them.
 
-When user-invoked skills multiply past what you can remember, that piled-up cognitive load is cured by a **router skill**: one user-invoked skill that names the others and when to reach for each, so the human has one skill to remember instead of many. It can only hint, never fire them: user-invoked skills have no description, so nothing but the human can reach them.
+Host-specific tool names, model aliases, and authentication steps belong only in guidance for that
+host. Prefer capability descriptions and available-tool discovery in shared workflows.
+
+## Validation
+
+Validate common frontmatter and links, then check host-specific fields separately. The bundled
+Codex `quick_validate.py` rejects Claude's `disable-model-invocation` key even when a shared skill
+deliberately preserves it. Report that compatibility distinction; do not remove a working host
+policy merely to silence a different host's validator. A normalized temporary copy can validate the
+common fields without changing the source.
+
+Add UI metadata, scripts, or routers only when the workflow needs them. A router is useful for
+selecting among distinct tasks, not for bypassing invocation policy or user authorization.

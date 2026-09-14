@@ -1,82 +1,65 @@
 ---
 name: sync-mr-ticket
-description: Update a GitLab merge request's title + description and the Linear ticket linked to it,
-  auto-discovering both from the current git branch. Use when the user asks to "update the
-  MR", "update the MR and ticket", "sync the MR description", or after rewriting commits /
-  finishing a feature. The MR is found by branch (never assume the !N), and the Linear
-  ticket key is derived from the branch name (e.g. phx-118-… → PHX-118).
-allowed-tools: Bash, Read, Grep
+description: Update a GitLab merge request title and description; also update its linked Linear implementation summary when requested.
 disable-model-invocation: true
 ---
 
-# Sync MR + Linear ticket
+# Sync MR and ticket
 
-Updates the MR title/description and the linked Linear ticket for the **current branch**.
-Discover everything from the branch — never hardcode an MR number or ticket ID.
+Choose the requested scope first. "Update the MR" updates only the MR. "Update the MR and ticket"
+updates both. Invoking this skill to sync both authorizes both descriptions, not ticket status,
+assignee, labels, or unrelated fields. Finishing a feature alone does not authorize external writes.
+Honor narrower field requests: "update the description" preserves the title, and a title-only
+request preserves the description. Include only the requested fields in update payloads.
 
-## Steps
+## Resolve and read
 
-### 1. Discover the branch and MR
-
-```bash
-branch=$(git rev-parse --abbrev-ref HEAD)
-glab mr list --source-branch "$branch"   # → the !N (iid). Bail if 0 or >1.
-```
-
-There may be **several open MRs**; only the one whose source branch matches is yours. Do not
-trust an MR number from earlier context — re-resolve it from the branch every time.
-
-### 2. Write the description
-
-Summarize the actual change, concisely. For multi-module work, one bullet per module:
-
-```
-Add <feature>, end-to-end.
-
-- **core-api**: …
-- **app-builtins**: …
-- **service-bootstrap**: …
-
-Spec: `doc/architecture/specs/<stem>.spec.mdx` (if spec-driven)
-```
-
-Keep it tight — bullets over prose. Do **not** include the MR link in either the MR or the
-ticket (GitLab/Linear auto-link). No AI attribution.
-
-### 3. Update the MR
+Use an explicit MR supplied by the user; otherwise resolve the current branch against the correct
+GitLab host and project:
 
 ```bash
-glab mr update <iid> \
-  --title "<type(scope): concise title>" \
-  --description "$(cat /tmp/mr-desc.md)"
+git branch --show-current
+glab mr list --source-branch "<branch>"
 ```
 
-Match the repo's commit-type convention for the title (e.g. `spec(...)`, `feat(...)`).
+Match the source branch and project exactly. With zero or multiple matches, investigate repository
+and request context; ask if the target remains ambiguous. Do not reuse an unverified IID from memory.
 
-### 4. Derive the Linear ticket key
+Fetch the MR's existing title, description, actual target/head, diff, and relevant requirements.
+Draft from the implemented change and verified checks, not just commit subjects or planned work.
+Honor repository templates and preserve manually maintained context.
 
-The branch is prefixed with the ticket: `phx-118-add-entity-column-filter` → `PHX-118`.
+For a requested ticket update, prefer an explicit ticket or a verified MR link. A branch prefix such
+as `phx-118-add-filter` can suggest `PHX-118`; fetch it and confirm it matches the work. Ask only
+when a ticket update is requested and the ticket cannot be resolved reliably.
 
-```bash
-echo "$branch" | grep -oiE '^[a-z]+-[0-9]+' | tr '[:lower:]' '[:upper:]'
-```
+## Prepare the text
 
-If the branch has no ticket prefix, ask the user for the ticket ID.
+Lead with the problem and resulting behavior. Add design details and validation only where useful
+for review. Match the repository's title convention. Use a short paragraph for simple changes and
+bullets when they make distinct changes easier to scan.
 
-### 5. Update the Linear ticket
+For Linear, preserve requirements, acceptance criteria, discussion context, and unrelated text.
+Replace an existing implementation summary or append a clearly labeled one; do not replace the
+whole ticket with the MR body. Distinguish shipped behavior from incomplete ticket requirements.
+Keep useful existing links; add links when the integration does not already expose the relationship.
+Do not add AI attribution.
 
-Linear writes go through the **claude.ai Linear** MCP, which is OAuth-gated. If its
-issue-update tool isn't available, the user must run `/mcp` → select **claude.ai Linear** →
-authenticate (the Work Context Layer connection is read-only and does **not** cover this).
+## Apply and verify
 
-Once connected:
+Prepare the exact proposed text before requesting any permission that is still required. Reuse
+existing authorization rather than asking again. Check that the descriptions have not changed
+since reading them; reconcile concurrent edits before writing.
 
-- Fetch the ticket by its key first, so you preserve any existing context above the
-  implementation summary instead of clobbering it.
-- Update the **description** to match the implemented scope (same body as the MR, minus the
-  MR link — Linear auto-links the branch/MR).
+Use structured tool arguments or a JSON payload file for multiline updates. With `glab api`, send
+a PUT to `projects/<project-id>/merge_requests/<iid>` using `--input <payload-file>` with the
+authorized `title` and/or `description` fields. Resolve placeholders and serialize JSON without
+shell interpolation.
 
-## Notes
+Discover an available authenticated Linear issue-update tool for ticket writes. A read-only
+connector does not provide write access. If writing is unavailable, report the specific missing
+capability and provide the prepared ticket text; complete an independently authorized MR update.
 
-- Re-resolve MR and ticket from the branch on every run — they are the source of truth.
-- Confirm with the user before changing ticket **status** (only update description unless asked).
+Read back each changed record to verify the intended fields and preservation of existing context.
+After an uncertain response, read current state before retrying. Report which updates succeeded,
+with links, and any remaining failure; do not imply the two services update atomically.

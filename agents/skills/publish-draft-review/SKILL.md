@@ -1,66 +1,80 @@
 ---
 name: publish-draft-review
-description: Create unpublished inline DRAFT review comments on a GitLab merge request diff via the
-  GitLab API. Use when a code review has produced findings that should be attached to exact
-  diff lines as drafts (not published) so the human can review and submit them in one batch.
+description: Attach review findings to a GitLab merge request as unpublished inline draft notes when the user requests draft comments.
 disable-model-invocation: true
 ---
 
-# Publish Draft Review
+# Create draft review notes
 
-Posts inline **draft notes** (unpublished review comments) onto a GitLab MR diff, anchored to
-exact file:line positions. Drafts are visible only to the author until the GitLab "Submit review"
-button (or the `bulk_publish` endpoint) is pressed — nothing is published by this skill.
+Create only the requested draft notes. A review request alone does not authorize posting them.
+Drafts remain unpublished; publishing a review is a separate action requiring explicit authorization.
 
-## Hard-won mechanism (read before posting — these footguns cost real time)
+## Resolve the diff
 
-1. **Use a JSON request body via `--input <FILE>`, never `-f "position[...]"`.**
-   `glab api -f` flattens form fields and the nested `position` object comes back **null** — the
-   note is created but as a _general_ (non-inline) draft. The position object MUST be sent as a
-   JSON body.
-2. **`--input -` (stdin) is unreliable here. Use a real file path.** Piping the JSON into
-   `glab api --input -` inside a function/heredoc produced empty bodies / parse errors. Writing
-   the payload to a file and passing the path works every time.
-3. **This environment's shell PATH is minimal.** `jq`, `mktemp`, `rm`, sometimes `python3` are
-   "command not found". Call binaries by absolute path: `jq` at `/run/current-system/sw/bin/jq`,
-   `glab` at `/run/current-system/sw/bin/glab` (verify with `command -v` first). Avoid
-   `mktemp`/`rm`/`cp` — write payload files with the **Write tool** instead.
-4. **Anchor only to lines that appear inside a diff hunk.** GitLab cannot attach a comment to a
-   line outside the diff. Prefer **added** lines (prefixed `+`): their position needs only
-   `new_path` + `new_line`. For **context** lines you must also supply `old_line` (compute by
-   walking the hunk headers). If the line you want is outside any hunk, anchor to the nearest
-   added line and reference the real line in the comment text.
-5. **Get `diff_refs` from the MR, not from local git.** `base_sha` / `start_sha` / `head_sha`
-   come from `GET projects/:id/merge_requests/:iid`.
+Resolve the requested MR, or discover it from the current branch and repository. Read the findings,
+current MR diff, and `diff_refs` from `GET projects/<project-id>/merge_requests/<iid>`.
+Use the server's `base_sha`, `start_sha`, and `head_sha`, not guessed local revisions.
+Read all relevant diff pages and detect truncated or unavailable hunks before choosing anchors.
 
-## Generic workflow
+Read existing draft notes, including pagination, so reruns do not duplicate findings. Identify a
+matching draft by its finding, body, and diff position; do not alter unrelated notes.
+
+## Build inline positions
+
+Use the diff entry's actual `old_path` and `new_path`, including renames. Supply both paths and
+the three diff SHAs for every text position, with `position_type: "text"`.
+
+| Line in the diff                     | Line fields                    |
+| ------------------------------------ | ------------------------------ |
+| Added line                           | `new_line`                     |
+| Deleted line                         | `old_line`                     |
+| Unchanged context line inside a hunk | Both `old_line` and `new_line` |
+
+Walk hunk headers to compute positions: context advances both counters, a deletion only the old
+counter, an addition only the new counter. The "\ No newline at end of file" marker advances neither.
+Only anchor to a line present in the reviewed hunk. When the real location is outside the diff,
+use a relevant visible line and name the real location in the comment; if no honest inline anchor
+exists, report the finding as unanchored instead of attaching it arbitrarily.
+
+Write a JSON payload file for each note using the available file-writing tool:
+
+```json
+{
+  "note": "The finding and its concrete consequence.",
+  "position": {
+    "base_sha": "<base>",
+    "start_sha": "<start>",
+    "head_sha": "<head>",
+    "position_type": "text",
+    "old_path": "src/old-name.ts",
+    "new_path": "src/new-name.ts",
+    "new_line": 42
+  }
+}
+```
+
+Nested `position` data must survive serialization. A JSON file avoids flattened form fields and
+stdin/pipeline issues; use `--input <file>` with `glab api`. Discover installed binaries normally.
+If a command or stdin path fails, inspect the local installation instead of assuming a fixed PATH.
+
+## Post and reconcile
+
+Recheck diff refs before each write. If they changed, fetch the current diff and reassess the
+finding and anchor; do not post using the stale position. Repeatedly changing refs are a reason
+to pause and report the unstable target.
 
 ```bash
-JQ=/run/current-system/sw/bin/jq
-GLAB=/run/current-system/sw/bin/glab
-
-# 1. Identify the MR + diff refs
-$GLAB mr view                                   # MR number for current branch
-$GLAB api "projects/:id/merge_requests/<IID>" | $JQ '{project_id, diff_refs, sha}'
-
-# 2. For each finding, write a payload JSON FILE (use the Write tool, not shell heredocs):
-#    { "note": "...markdown...",
-#      "position": { base_sha, start_sha, head_sha, position_type:"text",
-#                    old_path, new_path, new_line } }
-#    old_path == new_path for added/context lines. Add "old_line" for context lines.
-
-# 3. POST each as a draft note:
-$GLAB api --method POST "projects/<PID>/merge_requests/<IID>/draft_notes" \
-  --header "Content-Type: application/json" --input "/path/to/payload.json" \
-  | $JQ -r 'if .id then "OK draft \(.id) @ \(.position.new_path):\(.position.new_line)" else "FAIL \(tostring)" end'
-
-# 4. Verify (look for non-null line_code = correctly anchored inline):
-$GLAB api "projects/<PID>/merge_requests/<IID>/draft_notes" \
-  | $JQ -r '.[]|"\(.id) \(.position.new_path):\(.position.new_line) line_code=\(.line_code)"'
-
-# 5. (Only when the human says so) publish all drafts at once:
-# $GLAB api --method POST "projects/<PID>/merge_requests/<IID>/draft_notes/bulk_publish"
-
-# Delete a stray draft:
-# $GLAB api --method DELETE "projects/<PID>/merge_requests/<IID>/draft_notes/<NOTE_ID>"
+glab api --method POST "projects/<project-id>/merge_requests/<iid>/draft_notes" \
+  --header "Content-Type: application/json" --input "/path/to/payload.json"
 ```
+
+Verify each returned or fetched note has the intended body and non-null position with the expected
+paths, side, and line; inspect its line code where exposed. Record the created IDs.
+
+After a timeout or ambiguous response, list drafts and reconcile before retrying. Retry only after
+confirming the note was not created or correcting a diagnosed payload error. If you cannot determine
+whether the write succeeded, stop that write and report uncertainty. Correct a stray note created
+by this run only when its ID and ownership are certain; preserve pre-existing drafts.
+
+Report created, reused, and unanchored findings and any failures. Never call the publish endpoints
+as part of creating drafts.

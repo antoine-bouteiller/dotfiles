@@ -42,10 +42,19 @@ def main [target: string] {
     error make {msg: 'remote deployment requires a configured non-CI vm home username'}
   }
 
-  # The only pre-Nushell operation: provision Nix so it can supply the pinned interpreter.
+  # Bootstrap Nix and trust the validated login before copying sources for Nushell.
   let install = r#'if ! command -v nix >/dev/null; then
   curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
-fi'#
+fi
+config=/etc/nix/nix.conf
+if sudo grep -Eq "^!?include nix\\.custom\\.conf$" "$config"; then
+  config=/etc/nix/nix.custom.conf
+fi
+trusted_user="extra-trusted-users = $EXPECTED_USER"
+if ! sudo grep -Fxq "$trusted_user" "$config" 2>/dev/null; then
+  printf "\n%s\n" "$trusted_user" | sudo tee -a "$config" >/dev/null
+fi
+sudo systemctl restart nix-daemon'#
   ^ssh -A -t -- $target (remote-command $expected_user $install)
 
   let store_command = remote-command $expected_user 'exec nix-store "$@"'

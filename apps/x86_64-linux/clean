@@ -1,14 +1,16 @@
 #!/usr/bin/env nu
 
 use ../config.nu *
+use ../private-config.nu *
 
-let hostname = (^hostname | str trim)
+let config = (private-config)
+let host = (host-attr nixos $config)
 
 print $"Cleaning up old system generations \(keeping the ($generations_to_keep) latest\)..."
 ^sudo nh clean all --keep $generations_to_keep
 
 print 'Cleaning up boot partition...'
-^sudo nixos-rebuild boot --flake $".#($hostname)" --install-bootloader
+^sudo nixos-rebuild boot --flake $"($config.public_ref)#($host)" --install-bootloader ...$config.nix_args
 
 print 'Cleanup complete!'
 ^df -h /boot

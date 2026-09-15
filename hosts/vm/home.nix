@@ -8,11 +8,14 @@
 }: let
   # HerdR's daemon and panes survive SSH connections. Keep their inherited path
   # stable, without letting short-lived SSH probes displace a working connection.
+  # A socket can outlive its usable agent; require keys and bound health checks.
   sshAgentSocket = ''
     if [[ -n "''${SSH_CONNECTION:-}" ]]; then
       if [[ -n "''${SSH_AUTH_SOCK:-}" &&
             "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" &&
-            -S "$SSH_AUTH_SOCK" && ! -S "$HOME/.ssh/agent.sock" ]]; then
+            -S "$SSH_AUTH_SOCK" ]] &&
+         ! SSH_AUTH_SOCK="$HOME/.ssh/agent.sock" ${pkgs.coreutils}/bin/timeout 2s ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1 &&
+         ${pkgs.coreutils}/bin/timeout 2s ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1; then
         mkdir -p -m 700 -- "$HOME/.ssh"
         ln -sfn -- "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
       fi

@@ -14,6 +14,11 @@ Secrets via sops-nix. Entry point: `flake.nix`.
   pre-commit hooks (gitleaks + treefmt), configured in `dev/flake.nix`. Formatting changes must
   be re-staged before retrying the commit; pre-commit preserves unstaged changes.
 
+## Validation
+
+- Do not add test files or test infrastructure unless explicitly requested. Use existing checks,
+  Nix evaluation/builds, and targeted runtime checks to validate changes.
+
 ## Commands
 
 | Command                              | Effect                                                       |

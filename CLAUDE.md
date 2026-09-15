@@ -29,7 +29,8 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - `hosts/<name>/{default,home}.nix` + `hosts/base*.nix` — per-machine config. Integrated hosts: `dell`, `desktop`, `plex-server`, `macbook`; `vm` is standalone Home Manager for optional private `hosts.vm.user` (public `ci-user` fixture); `iso` has neither common modules nor Home Manager.
 - `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules (`applications/<app>/`, `shell/`).
 - `pkgs/<name>/` — custom derivations with `passthru.updateScript` → `update.nu`; `pkgs/update-utils.nu` exports `root_dir`, `github_headers`, and `to_sri` for updater scripts.
-- `apps/<system>/` — app scripts. `flake.nix` `mkApp` pins Bash; `apps/aarch64-darwin/update` is a symlink to `../x86_64-linux/update`, selecting its platform from the invoked path.
+- `apps/<system>/` — Nushell app scripts. `flake.nix` `mkApp` pins Nushell with `--no-config-file`; `apps/aarch64-darwin/update` is a symlink to `../x86_64-linux/update`, selecting its platform from the invoked path. `apps/private-config.nu` owns checkout validation and local Git snapshot references.
+- `lib/nix-settings.json` owns shared Nix features, caches, and signing keys; `hosts/base.nix` imports it and `apps/config.nu` renders it for bootstrap.
 - `dev/` — dev-shell flake (treefmt + git hooks).
 
 ## Ownership
@@ -47,10 +48,12 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - `local.home-manager.desktop` owns Niri and terminal selection; use `desktop.extraNiriConfig` for host outputs and keep Steam scaling plus `eDP-1` in host files.
 - Set MCP servers with `programs.mcp.servers`; agents enable `programs.mcp` when servers exist.
 - Shared Servarr integration is `hosts/plex-server/media/arr/shared.nix`; upstream Immich owns database extensions/setup; the download bundle owns Podman.
-- `nix run .#apply-remote -- <user>@<vm-host>` deploys a freshly pinned public `main` revision
-  to standalone `vm`, never local changes. It accepts private configuration only from a clean,
-  attached private branch whose `origin` tip equals `HEAD`; it evaluates the pinned VM username
-  before bootstrap and requires that SSH login to match it.
+- `nix run .#apply-remote -- <user>@<vm-host>` deploys Git-tracked local contents of the public
+  checkout and optional `.private/`, including uncommitted edits, to standalone `vm`. Stage new
+  files first; no commit or push is required. It copies Nix source snapshots to the VM and
+  evaluates the same snapshot's VM username before bootstrap, requiring the SSH login to match.
+  Remote preparation and activation run `apps/remote.nu` using the archived nixpkgs' Nushell;
+  the pre-Nix installer and SSH transport retain a minimal Bash bridge.
 
 ## Patterns
 

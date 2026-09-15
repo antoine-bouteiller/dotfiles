@@ -23,7 +23,7 @@ in {
   imports = [../../modules/home];
 
   # Shared modules use the checkout path normally supplied by NixOS/nix-darwin.
-  # apply-remote builds from GitHub without a checkout, so point at the flake's store copy.
+  # apply-remote builds from copied sources without a checkout, so use the flake's store copy.
   local.home-manager.sourcePath = "${inputs.self}";
 
   local.home-manager = {

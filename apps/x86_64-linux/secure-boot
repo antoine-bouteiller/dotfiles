@@ -1,5 +1,4 @@
-#!/bin/sh -e
-#
+#!/usr/bin/env nu
 # Secure Boot + TPM2 bring-up on an installed host, run as:
 #
 #   nix run .#secure-boot
@@ -14,54 +13,64 @@
 # The keys themselves are created by `nix run .#bootstrap` before the install,
 # because lanzaboote cannot sign the first generation without them.
 
+def fail [message: string] {
+  print -e $message
+  exit 1
+}
+
 # sbctl needs root to read the efivars, otherwise it reports nothing at all.
-secure_boot_enabled() {
-  sudo sbctl status --json | grep -q '"secure_boot": *true'
+def sbctl-status [] {
+  ^sudo sbctl status --json | from json
 }
 
-setup_mode() {
-  sudo sbctl status --json | grep -q '"setup_mode": *true'
-}
-
-luks_device() {
-  devs=$(lsblk -rno PATH,FSTYPE | awk '$2 == "crypto_LUKS" { print $1 }')
-  [ "$(echo "$devs" | wc -l)" -eq 1 ] || {
-    echo "Expected exactly one crypto_LUKS device, found: $(echo "$devs" | tr '\n' ' ')" >&2
-    exit 1
+def luks-device [] {
+  let devices = (^lsblk --json --list --output PATH,FSTYPE
+    | from json
+    | get blockdevices
+    | where fstype == crypto_LUKS
+    | get path)
+  if ($devices | length) != 1 {
+    fail $"Expected exactly one crypto_LUKS device, found: ($devices | str join ' ')"
   }
-  echo "$devs"
+  $devices.0
 }
 
-if ! secure_boot_enabled; then
+if not ((sbctl-status).secure_boot) {
   # Out of Setup Mode with Secure Boot off means the keys are already enrolled
   # and only the firmware toggle is missing; enroll-keys can only fail here.
-  if ! setup_mode; then
-    echo "Keys are already enrolled. Enable Secure Boot in the firmware, then re-run this."
+  if not ((sbctl-status).setup_mode) {
+    print 'Keys are already enrolled. Enable Secure Boot in the firmware, then re-run this.'
     exit 0
-  fi
+  }
   # lanzaboote bundles the kernel and initrd into signed UKIs, so the raw
   # /EFI/nixos/* blobs left next to them are expected to be unsigned.
   # sbctl verifies against our local db key, not Microsoft's. Windows files
   # keep their vendor signatures; --microsoft below enrolls their trust roots.
   # Firmware, not this local-key check, validates the Windows bootloader.
-  echo "Verifying local signatures (excluding raw NixOS blobs and Windows files)..."
-  unsigned=$(sudo sbctl verify | grep 'is not signed' | grep -Ev '/EFI/(nixos|Microsoft/Boot)/' || true)
-  [ -z "$unsigned" ] || {
-    echo "$unsigned" >&2
+  print 'Verifying local signatures (excluding raw NixOS blobs and Windows files)...'
+  # sbctl verify exits nonzero when the expected raw NixOS blobs are unsigned.
+  let verify = (^sudo sbctl verify | complete)
+  if not ($verify.stderr | is-empty) {
+    print -e $verify.stderr
+  }
+  let unsigned = ($verify.stdout | lines | where {|line| ($line | str contains 'is not signed') and not ($line =~ '/EFI/(nixos|Microsoft/Boot)/') })
+  if not ($unsigned | is-empty) {
+    $unsigned | str join "\n" | print -e
     exit 1
   }
-  echo "Enrolling keys (firmware must be in Setup Mode)..."
-  sudo sbctl enroll-keys --microsoft
-  echo "Keys enrolled. Restart, confirm Secure Boot is on in the firmware, then re-run this."
+  print 'Enrolling keys (firmware must be in Setup Mode)...'
+  ^sudo sbctl enroll-keys --microsoft
+  print 'Keys enrolled. Restart, confirm Secure Boot is on in the firmware, then re-run this.'
   exit 0
-fi
+}
 
-dev=$(luks_device)
-if sudo cryptsetup luksDump "$dev" | grep -q systemd-tpm2; then
-  echo "Secure Boot is active and $dev already has a TPM2 slot: nothing left to do."
+let device = (luks-device)
+let luks_dump = (^sudo cryptsetup luksDump $device)
+if ($luks_dump | str contains 'systemd-tpm2') {
+  print $"Secure Boot is active and ($device) already has a TPM2 slot: nothing left to do."
   exit 0
-fi
+}
 
-echo "Enrolling a TPM2 slot on $dev against PCR 7 (the passphrase stays as recovery)..."
-sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 "$dev"
-echo "Done. Restart to check that the root unlocks without a passphrase."
+print $"Enrolling a TPM2 slot on ($device) against PCR 7 (the passphrase stays as recovery)..."
+^sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 $device
+print 'Done. Restart to check that the root unlocks without a passphrase.'

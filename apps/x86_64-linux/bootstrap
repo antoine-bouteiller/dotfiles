@@ -1,85 +1,109 @@
-#!/bin/sh
-set -eu
-#
+#!/usr/bin/env nu
 # Install/reinstall onto existing filesystems mounted under /mnt. Never partitions
 # or formats: see README.md for the manual layout, mounting and Secure Boot steps.
 #
 #   nix run .#bootstrap -- plex-server
 
-usage() {
-  echo "usage: nix run .#bootstrap -- <flake-hostname>" >&2
+use ../config.nu *
+
+def fail [message: string] {
+  print -e $message
   exit 1
 }
-host=${1:-}
-case "$host" in
-  ""|-*|*[!a-zA-Z0-9_-]*) usage ;;
-esac
-[ "$#" -eq 1 ] || usage
 
-# The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
-# would serve (lanzaboote, custom pkgs) would otherwise be built from source.
-# Also carries the experimental features: the sudo'd nix calls below read root's
-# nix.conf, which on the ISO has neither nix-command nor flakes.
-NIX_CONFIG="extra-experimental-features = nix-command flakes
-extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
-extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-export NIX_CONFIG
-sudo() { command sudo --preserve-env=NIX_CONFIG "$@"; }
-
-fail() { echo "$*" >&2; exit 1; }
-config=".#nixosConfigurations.${host}.config"
-
-# Force NixOS assertions (including missing hardware) before any target writes.
-echo "Validating ${host}..."
-nix eval --raw "$config.system.build.toplevel.drvPath" >/dev/null
-root_device=$(nix eval --raw "$config.fileSystems.\"/\".device")
-efi_mount=$(nix eval --raw "$config.boot.loader.efi.efiSysMountPoint")
-efi_device=$(nix eval --raw "$config.fileSystems.\"$efi_mount\".device")
-secure_boot=$(nix eval --json "$config.secureBoot.enable")
-
-check_mount() {
-  target=$1
-  device=$2
-  actual=$(sudo findmnt --raw --noheadings --mountpoint "$target" --output UUID,FSROOT) ||
-    fail "Mount $device at $target before running bootstrap."
-  expected=$(sudo blkid -s UUID -o value "$device") || fail "Cannot identify $device."
-  [ -n "$expected" ] && [ "$actual" = "$expected /" ] ||
-    fail "$target must mount the filesystem root of configured device $device; refusing to install."
+def --wrapped sudo [...args] {
+  ^sudo --preserve-env=NIX_CONFIG ...$args
 }
-# ponytail: current hosts use ext4 root and FAT EFI; add subvolume validation before supporting Btrfs.
-check_mount /mnt "$root_device"
-check_mount "/mnt$efi_mount" "$efi_device"
 
-fresh_install=true
-sudo test ! -e /mnt/etc/shadow || fresh_install=false
+def check-mount [target: string, device: string] {
+  let actual = (try {
+    sudo findmnt --raw --noheadings --mountpoint $target --output UUID,FSROOT | str trim
+  } catch {
+    fail $"Mount ($device) at ($target) before running bootstrap."
+  })
+  let expected = (try {
+    sudo blkid -s UUID -o value $device | str trim
+  } catch {
+    fail $"Cannot identify ($device)."
+  })
+  if ($expected | is-empty) or $actual != $"($expected) /" {
+    fail $"($target) must mount the filesystem root of configured device ($device); refusing to install."
+  }
+}
 
-if [ "$secure_boot" = true ]; then
-  keydir=/mnt/var/lib/sbctl
-  if sudo test -e "$keydir"; then
-    # Refuse incomplete state instead of replacing firmware-enrolled keys.
-    for file in GUID keys/PK/PK.key keys/PK/PK.pem keys/KEK/KEK.key keys/KEK/KEK.pem keys/db/db.key keys/db/db.pem; do
-      sudo test -s "$keydir/$file" || fail "Incomplete Secure Boot keys: restore $keydir before installing."
-    done
-    echo "Preserving existing Secure Boot keys."
-  else
-    sudo test ! -e /mnt/etc/NIXOS || fail "Restore the installed system's Secure Boot keys to $keydir before reinstalling."
-    echo "Creating Secure Boot keys..."
-    sudo install -d -m 700 "$keydir"
-    sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock \
-      --export "$keydir/keys" --database-path "$keydir/GUID"
-  fi
-fi
+def main [...args: string] {
+  if ($args | length) != 1 {
+    fail 'usage: nix run .#bootstrap -- <flake-hostname>'
+  }
+  let host = $args.0
+  if ($host | is-empty) or ($host | str starts-with '-') or not ($host =~ '^[a-zA-Z0-9_-]+$') {
+    fail 'usage: nix run .#bootstrap -- <flake-hostname>'
+  }
 
-echo "Installing without formatting mounted filesystems..."
-sudo nixos-install --root /mnt --flake ".#${host}" --no-root-password
+  # The ISO only trusts cache.nixos.org, so everything the caches in hosts/base.nix
+  # would serve (lanzaboote, custom pkgs) would otherwise be built from source.
+  # Also carries the experimental features: the sudo'd nix calls below read root's
+  # nix.conf, which on the ISO has neither nix-command nor flakes.
+  $env.NIX_CONFIG = (nix-config)
+  let config = $".#nixosConfigurations.($host).config"
 
-# Fresh accounts would otherwise be locked. Do not reset reinstall credentials.
-if [ "$fresh_install" = true ]; then
-  echo "Setting the login password..."
-  # Under curl | sh, interactive steps must read the terminal, not the script pipe.
-  [ -t 0 ] || exec </dev/tty
-  sudo nixos-enter --root /mnt -c 'passwd "$(id -nu 1000)"' ||
-    fail "Password not set. Re-run: sudo nixos-enter --root /mnt -c 'passwd \"\$(id -nu 1000)\"'"
-fi
+  # Force NixOS assertions (including missing hardware) before any target writes.
+  print $"Validating ($host)..."
+  ^nix eval --raw $"($config).system.build.toplevel.drvPath" out> /dev/null
+  let root_device = (^nix eval --raw $"($config).fileSystems.\"/\".device" | str trim)
+  let efi_mount = (^nix eval --raw $"($config).boot.loader.efi.efiSysMountPoint" | str trim)
+  let efi_device = (^nix eval --raw $"($config).fileSystems.\"($efi_mount)\".device" | str trim)
+  let secure_boot = (^nix eval --json $"($config).secureBoot.enable" | str trim)
 
-echo "Install complete. Restart; see README.md for post-install steps."
+  # ponytail: current hosts use ext4 root and FAT EFI; add subvolume validation before supporting Btrfs.
+  check-mount /mnt $root_device
+  check-mount $"/mnt($efi_mount)" $efi_device
+
+  let fresh_install = (try { sudo test -e /mnt/etc/shadow; false } catch { true })
+
+  if $secure_boot == 'true' {
+    let keydir = '/mnt/var/lib/sbctl'
+    let keydir_exists = (try { sudo test -e $keydir; true } catch { false })
+    if $keydir_exists {
+      # Refuse incomplete state instead of replacing firmware-enrolled keys.
+      for file in [GUID keys/PK/PK.key keys/PK/PK.pem keys/KEK/KEK.key keys/KEK/KEK.pem keys/db/db.key keys/db/db.pem] {
+        try {
+          sudo test -s $"($keydir)/($file)"
+        } catch {
+          fail $"Incomplete Secure Boot keys: restore ($keydir) before installing."
+        }
+      }
+      print 'Preserving existing Secure Boot keys.'
+    } else {
+      let installed = (try { sudo test -e /mnt/etc/NIXOS; true } catch { false })
+      if $installed {
+        fail $"Restore the installed system's Secure Boot keys to ($keydir) before reinstalling."
+      }
+      print 'Creating Secure Boot keys...'
+      sudo install -d -m 700 $keydir
+      sudo nix run nixpkgs#sbctl -- create-keys --disable-landlock --export $"($keydir)/keys" --database-path $"($keydir)/GUID"
+    }
+  }
+
+  print 'Installing without formatting mounted filesystems...'
+  sudo nixos-install --root /mnt --flake $".#($host)" --no-root-password
+
+  # Fresh accounts would otherwise be locked. Do not reset reinstall credentials.
+  if $fresh_install {
+    print 'Setting the login password...'
+    # Under curl | sh, interactive steps must read the terminal, not the script pipe.
+    let password_command = 'passwd "$(id -nu 1000)"'
+    let stdin_is_terminal = ((^test -t 0 | complete).exit_code == 0)
+    try {
+      if $stdin_is_terminal {
+        sudo nixos-enter --root /mnt -c $password_command
+      } else {
+        ^sh -c 'exec </dev/tty; exec sudo --preserve-env=NIX_CONFIG nixos-enter --root /mnt -c "$1"' -- $password_command
+      }
+    } catch {
+      fail $"Password not set. Re-run: sudo nixos-enter --root /mnt -c '($password_command)'"
+    }
+  }
+
+  print 'Install complete. Restart; see README.md for post-install steps.'
+}

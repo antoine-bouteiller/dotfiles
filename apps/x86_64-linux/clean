@@ -1,10 +1,14 @@
-#!/bin/sh -e
+#!/usr/bin/env nu
 
-echo "Cleaning up old system generations (keeping the 2 latest)..."
-sudo nh clean all --keep 2
+use ../config.nu *
 
-echo "Cleaning up boot partition..."
-sudo nixos-rebuild boot --flake ".#${hostname}" --install-bootloader
+let hostname = (^hostname | str trim)
 
-echo "Cleanup complete!"
-df -h /boot
+print $"Cleaning up old system generations \(keeping the ($generations_to_keep) latest\)..."
+^sudo nh clean all --keep $generations_to_keep
+
+print 'Cleaning up boot partition...'
+^sudo nixos-rebuild boot --flake $".#($hostname)" --install-bootloader
+
+print 'Cleanup complete!'
+^df -h /boot

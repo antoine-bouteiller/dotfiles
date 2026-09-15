@@ -34,18 +34,19 @@ Hosts:
 - `hosts/<name>/` — per-machine system + home config, on top of `hosts/base*.nix`.
 - `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules, including `applications/<app>/` and `shell/`.
 - `pkgs/` — custom derivations exported from `flake.packages`; `update-utils.nu` supplies `root_dir`, `github_headers`, and `to_sri` to package `update.nu` scripts.
-- `apps/<system>/` — imperative scripts exposed as `nix run .#<name>`; `mkApp` pins Bash. `apps/aarch64-darwin/update` links to `../x86_64-linux/update`, so the invoked path selects its platform.
+- `apps/<system>/` — Nushell scripts exposed as `nix run .#<name>`; `mkApp` pins Nushell and disables user configuration. `apps/aarch64-darwin/update` links to `../x86_64-linux/update`, so the invoked path selects its platform.
+- `lib/nix-settings.json` — shared Nix features, caches, and signing keys; used by host configuration and `apps/config.nu` for bootstrap.
 
 ## Commands
 
-| Command                                      | Effect                                                                           |
-| -------------------------------------------- | -------------------------------------------------------------------------------- |
-| `nix run .#apply`                            | `darwin-rebuild`/`nixos-rebuild switch` for the current host                     |
-| `nix run .#update`                           | `nix flake update` + run every package's `update.nu`                             |
-| `nix run .#clean`                            | GC all but the 2 latest generations                                              |
-| `nix build .#checks.<system>.<host>`         | dry build a host (CI builds all)                                                 |
-| `nix run ./dev`                              | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)                  |
-| `nix run .#apply-remote -- <user>@<vm-host>` | deploy GitHub `main` to the standalone VM without a checkout (not local changes) |
+| Command                                      | Effect                                                                      |
+| -------------------------------------------- | --------------------------------------------------------------------------- |
+| `nix run .#apply`                            | `darwin-rebuild`/`nixos-rebuild switch` for the current host                |
+| `nix run .#update`                           | `nix flake update` + run every package's `update.nu`                        |
+| `nix run .#clean`                            | GC all but the 2 latest generations                                         |
+| `nix build .#checks.<system>.<host>`         | dry build a host (CI builds all)                                            |
+| `nix run ./dev`                              | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)             |
+| `nix run .#apply-remote -- <user>@<vm-host>` | deploy tracked local sources to the standalone VM without a remote checkout |
 
 `apply-remote` targets the standalone Home Manager `vm`, not the nix-darwin Linux-builder VM.
 
@@ -73,10 +74,13 @@ nix eval --no-write-lock-file \
   .#homeConfigurations.vm.config.home.username
 ```
 
-`apply-remote` always pins the freshly advertised public `main` revision. It uses a
-private override only when `.private/` is clean, on an attached branch, and that branch's
-`origin` tip is exactly `HEAD`; it does not commit or push for you. A VM deployment needs
-a non-`ci-user` `hosts.vm.user` from private configuration.
+`apply-remote` snapshots the current Git-tracked contents of this checkout and `.private/`,
+including uncommitted edits, and copies those sources and their flake inputs to the VM's
+Nix store before building there. No commit, push, or remote checkout is needed; stage new
+files before deploying. It evaluates the VM username from the same snapshot before
+bootstrap and requires the SSH login to match. Remote setup and activation use Nushell
+from the snapshot's pinned nixpkgs; only initial Nix installation and the SSH shell bridge
+use Bash. A VM deployment needs a non-`ci-user` `hosts.vm.user` from private configuration.
 
 Public Git uses `programs.git.settings.user.email = globals.email`, the GitHub default.
 Private native Git configuration conditionally supplies the GitLab email for any matching

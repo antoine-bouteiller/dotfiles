@@ -1,12 +1,13 @@
-#!/usr/bin/env bash
-set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/../private-config.sh"
+#!/usr/bin/env nu
 
-private_config_init
-private_config_split_nh_args "$@"
+use ../private-config.nu *
 
-echo "Applying NixOS configuration..."
-host=$(host_attr nixos)
-nh os switch "$PRIVATE_CONFIG_PUBLIC_REF" -H "$host" "${PRIVATE_CONFIG_NH_ARGS[@]}" -- \
-  "${PRIVATE_CONFIG_CALLER_NIX_ARGS[@]}" "${PRIVATE_CONFIG_NIX_ARGS[@]}"
-echo "Switch to new generation complete!"
+def main --wrapped [...args: string] {
+  let config = (private-config)
+  let split_args = (split-nh-args $args)
+
+  print 'Applying NixOS configuration...'
+  let host = (host-attr nixos $config)
+  ^nh os switch $config.public_ref -H $host ...$split_args.nh_args -- ...$split_args.nix_args ...$config.nix_args
+  print 'Switch to new generation complete!'
+}

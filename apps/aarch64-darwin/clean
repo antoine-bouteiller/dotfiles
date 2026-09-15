@@ -1,4 +1,7 @@
-#!/bin/sh -e
+#!/usr/bin/env nu
 
-# Clean up old generations (keep the 2 latest)
-sudo nh clean all --keep 2
+use ../config.nu *
+
+# Clean up old generations (keep the 2 latest).
+print $"Cleaning up old generations \(keeping the ($generations_to_keep) latest\)..."
+^sudo nh clean all --keep $generations_to_keep

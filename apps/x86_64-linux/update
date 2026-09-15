@@ -1,16 +1,16 @@
-#!/usr/bin/env bash
-set -euo pipefail
-export NIX_PATH="nixpkgs=flake:nixpkgs"
+#!/usr/bin/env nu
+$env.NIX_PATH = "nixpkgs=flake:nixpkgs"
 
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-system="$(basename "$script_dir")"
+# `path self` retains the invoked symlink path, so the Darwin update symlink
+# selects aarch64-darwin rather than the x86_64-linux target's directory.
+const INVOKED_PATH = path self
+let system = $INVOKED_PATH | path dirname | path basename
 
-echo "==> Updating flake lock file..."
-nix flake update
+print "==> Updating flake lock file..."
+^nix flake update
 
-echo "==> Evaluating updatable packages (this may take a moment)..."
-
-json_data=$(nix eval --json --impure ".#packages.${system}" --apply '
+print "==> Evaluating updatable packages (this may take a moment)..."
+let nix_apply = '
   pkgs:
   let
     toCmd = s:
@@ -33,59 +33,66 @@ json_data=$(nix eval --json --impure ".#packages.${system}" --apply '
     })
     (builtins.filter (n: pkgs.${n} ? updateScript) (builtins.attrNames pkgs))
   )
-')
+'
+let packages = ^nix eval --json --impure $".#packages.($system)" --apply $nix_apply | from json
 
-failed=0
+mut failed = false
+for entry in ($packages | transpose attr package) {
+  let attr = $entry.attr
+  let package = $entry.package
+  print ""
+  print $"==> Updating ($attr)"
 
-for attr in $(echo "$json_data" | jq -r 'keys[]'); do
-  echo ""
-  echo "==> Updating $attr"
-
-  data=$(echo "$json_data" | jq -c ".\"$attr\"")
-
-  cmd_count=$(echo "$data" | jq '.command | length')
-  if [ "$cmd_count" = "0" ]; then
-    echo "    $attr: empty updateScript, skipping"
+  if ($package.command | is-empty) {
+    print $"    ($attr): empty updateScript, skipping"
     continue
-  fi
+  }
 
-  name=$(echo "$data" | jq -r '.name')
-  pname=$(echo "$data" | jq -r '.pname')
-  version=$(echo "$data" | jq -r '.version')
-
-  readarray -t cmd < <(echo "$data" | jq -r '.command[]')
-
-  exe="${cmd[0]}"
+  mut command = $package.command
+  let executable = $command | first
   # `nix flake update` above dirtied the tree, so a bare-path updateScript
   # (./update.nu) resolves to an unstable /nix/store/<hash>-source path that
   # eval and build disagree on — execing it races GC and ENOENTs in CI. Every
   # updateScript here is a checked-in script that writes to $PWD anyway, so run
   # the working-copy file directly instead of the store path.
-  # only covers checked-in ./update.nu; a writeShellApplication
-  # updateScript would fall through to the store-path build path below.
-  rel="${exe#/nix/store/*-source/}"
-  if [ "$rel" != "$exe" ] && [ -f "$PWD/$rel" ]; then
-    exe="$PWD/$rel"
-    cmd[0]="$exe"
-  elif [[ "$exe" == /nix/store/* ]] && [ ! -e "$exe" ]; then
-    echo "    Building updateScript for $attr"
-    if ! nix build --no-link --impure ".#packages.${system}.${attr}.updateScript"; then
-      echo "    $attr: failed to build updateScript"
-      failed=1
+  # This only covers checked-in ./update.nu; a writeShellApplication
+  # updateScript falls through to the store-path build path below.
+  let relative = $executable | str replace -r '^/nix/store/[^/]+-source/' ''
+  if $relative != $executable and (($env.PWD | path join $relative) | path exists) {
+    $command = $command | update 0 ($env.PWD | path join $relative)
+  } else if ($executable | str starts-with '/nix/store/') and not ($executable | path exists) {
+    print $"    Building updateScript for ($attr)"
+    let built = try {
+      ^nix build --no-link --impure $".#packages.($system).($attr).updateScript"
+      true
+    } catch { false }
+    if not $built {
+      print $"    ($attr): failed to build updateScript"
+      $failed = true
       continue
-    fi
-  fi
+    }
+  }
 
-  if UPDATE_NIX_ATTR_PATH="packages.${system}.${attr}" \
-     UPDATE_NIX_NAME="$name" \
-     UPDATE_NIX_PNAME="$pname" \
-     UPDATE_NIX_OLD_VERSION="$version" \
-     "${cmd[@]}"; then
-    echo "    $attr: ok"
-  else
-    echo "    $attr: failed (continuing)"
-    failed=1
-  fi
-done
+  let command_to_run = $command
+  let update_failed = try {
+    with-env {
+      UPDATE_NIX_ATTR_PATH: $"packages.($system).($attr)"
+      UPDATE_NIX_NAME: $package.name
+      UPDATE_NIX_PNAME: $package.pname
+      UPDATE_NIX_OLD_VERSION: $package.version
+    } {
+      run-external ...$command_to_run
+    }
+    false
+  } catch {
+    true
+  }
+  if not $update_failed {
+    print $"    ($attr): ok"
+  } else {
+    print ($"    ($attr): failed " + '(continuing)')
+    $failed = true
+  }
+}
 
-exit "$failed"
+if $failed { exit 1 }

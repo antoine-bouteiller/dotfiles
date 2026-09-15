@@ -1,57 +1,62 @@
-#!/usr/bin/env bash
-set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/../private-config.sh"
+#!/usr/bin/env nu
+use ../private-config.nu
+use ../config.nu nix-config
 
-if [[ $# -ne 1 || ! $1 =~ ^[a-z_][a-z0-9_-]{0,31}@((([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)|(\[[0-9A-Fa-f:.]+\]))$ ]]; then
-  echo "Usage: nix run .#apply-remote -- <user>@<vm-host>" >&2
-  exit 2
-fi
-target=$1
-private_config_remote_init
-expected_user=$(nix --extra-experimental-features 'nix-command flakes' eval --raw \
-  "$PRIVATE_CONFIG_PUBLIC_REF#homeConfigurations.vm.config.home.username" "${PRIVATE_CONFIG_NIX_ARGS[@]}")
-if [[ -z $expected_user || $expected_user == ci-user ]]; then
-  echo 'remote deployment requires a configured non-CI vm home username' >&2
-  exit 1
-fi
+# SSH always parses a shell command, even when the payload is a Nushell script.
+def shell-quote [value: string]: nothing -> string {
+  "'" + ($value | str replace --all "'" "'\"'\"'") + "'"
+}
 
-remote_script=$(cat <<'REMOTE'
-set -euo pipefail
+def remote-command [expected_user: string, command: string]: nothing -> string {
+  let script = [
+    $"EXPECTED_USER=(shell-quote $expected_user)"
+    $"export NIX_CONFIG=(shell-quote $env.NIX_CONFIG)"
+    r#'set -euo pipefail
 if [[ $(id -un) != "$EXPECTED_USER" ]]; then
   echo 'SSH login must match the evaluated VM home username' >&2
   exit 1
 fi
 for profile in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh "$HOME/.nix-profile/etc/profile.d/nix.sh"; do
   if ! command -v nix >/dev/null && [[ -f "$profile" ]]; then . "$profile"; fi
-done
-if ! command -v nix >/dev/null; then
-  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
-  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-fi
-sudo mkdir -p /etc/nix /etc/ssh/sshd_config.d
-sudo tee /etc/nix/dotfiles.conf >/dev/null <<'NIX_CONFIG'
-extra-experimental-features = nix-command flakes
-extra-substituters = https://nix-community.cachix.org https://antoine-bouteiller.cachix.org https://noctalia.cachix.org
-extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= antoine-bouteiller.cachix.org-1:vtMtdYM8LJ3CRDrqiTllxXRnu4x3xwYOb6317TUJUTc= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=
-NIX_CONFIG
-if ! sudo grep -qxF 'include dotfiles.conf' /etc/nix/nix.conf 2>/dev/null; then
-  printf '\ninclude dotfiles.conf\n' | sudo tee -a /etc/nix/nix.conf >/dev/null
-fi
-sudo systemctl restart nix-daemon
-echo 'AcceptEnv SOPS_AGE_KEY' | sudo tee /etc/ssh/sshd_config.d/50-sops-age.conf >/dev/null
-sudo systemctl reload ssh
-build_args=(--no-write-lock-file)
-if [[ -n $PRIVATE_OVERRIDE ]]; then build_args+=(--override-input privateConfig "$PRIVATE_OVERRIDE"); fi
-out=$(nix --extra-experimental-features 'nix-command flakes' build --no-link --print-out-paths \
-  "$PUBLIC_REF#homeConfigurations.vm.activationPackage" "${build_args[@]}")
-"$out/activate"
-REMOTE
-)
-shell_quote() {
-  printf "'%s'" "${1//\'/\'\"\'\"\'}"
+done'#
+    $command
+  ] | str join "\n"
+  $"bash -l -c (shell-quote $script) --"
 }
-printf -v remote_script 'EXPECTED_USER=%s\nPUBLIC_REF=%s\nPRIVATE_OVERRIDE=%s\n%s' \
-  "$(shell_quote "$expected_user")" "$(shell_quote "$PRIVATE_CONFIG_PUBLIC_REF")" \
-  "$(shell_quote "$PRIVATE_CONFIG_REMOTE_OVERRIDE")" "$remote_script"
-remote_command="bash -l -c $(shell_quote "$remote_script")"
-exec ssh -A -o SendEnv=SOPS_AGE_KEY -t -- "$target" "$remote_command"
+
+def source-paths [archive: record]: nothing -> list<string> {
+  [$archive.path] ++ ($archive.inputs | values | each {|input| source-paths $input } | flatten)
+}
+
+def main [target: string] {
+  if $target !~ '^[a-z_][a-z0-9_-]{0,31}@((([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)|(\[[0-9A-Fa-f:.]+\]))$' {
+    error make {msg: 'Usage: nix run .#apply-remote -- <user>@<vm-host>'}
+  }
+  $env.NIX_CONFIG = [($env.NIX_CONFIG? | default '') (nix-config)] | str join "\n"
+  let config = private-config
+  let archive = ^nix flake archive --json $config.public_ref ...$config.nix_args | from json
+  let public_source = $archive.path
+  let private_source = $archive.inputs.privateConfig.path
+  let expected_user = ^nix eval --raw $"($public_source)#homeConfigurations.vm.config.home.username" --no-write-lock-file --override-input privateConfig $"path:($private_source)"
+  if $expected_user in ['' ci-user] {
+    error make {msg: 'remote deployment requires a configured non-CI vm home username'}
+  }
+
+  # The only pre-Nushell operation: provision Nix so it can supply the pinned interpreter.
+  let install = r#'if ! command -v nix >/dev/null; then
+  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
+fi'#
+  ^ssh -A -t -- $target (remote-command $expected_user $install)
+
+  let store_command = remote-command $expected_user 'exec nix-store "$@"'
+  let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
+  ^nix copy --to $destination ...(source-paths $archive | uniq)
+
+  let remote_nu = [nix shell $"path:($archive.inputs.nixpkgs.path)#nushell" --command nu --no-config-file $"($public_source)/apps/remote.nu"]
+  let prepare = $remote_nu ++ [prepare $expected_user] | each {|arg| shell-quote $arg } | str join ' '
+  ^ssh -A -t -- $target (remote-command $expected_user $"exec ($prepare)")
+
+  # Reconnect after AcceptEnv is configured so activation receives the SOPS key.
+  let activate = $remote_nu ++ [activate $expected_user $public_source $private_source] | each {|arg| shell-quote $arg } | str join ' '
+  exec ssh -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+}

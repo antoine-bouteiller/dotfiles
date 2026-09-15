@@ -1,31 +1,64 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nu
 # What the GUI changed: the config noctalia actually runs (its config dir plus the
 # state-dir overrides the Settings UI writes) against the one this flake declares.
-set -euo pipefail
-
-command -v noctalia >/dev/null || {
-  echo "noctalia-diff: noctalia is not on PATH -- run this on a host with the desktop enabled" >&2
-  exit 1
-}
-
-live=$(mktemp -t noctalia-live.XXXXXX.toml)
-trap 'command rm -f -- "$live"' EXIT
-
-noctalia config export > "$live" || {
-  echo "noctalia-diff: 'noctalia config export' failed" >&2
-  exit 1
-}
 
 # TOML has no canonical order, so compare the parsed trees instead of the text.
-as_json() { nix eval --impure --json --expr "builtins.fromTOML (builtins.readFile $1)" | jq -S .; }
+def canonicalize [] {
+  let value = $in
+  let kind = $value | describe
+  if ($kind | str starts-with 'record<') {
+    $value
+    | sort
+    | transpose key value
+    | reduce --fold {} {|entry, result|
+      $result | insert $entry.key ($entry.value | canonicalize)
+    }
+  } else if ($kind | str starts-with 'list<') or ($kind | str starts-with 'table<') {
+    $value | each {|item| $item | canonicalize }
+  } else {
+    $value
+  }
+}
 
-case ${1:-} in
-  --nix)
-    nix eval --impure --expr "builtins.fromTOML (builtins.readFile $live)" |
-      nix run nixpkgs#alejandra -- -q -
-    ;;
-  *)
-    diff -u --label declared <(as_json "$HOME/.config/noctalia/config.toml") \
-      --label running <(as_json "$live") || true
-    ;;
-esac
+def as_json [file: path] {
+  open --raw $file | from toml | canonicalize | to json
+}
+
+def main [--nix] {
+  if (which noctalia | is-empty) {
+    print -e "noctalia-diff: noctalia is not on PATH -- run this on a host with the desktop enabled"
+    exit 1
+  }
+
+  let temp_dir = (^mktemp -d -t noctalia-diff.XXXXXX | str trim)
+  let live = $temp_dir | path join 'live.toml'
+  let declared = $temp_dir | path join 'declared.json'
+  let running = $temp_dir | path join 'running.json'
+  try {
+    let exported = (^noctalia config export | complete)
+    if $exported.exit_code != 0 {
+      error make {msg: "noctalia-diff: 'noctalia config export' failed"}
+    }
+    $exported.stdout | save --raw --force $live
+
+    if $nix {
+      let expression = ('builtins.fromTOML (builtins.readFile ' + $live + ')')
+      let evaluated = (^nix eval --impure --expr $expression | complete)
+      if $evaluated.exit_code != 0 {
+        if not ($evaluated.stderr | is-empty) { print -e $evaluated.stderr }
+        error make {msg: "noctalia-diff: Nix evaluation failed"}
+      }
+      $evaluated.stdout | ^nix run nixpkgs#alejandra -- -q -
+    } else {
+      as_json ($env.HOME | path join '.config' 'noctalia' 'config.toml') | save --raw --force $declared
+      as_json $live | save --raw --force $running
+      # Differences (and diff errors) are informational, as in the shell version.
+      try {
+        ^diff -u --label declared $declared --label running $running
+      } catch {
+      }
+    }
+  } finally {
+    ^rm -rf -- $temp_dir
+  }
+}

@@ -1,43 +1,58 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nu
 # Snapshot the running generation as a boot entry that survives garbage collection:
 # the entry lives in the host directory (so every rebuild reinstalls it) and the
 # generation's closure gets a gcroot of its own.
-set -euo pipefail
 
-host=$(hostname)
-hostDir=$(nix eval --raw ".#nixosConfigurations.\"$host\".config.local.hostDir")
-dir=$(basename "$hostDir")
-
-[ -d "hosts/$dir" ] || {
-  echo "pin: no host directory hosts/$dir -- run this from the flake root" >&2
+def fail [message: string] {
+  print -e $message
   exit 1
 }
 
-gen=$(sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | awk '/\(current\)/{print $1}')
-[ -n "$gen" ] || {
-  echo "pin: no current system generation" >&2
-  exit 1
+let host = (^hostname | str trim)
+let host_dir = (^nix eval --raw $".#nixosConfigurations.\"($host)\".config.local.hostDir" | str trim)
+let directory = ($host_dir | path basename)
+let host_path = $"hosts/($directory)"
+if (not ($host_path | path exists)) or (($host_path | path type) != 'dir') {
+  fail $"pin: no host directory ($host_path) -- run this from the flake root"
 }
 
-src=/boot/loader/entries/nixos-generation-$gen.conf
-sudo test -f "$src" || {
-  echo "pin: no boot entry for generation $gen at $src" >&2
-  exit 1
+let current_lines = (^sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
+  | lines
+  | where {|line| $line | str contains '(current)' })
+if ($current_lines | is-empty) {
+  fail 'pin: no current system generation'
 }
+let current = ($current_lines.0 | split row ' ' | where {|part| not ($part | is-empty) } | first)
 
-version=$(sudo awk '/^version/{$1= ""; print substr($0, 2)}' "$src")
+let source = $"/boot/loader/entries/nixos-generation-($current).conf"
+try {
+  ^sudo test -f $source
+} catch {
+  fail $"pin: no boot entry for generation ($current) at ($source)"
+}
+let boot_entry = (^sudo cat $source)
+let version = ($boot_entry
+  | lines
+  | where {|line| $line | str starts-with 'version' }
+  | each {|line| $line | str replace -r '^version\s*' '' }
+  | str join "\n")
 
 # `sort-key pinned` sorts the entry below the generation list instead of into it.
 # Pinning again overwrites the previous entry: one pin per host, by design.
-sudo sed -e '/^sort-key /d' -e "s|^title .*|title PINNED: $version|" "$src" |
-  { cat; echo "sort-key pinned"; } > "hosts/$dir/pinned-boot-entry.conf"
+let entry = ($boot_entry
+  | lines
+  | where {|line| not ($line | str starts-with 'sort-key ') }
+  | each {|line| if ($line | str starts-with 'title ') { $"title PINNED: ($version)" } else { $line } }
+  | append 'sort-key pinned'
+  | str join "\n")
+($entry + "\n") | save --force --raw $"($host_path)/pinned-boot-entry.conf"
 
 # Without a root of its own the closure goes with the generation on the next clean.
-sudo nix-store --add-root "/nix/var/nix/gcroots/pinned-$host" -r /nix/var/nix/profiles/system
+^sudo nix-store --add-root $"/nix/var/nix/gcroots/pinned-($host)" -r /nix/var/nix/profiles/system
 
 # Flakes ignore untracked files, so the entry is invisible to the rebuild until staged.
-git add "hosts/$dir/pinned-boot-entry.conf"
+^git add $"($host_path)/pinned-boot-entry.conf"
 
-echo "Pinned generation $gen; rebuilding so the entry lands on the ESP..."
-nh os switch .
-echo "Pinned: $version"
+print $"Pinned generation ($current); rebuilding so the entry lands on the ESP..."
+^nh os switch .
+print $"Pinned: ($version)"

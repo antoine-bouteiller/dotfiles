@@ -73,10 +73,11 @@
     in {
       type = "app";
       program = "${(pkgs.writeScriptBin scriptName ''
-        #!${pkgs.bash}/bin/bash
-        export PATH="${pkgs.bash}/bin:$PATH"
-        echo "Running ${scriptName} for ${system}"
-        exec ${self}/apps/${system}/${scriptName} "$@"
+        #!${pkgs.nushell}/bin/nu --no-config-file
+        def main --wrapped [...args: string] {
+          print "Running ${scriptName} for ${system}"
+          exec ${pkgs.nushell}/bin/nu --no-config-file ${self}/apps/${system}/${scriptName} ...$args
+        }
       '')}/bin/${scriptName}";
     };
     mkApps = system:

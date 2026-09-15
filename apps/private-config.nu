@@ -24,11 +24,7 @@ export def main []: nothing -> record<root: string, public_ref: string, nix_args
   # `path type` reports a broken symlink as a symlink, unlike a normal exists check.
   let private_type: any = ($private_root | path type)
   if $private_type == null {
-    # Lix cannot resolve the locked relative fixture from a git+file parent.
-    # Use the tracked snapshot, not the working directory (which may contain untracked files).
-    let snapshot = ^nix flake prefetch --json (git-ref $root) | from json
-    let fixture = $"path:($snapshot.storePath)/private-config"
-    return {root: $root, public_ref: (git-ref $root), nix_args: ($nix_args ++ [--override-input privateConfig $fixture])}
+    return {root: $root, public_ref: (git-ref $root), nix_args: $nix_args}
   }
   if $private_type == 'symlink' {
     fail '.private must not be a symlink'

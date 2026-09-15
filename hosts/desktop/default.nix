@@ -57,7 +57,11 @@ in {
   };
 
   programs.coolercontrol.enable = true;
-  services.hardware.openrgb.enable = true;
+  services.hardware.openrgb = {
+    enable = true;
+    # Use the store profile so boot does not depend on Home Manager activation.
+    startupProfile = "${./openrgb/Purple.orp}";
+  };
 
   # Keep the OS picker visible for Windows dual boot.
   boot.loader.timeout = 5;

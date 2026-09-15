@@ -9,6 +9,12 @@
     text = builtins.readFile ./display-switch.sh;
   };
 in {
+  xdg.configFile = {
+    "OpenRGB/OpenRGB.json".source = ./openrgb/OpenRGB.json;
+    "OpenRGB/Purple.orp".source = ./openrgb/Purple.orp;
+    "OpenRGB/Stopped.orp".source = ./openrgb/Stopped.orp;
+  };
+
   systemd.user.services.desktop-display-switch = {
     Unit = {
       Description = "Select DP-1 settings from the connected Samsung display's EDID";

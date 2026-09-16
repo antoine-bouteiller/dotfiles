@@ -34,7 +34,7 @@ in {
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia.open = true;
 
-  # Publish both connected displays as sinks so Noctalia can switch between them.
+  # Publish only connected displays as sinks so Noctalia can switch between them.
   services.pipewire.wireplumber.extraConfig."51-nvidia-dual-output" = {
     "monitor.alsa.rules" = [
       {
@@ -46,15 +46,32 @@ in {
             [General]
             auto-profiles = no
 
+            [Profile monitor-stereo]
+            description = Monitor stereo output
+            output-mappings = hdmi-stereo
+
+            [Profile tv-stereo]
+            description = TV stereo output
+            output-mappings = hdmi-stereo-extra1
+
             [Profile dual-stereo]
             description = Monitor and TV stereo outputs
             output-mappings = hdmi-stereo hdmi-stereo-extra1
           ''}";
-          "device.profile" = "dual-stereo";
         };
       }
     ];
+    "wireplumber.components" = [
+      {
+        name = "nvidia-outputs.lua";
+        type = "script/lua";
+        # WirePlumber loads hooks.* before the event source and device monitors.
+        provides = "hooks.nvidia-outputs";
+      }
+    ];
+    "wireplumber.profiles".main."hooks.nvidia-outputs" = "required";
   };
+  services.pipewire.wireplumber.extraScripts."nvidia-outputs.lua" = builtins.readFile ./nvidia-outputs.lua;
 
   programs.coolercontrol.enable = true;
   services.hardware.openrgb = {

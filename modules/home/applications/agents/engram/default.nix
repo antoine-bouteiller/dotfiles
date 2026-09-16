@@ -13,22 +13,18 @@ in
   mkModule args "local.home-manager.agents.engram" {
     description = "Engram persistent agent memory";
 
-    config = _:
+    options.server.enable = lib.mkEnableOption "the local Engram server" // {default = true;};
+
+    config = {cfg}:
       lib.mkIf agents.enable {
-        home.packages = [package];
-        home.sessionVariables.ENGRAM_NO_UPDATE_CHECK = "1";
+        home.packages = lib.optional cfg.server.enable package;
+        local.home-manager.agents.pi.env.ENGRAM_URL = lib.mkDefault "http://127.0.0.1:7437";
         # Pi supplies its core runtime dependencies; keep all companion files.
         home.file.".pi/agent/extensions/engram" = lib.mkIf agents.pi.enable {
           source = package.piExtension;
         };
 
-        programs.mcp.servers.engram = {
-          command = lib.getExe package;
-          args = ["mcp" "--tools=agent"];
-          env.ENGRAM_NO_UPDATE_CHECK = "1";
-        };
-
-        systemd.user.services.engram = lib.mkIf (!isDarwin) {
+        systemd.user.services.engram = lib.mkIf (cfg.server.enable && !isDarwin) {
           Unit = {
             Description = "Engram Memory Server";
             After = ["network.target"];
@@ -47,7 +43,7 @@ in
           Install.WantedBy = ["default.target"];
         };
 
-        launchd.agents.engram = lib.mkIf isDarwin {
+        launchd.agents.engram = lib.mkIf (cfg.server.enable && isDarwin) {
           enable = true;
           config = {
             ProgramArguments = [(lib.getExe package) "serve"];

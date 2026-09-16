@@ -3,6 +3,7 @@
   stdenv,
   fetchurl,
   fetchzip,
+  makeWrapper,
 }: let
   sources = lib.importJSON ./sources.json;
   inherit (sources) version;
@@ -22,10 +23,13 @@ in
     # The release tarball contains the binary at its root.
     sourceRoot = ".";
 
+    nativeBuildInputs = [makeWrapper];
+
     installPhase = ''
       runHook preInstall
 
       install -Dm755 engram $out/bin/engram
+      wrapProgram $out/bin/engram --set ENGRAM_NO_UPDATE_CHECK 1
 
       runHook postInstall
     '';

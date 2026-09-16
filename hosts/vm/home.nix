@@ -35,6 +35,10 @@ in {
       enable = true;
       claude-code.enable = true;
       pi.enable = true;
+      engram = {
+        enable = true;
+        server.enable = false;
+      };
     };
   };
 

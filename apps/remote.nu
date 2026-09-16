@@ -23,8 +23,7 @@ def 'main prepare' [expected_user: string] {
 
 def 'main activate' [expected_user: string, public_source: string, private_source: string] {
   check-user $expected_user
-  let out = ^nix build --no-link --print-out-paths $"($public_source)#homeConfigurations.vm.activationPackage" --no-write-lock-file --override-input privateConfig $"path:($private_source)" | str trim
-  ^($out | path join activate)
+  ^nh home switch $"path:($public_source)" -c vm -- --no-write-lock-file --override-input privateConfig $"path:($private_source)"
 }
 
 def main [] {

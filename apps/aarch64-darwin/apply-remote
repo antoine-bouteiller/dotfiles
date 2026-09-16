@@ -61,7 +61,7 @@ sudo systemctl restart nix-daemon'#
   let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
   ^nix copy --to $destination ...(source-paths $archive | uniq)
 
-  let remote_nu = [nix shell $"path:($archive.inputs.nixpkgs.path)#nushell" --command nu --no-config-file $"($public_source)/apps/remote.nu"]
+  let remote_nu = [nix shell $"path:($archive.inputs.nixpkgs.path)#nushell" $"path:($archive.inputs.nixpkgs.path)#nh" --command nu --no-config-file $"($public_source)/apps/remote.nu"]
   let prepare = $remote_nu ++ [prepare $expected_user] | each {|arg| shell-quote $arg } | str join ' '
   ^ssh -A -t -- $target (remote-command $expected_user $"exec ($prepare)")
 

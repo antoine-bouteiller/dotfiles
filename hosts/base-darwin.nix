@@ -10,7 +10,7 @@
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
   environment.systemPackages = [pkgs.nh];
   launchd.daemons.nh-clean = {
-    command = "${lib.getExe pkgs.nh} clean all --keep 2 --keep-since 7d";
+    command = "${lib.getExe pkgs.nh} clean all --keep 2 --keep-one";
     serviceConfig = {
       RunAtLoad = false;
       StartCalendarInterval = [

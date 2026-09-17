@@ -19,7 +19,7 @@
         keep-derivations = true;
       };
 
-    # Garbage collection is handled by `nh clean all --keep 2 --keep-since 7d`
+    # Garbage collection is handled by `nh clean all --keep 2 --keep-one`
 
     # Hardlink identical store files to save disk space
     optimise.automatic = true;

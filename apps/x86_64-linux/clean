@@ -3,7 +3,7 @@
 use ../config.nu *
 
 print $"Cleaning up old system generations \(keeping the ($generations_to_keep) latest\)..."
-^sudo nh clean all --keep $generations_to_keep
+^sudo nh clean all --keep $generations_to_keep --keep-one
 
 print 'Cleaning up boot partition...'
 ^sudo env NIXOS_INSTALL_BOOTLOADER=1 /nix/var/nix/profiles/system/bin/switch-to-configuration boot

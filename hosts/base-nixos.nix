@@ -44,7 +44,7 @@ in {
     enable = true;
     clean = {
       enable = true;
-      extraArgs = "--keep 2 --keep-since 7d";
+      extraArgs = "--keep 2 --keep-one";
     };
   };
 

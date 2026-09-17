@@ -11,7 +11,7 @@ def fail [message: string] {
 
 # Nushell exposes an exported `main` under the module name, so callers use this
 # module as `private-config`. (An export literally named private-config is invalid.)
-# Returns the public checkout and optional local privateConfig input override.
+# Returns the public checkout and a cache-independent privateConfig input override.
 export def main []: nothing -> record<root: string, public_ref: string, nix_args: list<string>> {
   let root_result = (^git rev-parse --show-toplevel | complete)
   if $root_result.exit_code != 0 {
@@ -24,6 +24,9 @@ export def main []: nothing -> record<root: string, public_ref: string, nix_args
   # `path type` reports a broken symlink as a symlink, unlike a normal exists check.
   let private_type: any = ($private_root | path type)
   if $private_type == null {
+    # Locked relative path inputs cannot be fetched after their cached source is GC'd.
+    let public_source = (^nix flake metadata --json (git-ref $root) ...$nix_args | from json | get path)
+    $nix_args = $nix_args ++ [--override-input privateConfig $"path:($public_source)/private-config"]
     return {root: $root, public_ref: (git-ref $root), nix_args: $nix_args}
   }
   if $private_type == 'symlink' {

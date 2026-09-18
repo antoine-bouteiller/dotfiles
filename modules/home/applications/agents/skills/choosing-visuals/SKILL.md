@@ -1,7 +1,6 @@
 ---
 name: choosing-visuals
 description: Choose a compact visual for explaining design structure, behavior, or alternatives in specs, plans, and discussions.
-disable-model-invocation: true
 ---
 
 # Choose a visual

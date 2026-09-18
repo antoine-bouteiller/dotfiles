@@ -1,5 +1,6 @@
 {
   mkModule,
+  config,
   pkgs,
   lib,
   ...
@@ -24,14 +25,14 @@ mkModule args "local.home-manager.zed" {
         language_servers = ["typescript-ls" "!vtsls" "!typescript-language-server" "!eslint" "!tailwindcss-language-server" "..."];
       };
   in {
-    programs.zsh.shellAliases = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) {
+    programs.zsh.shellAliases = lib.mkIf (config.local.home-manager.desktop.enable && !pkgs.stdenv.hostPlatform.isDarwin) {
       zed = "zeditor";
     };
 
     programs.zed-editor = {
       enable = true;
       # Darwin gets the editor from Homebrew.
-      package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin null;
+      package = lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin || !config.local.home-manager.desktop.enable) null;
       mutableUserSettings = false;
       mutableUserKeymaps = false;
       userSettings = {

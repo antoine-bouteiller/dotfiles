@@ -25,7 +25,7 @@ jobs:
         env:
           NIX_PATH: nixpkgs=flake:nixpkgs
           GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
-        run: nix run --impure .#update
+        run: nix run --impure .#update --no-write-lock-file
 
       - name: Update dev flake.lock
         run: nix flake update --flake ./dev

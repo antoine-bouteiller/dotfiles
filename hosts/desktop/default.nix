@@ -8,7 +8,7 @@
   inherit (host) user;
 in {
   imports =
-    [../base-nixos.nix]
+    [../base-nixos.nix ./openrgb]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix;
 
   assertions = [
@@ -74,11 +74,6 @@ in {
   services.pipewire.wireplumber.extraScripts."nvidia-outputs.lua" = builtins.readFile ./nvidia-outputs.lua;
 
   programs.coolercontrol.enable = true;
-  services.hardware.openrgb = {
-    enable = true;
-    # Use the store profile so boot does not depend on Home Manager activation.
-    startupProfile = "${./openrgb/Purple.orp}";
-  };
 
   # Keep the OS picker visible for Windows dual boot.
   boot.loader.timeout = 5;

@@ -31,7 +31,7 @@ jobs:
           for entry in x86_64-linux:ubuntu-latest aarch64-darwin:macos-latest; do
             system=${entry%%:*}
             runner=${entry##*:}
-            hosts=$(nix eval --json ".#checks.$system" --apply 'builtins.attrNames')
+            hosts=$(nix eval --json ".#checks.$system" --apply 'builtins.attrNames' --no-write-lock-file)
             include=$(jq -c --argjson hosts "$hosts" --arg system "$system" --arg runner "$runner" \
               '. + [$hosts[] | {system: $system, runner: $runner, host: .}]' <<<"$include")
           done
@@ -76,5 +76,6 @@ jobs:
           # cargo/zig vendor dirs): ~75% of pushed paths, zero build cost to redo.
           pushFilter: "(\\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$)"
 
+      # Nix may migrate Lix's relative-input lock format; keep the source hash stable.
       - name: Build ${{ matrix.host }}
-        run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --no-link --print-build-logs
+        run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --no-link --print-build-logs --no-write-lock-file

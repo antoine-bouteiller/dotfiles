@@ -24,6 +24,8 @@ in {
   local.nixos.gaming.enable = true;
   secureBoot.enable = true;
 
+  environment.systemPackages = [pkgs.olympus];
+
   # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's
   # CEF bootstrap UI off-center and crops it. Force Steam's own 2x scaling.
   programs.steam.package = pkgs.steam.override {

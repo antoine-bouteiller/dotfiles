@@ -76,6 +76,22 @@ in {
       };
     };
 
+    # Mask redundant launcher entries without removing the underlying tools.
+    xdg.dataFile =
+      lib.genAttrs [
+        "applications/qt5ct.desktop"
+        "applications/qt6ct.desktop"
+        "applications/thunar-settings.desktop"
+        "applications/footclient.desktop"
+        "applications/foot-server.desktop"
+        "applications/dev.noctalia.Noctalia.desktop"
+      ] (_: {
+        text = ''
+          [Desktop Entry]
+          Hidden=true
+        '';
+      });
+
     # noctalia ships a single entry whose Exec is `noctalia --daemon`, so launching it
     # from the launcher does nothing once the shell is already running; settings live in
     # a desktop *action*, which the launcher doesn't list. This is that action as an entry.

@@ -12,6 +12,7 @@ mkModule args "local.nixos.desktop" {
 
   config = _: {
     programs.niri.enable = true;
+    programs.localsend.enable = true;
 
     networking.networkmanager.dns = "systemd-resolved";
     services.resolved = {

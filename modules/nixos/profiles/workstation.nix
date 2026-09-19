@@ -25,7 +25,6 @@ in
         bun
         # customPkgs.vite-plus
 
-        customPkgs.nearby-file-share
         customPkgs.helium
 
         # Plex's only DisplayManager backend is X11DisplayManager, which XOpenDisplay()s

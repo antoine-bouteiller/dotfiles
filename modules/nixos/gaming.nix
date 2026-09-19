@@ -59,6 +59,7 @@ in
             mgba
           ]))
         customPkgs.neostation
+        customPkgs.amethyst-mod-manager
       ];
     };
   }

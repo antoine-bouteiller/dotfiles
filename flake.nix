@@ -118,6 +118,7 @@
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           nearby-file-share = pkgs.callPackage ./pkgs/nearby-file-share.nix {};
           helium = pkgs.callPackage ./pkgs/helium.nix {};
+          amethyst-mod-manager = pkgs.callPackage ./pkgs/amethyst-mod-manager.nix {};
 
           install-iso = self.nixosConfigurations.iso.config.system.build.isoImage;
         }

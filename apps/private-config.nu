@@ -59,19 +59,6 @@ export def main []: nothing -> record<root: string, public_ref: string, nix_args
   {root: $root, public_ref: (git-ref $root), nix_args: $nix_args}
 }
 
-# Flake attrs are short host names, unlike network-discoverable hostnames.
-export def host-attr [kind: string, config: record]: nothing -> string {
-  let validation = match $kind {
-    darwin => 'cfg.system.drvPath'
-    nixos => 'cfg.config.system.build.toplevel.drvPath'
-    _ => { error make {msg: $"unknown configuration kind: ($kind)"} }
-  }
-  let hostname = (^hostname -s | str trim)
-  let hostname_literal = ($hostname | to json -r)
-  let apply = ('cfgs: let name = builtins.head (builtins.filter (n: cfgs.${n}.config.networking.hostName == ' + $hostname_literal + ') (builtins.attrNames cfgs)); cfg = cfgs.${name}; in builtins.seq (' + $validation + ') name')
-  ^nix eval --raw $"($config.public_ref)#($kind)Configurations" --apply $apply ...$config.nix_args | str trim
-}
-
 export def split-nh-args [args: list<string>]: nothing -> record<nh_args: list<string>, nix_args: list<string>> {
   let nh_args = $args | take until {|arg| $arg == '--' }
   {nh_args: $nh_args, nix_args: ($args | skip (($nh_args | length) + 1))}

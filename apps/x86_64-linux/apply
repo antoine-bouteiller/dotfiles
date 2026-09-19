@@ -7,7 +7,7 @@ def main --wrapped [...args: string] {
   let split_args = (split-nh-args $args)
 
   print 'Applying NixOS configuration...'
-  let host = (host-attr nixos $config)
+  let host = (^hostname -s | str trim)
   ^nh os switch $config.public_ref -H $host ...$split_args.nh_args -- ...$split_args.nix_args ...$config.nix_args
   print 'Switch to new generation complete!'
 }

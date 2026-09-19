@@ -13,6 +13,8 @@ in {
       tmdbApiUrl = "https://api.themoviedb.org/3";
       sonarrApiUrl = "http://localhost:${toString config.services.sonarr.settings.server.port}";
       radarrApiUrl = "http://localhost:${toString config.services.radarr.settings.server.port}";
+      bazarrApiUrl = "http://localhost:${toString config.services.bazarr.listenPort}";
+      bazarrFrenchProfile = "French (forced)";
       transcodePath = "${constants.paths.mediaDir}/transcode";
       postgres = {
         host = "/run/pgbouncer";
@@ -27,6 +29,7 @@ in {
       tmdbApiTokenFile = config.sops.secrets."autoscan/tmdb_api_token".path;
       sonarrApiKeyFile = config.sops.secrets."autoscan/sonarr_api_key".path;
       radarrApiKeyFile = config.sops.secrets."autoscan/radarr_api_key".path;
+      bazarrApiKeyFile = config.sops.secrets."autoscan/bazarr_api_key".path;
     };
   };
 
@@ -53,6 +56,10 @@ in {
   };
   sops.secrets."autoscan/radarr_api_key" = {
     key = "radarr_api_key";
+    owner = constants.autoscan.user;
+  };
+  sops.secrets."autoscan/bazarr_api_key" = {
+    key = "bazarr_api_key";
     owner = constants.autoscan.user;
   };
 }

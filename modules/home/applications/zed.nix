@@ -112,11 +112,7 @@ mkModule args "local.home-manager.zed" {
         base_keymap = "VSCode";
         ui_font_size = 15;
         buffer_font_size = 14;
-        theme = {
-          mode = "system";
-          light = "Catppuccin Latte";
-          dark = "Catppuccin Mocha";
-        };
+        theme = "Fleet Dark";
         icon_theme = "Material Icon Theme";
       };
 
@@ -140,10 +136,10 @@ mkModule args "local.home-manager.zed" {
 
       extensions = [
         "astro"
-        "catppuccin"
         "csharp"
         "dockerfile"
         "elisp"
+        "fleet-themes"
         "git-firefly"
         "html"
         "json5"

@@ -1,4 +1,4 @@
-# Graphite-inspired neutrals with complementary accents for delta, Pi, and the console.
+# macOS-inspired charcoal neutrals with restrained accents for delta, Pi, and the console.
 {lib}: let
   inherit
     (lib)
@@ -42,31 +42,31 @@ in {
     blush = "#ead5cf";
     salmon = "#e6bfba";
     pink = "#e4b4ce";
-    magenta = "#d2b4f8";
-    red = "#f3a5a5";
+    magenta = "#c5a0ef";
+    red = "#ff8585";
     rose = "#d99ca7";
-    orange = "#e8bc98";
-    yellow = "#f1d79b";
-    green = "#b5d99c";
+    orange = "#f5b56f";
+    yellow = "#eed080";
+    green = "#91cf9c";
     teal = "#a4d3c1";
-    cyan = "#9edcde";
+    cyan = "#83cddf";
     steelBlue = "#92c3d9";
-    blue = "#9acbff";
+    blue = "#80b5ff";
     periwinkle = "#bdc3ed";
     white = "#ffffff";
     black = "#000000";
-    text = "#ffffff";
-    textSecondary = "#e0e0e4";
+    text = "#f5f5f7";
+    textSecondary = "#dedee3";
     textMuted = "#d0d0d6";
     textSubtle = "#c0c0ca";
     textDim = "#aeaeb6";
     textFaint = "#9a9aa6";
-    surfaceHover = "#505057";
-    surfaceRaised = "#414146";
-    surface = "#343438";
-    background = "#303034";
-    backgroundDim = "#2b2b2f";
-    backgroundDark = "#26262a";
+    surfaceHover = "#505058";
+    surfaceRaised = "#3e3e44";
+    surface = "#303034";
+    background = "#242427";
+    backgroundDim = "#1f1f22";
+    backgroundDark = "#19191c";
   };
 
   # `ratio` is the weight of `a`: `mix background red 0.8` gives a red-tinted background.

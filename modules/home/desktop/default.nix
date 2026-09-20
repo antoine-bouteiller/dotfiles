@@ -14,6 +14,11 @@ mkModule args "local.home-manager.desktop" {
     ./qt.nix
     ./noctalia.nix
   ];
+  options.extraNiriBinds = lib.mkOption {
+    type = lib.types.lines;
+    default = "";
+    description = "Host-specific KDL appended inside niri's binds block";
+  };
   options.extraNiriConfig = lib.mkOption {
     type = lib.types.lines;
     default = "";

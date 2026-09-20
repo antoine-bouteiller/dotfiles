@@ -114,6 +114,7 @@ in {
 
       binds {
       ${lib.concatMapStringsSep "\n" (b: "    ${b}") binds}
+      ${config.local.home-manager.desktop.extraNiriBinds}
       }
     '';
 

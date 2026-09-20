@@ -5,6 +5,7 @@
   ...
 } @ args: let
   inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
+  inherit (import ../../../lib/palette.nix {inherit lib;}) colors;
 in
   mkModule args "local.home-manager.terminal" {
     description = "the terminal emulator: ghostty on darwin, foot on linux";
@@ -40,7 +41,7 @@ in
         package = null;
         settings = {
           font-style = "Regular";
-          theme = lib.mkForce "light:Catppuccin Latte,dark:Catppuccin Mocha";
+          theme = lib.mkForce "ghostty";
           window-theme = "auto";
           window-padding-x = 14;
           window-padding-y = 14;
@@ -62,31 +63,31 @@ in
           ];
           mouse-scroll-multiplier = 0.95;
         };
-        themes."JetBrains Islands Dark" = {
+        themes.ghostty = {
           palette = [
-            "0=#191a1c"
-            "1=#f75464"
-            "2=#6aab73"
-            "3=#cf8e6d"
-            "4=#56a8f5"
-            "5=#c77dbb"
-            "6=#2aacb8"
-            "7=#bcbec4"
-            "8=#7a7e85"
-            "9=#f57e84"
-            "10=#6db083"
-            "11=#f0ac81"
-            "12=#548af7"
-            "13=#b189f5"
-            "14=#16baac"
-            "15=#ffffff"
+            "0=${colors.backgroundDark}"
+            "1=${colors.red}"
+            "2=${colors.green}"
+            "3=${colors.yellow}"
+            "4=${colors.blue}"
+            "5=${colors.magenta}"
+            "6=${colors.cyan}"
+            "7=${colors.textMuted}"
+            "8=${colors.textFaint}"
+            "9=${colors.red}"
+            "10=${colors.green}"
+            "11=${colors.yellow}"
+            "12=${colors.blue}"
+            "13=${colors.magenta}"
+            "14=${colors.cyan}"
+            "15=${colors.text}"
           ];
-          background = "#191a1c";
-          foreground = "#bcbec4";
-          cursor-color = "#ced0d6";
-          cursor-text = "#191a1c";
-          selection-background = "#2a4371";
-          selection-foreground = "#d1d3d8";
+          inherit (colors) background;
+          foreground = colors.text;
+          cursor-color = colors.text;
+          cursor-text = colors.background;
+          selection-background = colors.surfaceHover;
+          selection-foreground = colors.text;
         };
       };
     };

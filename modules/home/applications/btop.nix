@@ -1,7 +1,60 @@
-_: {
+{lib, ...}: let
+  inherit (import ../../../lib/palette.nix {inherit lib;}) colors;
+in {
   programs.btop = {
     enable = true;
+    themes.btop = ''
+      theme[main_bg]="${colors.background}"
+      theme[main_fg]="${colors.text}"
+      theme[title]="${colors.text}"
+      theme[hi_fg]="${colors.blue}"
+      theme[selected_bg]="${colors.surfaceHover}"
+      theme[selected_fg]="${colors.text}"
+      theme[inactive_fg]="${colors.textFaint}"
+      theme[graph_text]="${colors.textDim}"
+      theme[meter_bg]="${colors.surfaceRaised}"
+      theme[proc_misc]="${colors.magenta}"
+      theme[cpu_box]="${colors.blue}"
+      theme[mem_box]="${colors.green}"
+      theme[net_box]="${colors.magenta}"
+      theme[proc_box]="${colors.cyan}"
+      theme[div_line]="${colors.surfaceHover}"
+      theme[temp_start]="${colors.green}"
+      theme[temp_mid]="${colors.yellow}"
+      theme[temp_end]="${colors.red}"
+      theme[cpu_start]="${colors.green}"
+      theme[cpu_mid]="${colors.yellow}"
+      theme[cpu_end]="${colors.red}"
+      theme[free_start]="${colors.teal}"
+      theme[free_mid]="${colors.green}"
+      theme[free_end]="${colors.yellow}"
+      theme[cached_start]="${colors.steelBlue}"
+      theme[cached_mid]="${colors.blue}"
+      theme[cached_end]="${colors.cyan}"
+      theme[available_start]="${colors.teal}"
+      theme[available_mid]="${colors.green}"
+      theme[available_end]="${colors.yellow}"
+      theme[used_start]="${colors.yellow}"
+      theme[used_mid]="${colors.orange}"
+      theme[used_end]="${colors.red}"
+      theme[download_start]="${colors.steelBlue}"
+      theme[download_mid]="${colors.blue}"
+      theme[download_end]="${colors.cyan}"
+      theme[upload_start]="${colors.periwinkle}"
+      theme[upload_mid]="${colors.magenta}"
+      theme[upload_end]="${colors.pink}"
+      theme[process_start]="${colors.green}"
+      theme[process_mid]="${colors.yellow}"
+      theme[process_end]="${colors.red}"
+      theme[proc_pause_bg]="${colors.red}"
+      theme[proc_follow_bg]="${colors.blue}"
+      theme[proc_banner_bg]="${colors.magenta}"
+      theme[proc_banner_fg]="${colors.background}"
+      theme[followed_bg]="${colors.blue}"
+      theme[followed_fg]="${colors.background}"
+    '';
     settings = {
+      color_theme = "btop";
       theme_background = true;
       truecolor = true;
       force_tty = false;

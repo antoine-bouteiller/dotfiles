@@ -7,6 +7,7 @@
   ...
 } @ args: let
   package = inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  inherit (import ../../../lib/palette.nix {inherit lib;}) colors;
 
   # Saved SSH machines matching sopsAgeKeyHosts get the age key through `SendEnv SOPS_AGE_KEY`;
   # sops reads SOPS_AGE_KEY before SOPS_AGE_KEY_FILE, so pi/runenv on the VM just work.
@@ -42,10 +43,24 @@ in
         source = (pkgs.formats.toml {}).generate "herdr-config" {
           onboarding = false;
           theme = {
-            name = "catppuccin";
-            auto_switch = true;
-            light_name = "catppuccin-latte";
-            dark_name = "catppuccin";
+            name = "terminal";
+            auto_switch = false;
+            custom = {
+              inherit (colors) text green yellow red blue teal;
+              accent = colors.blue;
+              panel_bg = colors.background;
+              sidebar_bg = colors.background;
+              active_row_bg = colors.surface;
+              selection_bg = colors.surfaceRaised;
+              surface0 = colors.surface;
+              surface1 = colors.surfaceRaised;
+              surface_dim = colors.backgroundDim;
+              overlay0 = colors.textFaint;
+              overlay1 = colors.textDim;
+              subtext0 = colors.textMuted;
+              mauve = colors.magenta;
+              peach = colors.orange;
+            };
           };
 
           terminal.new_cwd = "follow";

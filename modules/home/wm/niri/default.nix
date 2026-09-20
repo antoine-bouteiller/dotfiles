@@ -12,6 +12,7 @@
 
   binds = import ./binds.nix {inherit lib;};
   inherit (import ../keymap.nix) presetWidths;
+  inherit (import ../../../../lib/palette.nix {inherit lib;}) colors;
 in {
   config = lib.mkIf config.local.home-manager.desktop.enable {
     home.pointerCursor = {
@@ -21,8 +22,7 @@ in {
       gtk.enable = true;
     };
 
-    # There is no home-manager module for niri, and its config is a single KDL
-    # file; only the binds are worth generating.
+    # There is no home-manager module for niri; keep its config in a single KDL file.
     xdg.configFile."niri/config.kdl".text = ''
       input {
           keyboard {
@@ -44,16 +44,36 @@ in {
           preset-column-widths {
       ${lib.concatMapStringsSep "\n" (w: "        proportion ${toString w}") presetWidths}
           }
-          // A single 2px frame: the focus ring would double up on the border,
-          // and noctalia's template colors both, whichever is drawn.
+          // A single 2px frame: the focus ring would double up on the border.
           border {
               width 2
+              active-color "${colors.blue}"
+              inactive-color "${colors.surface}"
+              urgent-color "${colors.red}"
           }
           focus-ring {
               off
+              active-color "${colors.blue}"
+              inactive-color "${colors.surface}"
+              urgent-color "${colors.red}"
+          }
+          tab-indicator {
+              active-color "${colors.blue}"
+              inactive-color "${colors.surfaceRaised}"
+              urgent-color "${colors.red}"
+          }
+          insert-hint {
+              color "${colors.blue}80"
           }
           shadow {
               on
+          }
+      }
+
+      recent-windows {
+          highlight {
+              active-color "${colors.blue}"
+              urgent-color "${colors.red}"
           }
       }
 
@@ -95,19 +115,6 @@ in {
       binds {
       ${lib.concatMapStringsSep "\n" (b: "    ${b}") binds}
       }
-
-      // noctalia's niri template renders niri/noctalia.kdl and expects this line
-      // in config.kdl -- which home-manager owns and makes read-only, so the
-      // template's own apply hook cannot add it. Spelled exactly as the hook
-      // greps for it, so it leaves the file alone.
-      include "noctalia.kdl"
-    '';
-
-    # niri refuses to load a config whose include is missing, which is the window
-    # before noctalia has applied a theme for the first time.
-    home.activation.niriNoctaliaTheme = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      run mkdir -p ${config.xdg.configHome}/niri
-      run touch -a ${config.xdg.configHome}/niri/noctalia.kdl
     '';
 
     # Only referenced by binds.nix.

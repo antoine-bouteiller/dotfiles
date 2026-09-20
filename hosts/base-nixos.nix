@@ -54,26 +54,25 @@ in {
   i18n.defaultLocale = "en_GB.UTF-8";
   console = {
     keyMap = "fr";
-    # Catppuccin Mocha, from github:catppuccin/tty -- the option compiles down to the
-    # vt.default_red/grn/blu kernel params that theme carries. It only reaches the Linux
-    # VT, never the bootloader, which draws with the firmware's own fixed EFI palette.
+    # The shared Graphite palette becomes vt.default_red/grn/blu kernel params.
+    # This only reaches the Linux VT, not the bootloader's fixed EFI palette.
     colors = map (lib.removePrefix "#") (with colors; [
-      base
+      background
       red
       green
       yellow
       blue
       pink
       teal
-      subtext1
-      surface2
+      textSecondary
+      surfaceHover
       red
       green
       yellow
       blue
       pink
       teal
-      subtext0
+      textMuted
     ]);
   };
 

@@ -9,14 +9,14 @@
 
   palette = import ../../../lib/palette.nix {inherit lib;};
   inherit (palette) colors mix;
-  # delta paints whole lines, so these stay mostly base; any more accent and the
+  # delta paints whole lines, so these stay mostly background; any more accent and the
   # syntax highlighting on top stops being readable. Emph is the changed words.
   diff = {
-    minus = mix colors.base colors.red 0.8;
-    minusEmph = mix colors.base colors.red 0.6;
-    plus = mix colors.base colors.green 0.8;
-    plusEmph = mix colors.base colors.green 0.6;
-    hunkHeader = mix colors.base colors.mauve 0.8;
+    minus = mix colors.background colors.red 0.8;
+    minusEmph = mix colors.background colors.red 0.6;
+    plus = mix colors.background colors.green 0.8;
+    plusEmph = mix colors.background colors.green 0.6;
+    hunkHeader = mix colors.background colors.magenta 0.8;
   };
 in {
   home.activation.gitAllowedSigners = lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -105,20 +105,19 @@ in {
       dark = true;
       line-numbers = true;
       navigate = true;
-      # delta can only name bat's themes and bat ships no Catppuccin; Dracula is
-      # the closest stock dark one.
+      # Syntax highlighting uses bat's stock Dracula theme.
       syntax-theme = "Dracula";
 
       file-style = colors.text;
-      file-decoration-style = "${colors.overlay0} ul";
+      file-decoration-style = "${colors.textFaint} ul";
       hunk-header-style = "file line-number syntax";
       hunk-header-decoration-style = diff.hunkHeader;
       hunk-header-file-style = diff.hunkHeader;
       hunk-header-line-number-style = diff.hunkHeader;
 
-      line-numbers-left-style = colors.overlay0;
-      line-numbers-right-style = colors.overlay0;
-      line-numbers-zero-style = colors.overlay0;
+      line-numbers-left-style = colors.textFaint;
+      line-numbers-right-style = colors.textFaint;
+      line-numbers-zero-style = colors.textFaint;
       line-numbers-minus-style = "bold ${colors.red}";
       line-numbers-plus-style = "bold ${colors.green}";
 
@@ -127,7 +126,7 @@ in {
       plus-style = "syntax ${diff.plus}";
       plus-emph-style = "bold syntax ${diff.plusEmph}";
 
-      blame-palette = "${colors.base} ${colors.mantle} ${colors.crust} ${colors.surface0} ${colors.surface1}";
+      blame-palette = "${colors.background} ${colors.backgroundDim} ${colors.backgroundDark} ${colors.surface} ${colors.surfaceRaised}";
     };
   };
 

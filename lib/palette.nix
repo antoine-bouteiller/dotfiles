@@ -1,5 +1,4 @@
-# Catppuccin Mocha, spelled out for the apps with no Catppuccin port of their own
-# and so have to be handed raw hex. Currently delta.
+# Graphite-inspired neutrals with complementary accents for delta, Pi, and the console.
 {lib}: let
   inherit
     (lib)
@@ -40,35 +39,37 @@
     else below + 1;
 in {
   colors = {
-    rosewater = "#f5e0dc";
-    flamingo = "#f2cdcd";
-    pink = "#f5c2e7";
-    mauve = "#cba6f7";
-    red = "#f38ba8";
-    maroon = "#eba0ac";
-    peach = "#fab387";
-    yellow = "#f9e2af";
-    green = "#a6e3a1";
-    teal = "#94e2d5";
-    sky = "#89dceb";
-    sapphire = "#74c7ec";
-    blue = "#89b4fa";
-    lavender = "#b4befe";
-    text = "#cdd6f4";
-    subtext1 = "#bac2de";
-    subtext0 = "#a6adc8";
-    overlay2 = "#9399b2";
-    overlay1 = "#7f849c";
-    overlay0 = "#6c7086";
-    surface2 = "#585b70";
-    surface1 = "#45475a";
-    surface0 = "#313244";
-    base = "#1e1e2e";
-    mantle = "#181825";
-    crust = "#11111b";
+    blush = "#ead5cf";
+    salmon = "#e6bfba";
+    pink = "#e4b4ce";
+    magenta = "#d2b4f8";
+    red = "#f3a5a5";
+    rose = "#d99ca7";
+    orange = "#e8bc98";
+    yellow = "#f1d79b";
+    green = "#b5d99c";
+    teal = "#a4d3c1";
+    cyan = "#9edcde";
+    steelBlue = "#92c3d9";
+    blue = "#9acbff";
+    periwinkle = "#bdc3ed";
+    white = "#ffffff";
+    black = "#000000";
+    text = "#ffffff";
+    textSecondary = "#e0e0e4";
+    textMuted = "#d0d0d6";
+    textSubtle = "#c0c0ca";
+    textDim = "#aeaeb6";
+    textFaint = "#9a9aa6";
+    surfaceHover = "#505057";
+    surfaceRaised = "#414146";
+    surface = "#343438";
+    background = "#303034";
+    backgroundDim = "#2b2b2f";
+    backgroundDark = "#26262a";
   };
 
-  # `ratio` is the weight of `a`: `mix base red 0.8` is base with a red cast.
+  # `ratio` is the weight of `a`: `mix background red 0.8` gives a red-tinted background.
   mix = a: b: ratio:
     rgbToHex (zipListsWith (x: y: round ((x * ratio) + (y * (1.0 - ratio)))) (hexToRgb a) (hexToRgb b));
 }

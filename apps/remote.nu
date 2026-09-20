@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # Run on the VM with Nushell from the archived nixpkgs input.
-use config.nu nix-config
+use config.nu *
 
 def check-user [expected_user: string] {
   if (^id -un | str trim) != $expected_user {
@@ -24,6 +24,7 @@ def 'main prepare' [expected_user: string] {
 def 'main activate' [expected_user: string, public_source: string, private_source: string] {
   check-user $expected_user
   ^nh home switch $"path:($public_source)" -c vm -- --no-write-lock-file --override-input privateConfig $"path:($private_source)"
+  ^nh clean user --keep $generations_to_keep --keep-one
 }
 
 def main [] {

@@ -10,4 +10,5 @@ def main --wrapped [...args: string] {
   let host = (^hostname -s | str trim)
   ^nh os switch $config.public_ref -H $host ...$split_args.nh_args -- ...$split_args.nix_args ...$config.nix_args
   print 'Switch to new generation complete!'
+  source clean
 }

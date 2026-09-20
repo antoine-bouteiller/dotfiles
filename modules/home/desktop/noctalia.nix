@@ -44,6 +44,18 @@ in {
         };
       };
       settings = {
+        idle.behavior = {
+          screen-off = {
+            enabled = true;
+            timeout = 300;
+            action = "screen_off";
+          };
+          lock-and-suspend = {
+            enabled = true;
+            timeout = 900;
+            action = "lock_and_suspend";
+          };
+        };
         shell = {
           polkit_agent = true;
           settings_show_advanced = false;

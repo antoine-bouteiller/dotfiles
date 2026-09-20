@@ -3,6 +3,7 @@
   stdenv,
   autoPatchelfHook,
   fetchurl,
+  libxcb,
 }: let
   sourcesData = lib.importJSON ./sources.json;
   inherit (sourcesData) version;
@@ -25,7 +26,7 @@ in
     ];
 
     buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
-      stdenv.cc.cc.lib
+      libxcb
     ];
 
     # The Bun-compiled binary resolves its support files (themes,

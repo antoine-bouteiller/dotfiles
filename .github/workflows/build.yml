@@ -71,11 +71,34 @@ jobs:
           name: antoine-bouteiller
           extraPullNames: noctalia
           authToken: ${{ env.CACHIX_PUSH == 'true' && secrets.CACHIX_AUTH_TOKEN || '' }}
-          skipPush: ${{ env.CACHIX_PUSH != 'true' }}
-          # Skip per-dependency fetches (importNpmLock .tgz, bun2nix bun-pkg-*,
-          # cargo/zig vendor dirs): ~75% of pushed paths, zero build cost to redo.
-          pushFilter: "(\\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$)"
+          # pushFilter only filters roots; automatic closure uploads bypass it.
+          skipPush: true
+
+      - name: Discover binary repackages and snapshot the store
+        id: cache-inputs
+        if: env.CACHIX_PUSH == 'true'
+        run: |
+          nix eval --json ".#packages.${{ matrix.system }}" --no-write-lock-file --apply '
+            packages: builtins.map (p: p.pname) (builtins.filter
+              (p: builtins.any (s: s.shortName == "binaryNativeCode")
+                (p.meta.sourceProvenance or []))
+              (builtins.attrValues packages))
+          ' > "$RUNNER_TEMP/binary-packages.json"
+          nu=$(nix build --inputs-from . nixpkgs#nushell --no-link --print-out-paths --no-write-lock-file)
+          echo "nu=$nu/bin/nu" >> "$GITHUB_OUTPUT"
+          nix path-info --all > "$RUNNER_TEMP/store-before"
 
       # Nix may migrate Lix's relative-input lock format; keep the source hash stable.
       - name: Build ${{ matrix.host }}
         run: nix build ".#checks.${{ matrix.system }}.${{ matrix.host }}" --no-link --print-build-logs --no-write-lock-file
+
+      - name: Push cacheable outputs
+        if: ${{ !cancelled() && steps.cache-inputs.outcome == 'success' }}
+        run: |
+          # Keep successful dependencies even if a later host build failed.
+          "${{ steps.cache-inputs.outputs.nu }}" --no-config-file .github/cachix-paths.nu \
+            "$RUNNER_TEMP/store-before" "$RUNNER_TEMP/binary-packages.json" \
+            > "$RUNNER_TEMP/cachix-paths"
+          if [ -s "$RUNNER_TEMP/cachix-paths" ]; then
+            cachix push antoine-bouteiller < "$RUNNER_TEMP/cachix-paths"
+          fi

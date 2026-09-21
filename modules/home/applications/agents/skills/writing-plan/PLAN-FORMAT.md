@@ -4,13 +4,21 @@ Use this schema when creating or substantially restructuring a plan. Keep task I
 links stable when amending an existing plan. Omit empty optional sections such as Decisions,
 Assumptions, Constraints, and Open questions; retain meaningful existing content.
 
+For a spec-backed plan, keep Problem and Scope to a short orientation referencing source goals and
+non-goals rather than redefining them. Declare which outcomes this delivery covers, including any
+intentional subset of a spec or tree. Acceptance entries map local `AC-NNN` IDs to file-qualified
+source criterion IDs (for example, `AC-001` → `path/to/design.spec.md [VC-1]`); specs own their meaning,
+while the plan owns coverage and completion evidence. Decisions records execution choices; design
+changes belong in the source specs. Without a spec, define criteria here and record necessary
+design choices in Decisions and contracts in task Behavior blocks.
+
 ````markdown
 ---
 title: <Change name>
 status: draft | ready | in-progress | blocked | done
 author: <git config user.name>
 date: <YYYY-MM-DD>
-related: [] # repo-root-relative paths; the spec this plan implements, when there is one
+related: [] # repo-root-relative paths; source specs when present
 ---
 
 ## Problem
@@ -36,7 +44,8 @@ related: [] # repo-root-relative paths; the spec this plan implements, when ther
 
 ## Acceptance criteria
 
-- [ ] **AC-001:** <observable, testable outcome>
+- [ ] **AC-001:** <source spec path and criterion ID with a short label, or an observable,
+      testable outcome when there is no spec>
 
 ## Implementation
 
@@ -76,7 +85,7 @@ Requires: none or T-NNN · Covers: AC-001
 
 ## Decisions
 
-### KD-001 — <implementation decision title>
+### KD-001 — <execution choice, or design decision when there is no spec>
 
 - **Decision:** <chosen approach>
 - **Rationale:** <why>
@@ -92,7 +101,7 @@ Requires: none or T-NNN · Covers: AC-001
 
 ## Open questions
 
-<material questions that block execution, or `None`>
+<unresolved human judgments that block execution; track investigation as tasks or blockers>
 
 ## Log
 
@@ -126,6 +135,8 @@ only in the index, as described in [FOLDER-PLANS.md](FOLDER-PLANS.md).
 
 The optional `[P]` marker on the dependency line means tasks may execute together once their dependencies are satisfied.
 Tasks in the same parallel group must have disjoint write paths and compatible interfaces.
+Derive dependencies from contract prerequisites and write-path conflicts; label an explicit delivery
+priority as such rather than presenting it as a technical constraint.
 
 ## Task example
 

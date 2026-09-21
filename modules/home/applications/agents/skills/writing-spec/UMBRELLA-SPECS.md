@@ -18,20 +18,24 @@ navigation burden. A leaf may span modules when they form one coherent contract.
 
 ## Ownership and links
 
-The umbrella owns shared goals, principles, non-goals, constraints, cross-component decisions, and
-the component inventory. Its detailed-design section links to the leaf owners rather than copying
-their content. A leaf owns its component contracts and may refine shared requirements with explicit
-file-and-ID references.
+The umbrella owns shared goals, principles, non-goals, constraints, cross-component decisions,
+tree-wide outcomes and acceptance, and the component inventory. Its Contracts section links to the
+leaf owners rather than copying their detail. A leaf owns its component contracts, decisions,
+outcomes, and acceptance criteria, and may refine shared requirements with explicit file-and-ID
+references. A leaf cannot silently redefine the tree's scope.
 
 Each leaf's `parent-spec` points to its directory's umbrella using a repo-root-relative path.
 A sub-umbrella points to the parent umbrella. `related` holds informational links rather than
 structural ownership. The umbrella inventory links to every direct child; each child has one parent.
 
-Record architectural dependencies where they matter. Implementation sequence and task status live
-in the plan. Keep cross-component APIs in a single authoritative location and link from consumers.
+Derive the inventory from the actual child specs and their ownership. Record architectural
+dependencies by citing the contracts consumers need, not by guessing an implementation order.
+Implementation sequence, write-path serialization, and task status live in the plan. Keep
+cross-component APIs in a single authoritative location and link from consumers.
 
 ## Amend and check
 
 When a leaf changes a shared contract, amend the umbrella and affected leaves together. Record
-supersession and rationale, preserving IDs and adding changelog rows. Check both directions of
-parent/inventory links, ownership of shared sections, and compatibility between connected contracts.
+supersession and durable rationale beside the affected items, preserving IDs. Refresh affected
+leaf and tree-wide outcomes and acceptance criteria. Check both directions of parent/inventory
+links, ownership of shared sections, and compatibility between connected contracts.

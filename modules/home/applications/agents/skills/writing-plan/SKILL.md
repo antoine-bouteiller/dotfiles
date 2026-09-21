@@ -6,8 +6,10 @@ description: Create or update a concrete implementation plan with ordered tasks,
 # Write an implementation plan
 
 Record how to deliver the requested change: ordered tasks, preserved contracts, and evidence of
-completion. Durable design intent belongs in a spec when one is needed; a plan does not require
-creating a separate spec.
+completion. A plan translates settled design into execution; it is not a second design document.
+When a spec exists, reference its outcomes, contracts, and acceptance criteria instead of redefining
+them. Without a spec, record the necessary design and criteria here; do not create a separate
+spec merely to satisfy the format.
 
 For a plan-only request, deliver the plan and stop. When planning supports an already authorized
 implementation, finish the plan and continue that work. Preserve the user's chosen output path;
@@ -17,13 +19,23 @@ otherwise use `.plan/<slug>.md`. Plans stay out of commits unless requested.
 
 Read the request, applicable instructions, relevant code and callers, tests, and existing design.
 Identify outcomes, scope, constraints, and material unknowns. Inspect the concrete paths and
-interfaces rather than inventing them. Ask only about unresolved choices that materially change
-scope, architecture, data, security, or verification. Reuse prior decisions; document reasonable
-routine assumptions without demanding confirmation for each one.
+interfaces rather than inventing them. Resolve factual unknowns through inspection or bounded
+experiments within the task's authorization; make remaining research a task or blocker, not a
+request for the user to do the investigation. Ask only about choices requiring human judgment
+that materially change scope,
+architecture, data, security, or verification. Reuse prior decisions; document reasonable routine
+assumptions without demanding confirmation for each one.
 
-Define acceptance criteria as observable behavior or inspectable artifacts. Choose the narrowest
-correct change and record the rationale for consequential choices. Specify enough contract detail
-to implement correctly while leaving incidental implementation choices open.
+Define acceptance criteria as observable behavior or inspectable artifacts. Map spec-backed criteria
+to their source file and ID, then to tasks and final verification. Choose the narrowest correct
+change and record consequential execution choices. Reference enough contract detail to implement
+correctly while leaving incidental implementation choices open. If planning exposes a design gap,
+resolve it at its source within the user's authorization; do not silently change the contract in
+a task.
+
+Derive task order from required contracts, actual prerequisites, and overlapping write paths. Keep
+technical dependencies distinct from an explicit delivery priority; independent work needs no
+invented sequence.
 
 ## Write or amend
 
@@ -34,21 +46,24 @@ file, read [FOLDER-PLANS.md](FOLDER-PLANS.md); its index owns all mutable state.
 Give each task a heading and a short outcome explanation. Keep behavior bullets, file paths, and
 verification in separate blocks rather than a nested field list. Each task retains its acceptance
 links, dependencies, required behavior and invariants, and a command or concrete manual scenario
-with an expected result. Scale the layout down for simple tasks. Include a compact signature,
-payload, or pseudocode example when it resolves contract ambiguity; keep full implementations in code.
-For difficult structure or flow, consult the `choosing-visuals` skill.
+with an expected result. Scale the layout down for simple tasks. Reference existing authoritative
+contracts rather than copying them; without a spec, define necessary contracts in the plan. Include
+a compact signature, payload, or pseudocode example when it resolves ambiguity; keep full
+implementations in code. For difficult structure or flow, consult the `choosing-visuals` skill.
 
 New plans start as `draft`. When amending, read the current plan and affected implementation,
 preserve IDs, append new ones, and record material changes in `Log`. Reopen tasks or criteria whose
-prior evidence no longer covers the revised requirement. Reassess readiness after changing scope
-or dependencies; do not reset completed work unrelated to the amendment.
+prior evidence no longer covers the revised requirement. Reassess readiness and recompute affected
+task order and coverage when the source design, scope, or dependencies change; do not reset
+completed work unrelated to the amendment.
 
 ## Check readiness
 
 Before marking the plan `ready`, check:
 
 - Every goal has tasks, every acceptance criterion maps to a task and final verification, and
-  required outcomes have no unresolved material design question.
+  required outcomes have no unresolved material design question. Spec-backed coverage agrees with
+  the current source outcomes, contracts, and criteria within the plan's declared scope.
 - Existing paths resolve; new paths name their owning module. Task details describe real contracts,
   dependencies, and observable success rather than placeholders.
 - Dependencies exist and are acyclic. Parallel tasks have no dependency on each other and no

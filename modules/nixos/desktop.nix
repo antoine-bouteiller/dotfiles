@@ -34,12 +34,8 @@ mkModule args "local.nixos.desktop" {
           whiskers -f mocha --color-overrides '${overrides}' --overrides "{\"active\":$frame}" ${old.src}/throbber.tera \
             | magick -background none svg:- "throbber-$frame.png"
         done
-        # Keep the two-tone snowflake, without a baked-in wallpaper background.
-        sed -e 's/#699ad7\|#7eb1dd\|#7ebae4/${colors.cyan}/g' \
-            -e 's/#415e9a\|#4a6baf\|#5277c3/${colors.blue}/g' \
-          ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg > logo.svg
-        magick -background none logo.svg -trim +repage -resize 295x256 logo.png
-        rm logo.svg
+        magick -background none ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg \
+          -trim +repage -resize 295x256 logo.png
         runHook postBuild
       '';
     });

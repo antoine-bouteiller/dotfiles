@@ -35,6 +35,7 @@ in {
   # RTX 2080 SUPER (Turing): supported by the open kernel module.
   services.xserver.videoDrivers = ["nvidia"];
   hardware.nvidia.open = true;
+  hardware.nvidia.powerManagement.enable = true;
 
   # Publish only connected displays as sinks so Noctalia can switch between them.
   services.pipewire.wireplumber.extraConfig."51-nvidia-dual-output" = {

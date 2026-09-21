@@ -58,12 +58,11 @@ mkModule args "local.nixos.desktop" {
     # session list comes from the wayland-sessions entry niri ships.
     programs.noctalia-greeter = {
       enable = true;
+      passwordless-sync-users = [host.user];
       settings = {
-        # "Synced" takes its palette from noctalia's Sync, which writes sync.toml
-        # next to this file from the running shell -- the greeter then matches the desktop.
+        # Noctalia auto-syncs its appearance to sync.toml through the constrained helper.
         appearance = {
           scheme = "Synced";
-          theme_mode = "dark";
           hide_logo = true;
         };
         keyboard = {

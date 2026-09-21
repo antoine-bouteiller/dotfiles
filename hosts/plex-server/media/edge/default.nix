@@ -1,6 +1,6 @@
 {...}: {
   imports = [
-    ./adguard.nix
+    ./adguard
     ./authelia.nix
     ./caddy.nix
     ./cloudflared.nix

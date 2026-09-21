@@ -10,7 +10,40 @@ mkModule args "local.nixos.desktop" {
   description = "Niri Desktop";
   imports = [inputs.noctalia-greeter.nixosModules.default];
 
-  config = _: {
+  config = _: let
+    inherit (import ../../lib/palette.nix {inherit lib;}) colors;
+    plymouthTheme = (pkgs.catppuccin-plymouth.override {variant = "mocha";}).overrideAttrs (old: {
+      nativeBuildInputs = [pkgs.catppuccin-whiskers pkgs.imagemagick];
+      buildPhase = let
+        overrides = builtins.toJSON {
+          mocha = lib.mapAttrs (_: lib.removePrefix "#") {
+            inherit (colors) text red green yellow blue pink teal;
+            base = colors.background;
+            surface0 = colors.surfaceRaised;
+          };
+        };
+      in ''
+        runHook preBuild
+        # Render upstream templates so icons and animation frames share the palette too.
+        whiskers -f mocha --color-overrides '${overrides}' ${old.src}/plymouth.tera > catppuccin-mocha.plymouth
+        for icon in bullet capslock entry keyboard lock; do
+          whiskers -f mocha --color-overrides '${overrides}' ${old.src}/$icon.tera \
+            | magick -background none svg:- "$icon.png"
+        done
+        for frame in {0..5}; do
+          whiskers -f mocha --color-overrides '${overrides}' --overrides "{\"active\":$frame}" ${old.src}/throbber.tera \
+            | magick -background none svg:- "throbber-$frame.png"
+        done
+        # Keep the two-tone snowflake, without a baked-in wallpaper background.
+        sed -e 's/#699ad7\|#7eb1dd\|#7ebae4/${colors.cyan}/g' \
+            -e 's/#415e9a\|#4a6baf\|#5277c3/${colors.blue}/g' \
+          ${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg > logo.svg
+        magick -background none logo.svg -trim +repage -resize 295x256 logo.png
+        rm logo.svg
+        runHook postBuild
+      '';
+    });
+  in {
     programs.niri.enable = true;
     programs.localsend.enable = true;
 
@@ -40,14 +73,11 @@ mkModule args "local.nixos.desktop" {
     # separately, or their messages tear through the splash; the LUKS passphrase
     # prompt is drawn by plymouth itself under the systemd initrd.
     boot = {
-      # catppuccin-mocha is the wallpaper's own background (#1e1e2e); the logo is the
-      # snowflake cropped out of it, which the plymouth module wires in as the theme's
-      # header-image -- together they reproduce the wallpaper, throbber aside.
       plymouth = {
         enable = true;
         theme = "catppuccin-mocha";
-        themePackages = [(pkgs.catppuccin-plymouth.override {variant = "mocha";})];
-        logo = ./plymouth-logo.png;
+        themePackages = [plymouthTheme];
+        logo = "${plymouthTheme}/share/plymouth/themes/catppuccin-mocha/logo.png";
       };
       kernelParams = ["quiet" "splash" "udev.log_level=3"];
       consoleLogLevel = 0;

@@ -26,6 +26,21 @@ in {
 
   environment.systemPackages = [pkgs.olympus];
 
+  # Avoid Bluetooth sniff-mode stalls; reapply for each Pro Controller connection.
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="input", KERNEL=="event*", ATTRS{id/bustype}=="0005", ATTRS{id/vendor}=="057e", ATTRS{id/product}=="2009", ATTRS{name}=="Pro Controller", TAG+="systemd", ENV{SYSTEMD_WANTS}+="bluetooth-no-sniff@%s{uniq}.service"
+  '';
+
+  # udev's sandbox excludes Bluetooth sockets, so run hcitool outside it.
+  systemd.services."bluetooth-no-sniff@" = {
+    description = "Disable Bluetooth sniff mode for controller %I";
+    after = ["bluetooth.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bluez}/bin/hcitool lp %I RSWITCH";
+    };
+  };
+
   # HiDPI workaround: 3840x2400 panel at 200% display scale renders Steam's
   # CEF bootstrap UI off-center and crops it. Force Steam's own 2x scaling.
   programs.steam.package = pkgs.steam.override {

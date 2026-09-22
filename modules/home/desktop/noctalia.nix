@@ -14,8 +14,9 @@ in {
       customPalettes.nix.dark = {
         mPrimary = colors.textSecondary;
         mOnPrimary = colors.background;
-        mSecondary = colors.surfaceHover;
-        mOnSecondary = colors.text;
+        # Secondary also colors tooltip labels, so it must contrast with the surface.
+        mSecondary = colors.textSubtle;
+        mOnSecondary = colors.background;
         mTertiary = colors.textFaint;
         mOnTertiary = colors.background;
         mError = colors.red;

@@ -6,14 +6,15 @@ def --wrapped checked [command: string, ...args: string]: any -> string {
   $result.stdout
 }
 
+def derivations []: string -> record {
+  $in | checked nix derivation show --stdin | from json | get derivations
+}
+
 def main [before_file: path, names_file: path] {
   let before = (open --raw $before_file | lines)
   let names = (open $names_file)
-  let raw = (checked nix path-info --all --json | from json)
-  # Lix/older Nix returns a list; current Nix returns a path-keyed object.
-  let store = if ($raw | describe) starts-with 'record' {
-    $raw | transpose path info | each {|row| $row.info | upsert path $row.path }
-  } else { $raw }
+  let store = (checked nix path-info --all --json | from json
+    | transpose path info | each {|row| $row.info | upsert path $row.path })
   let paths = ($store | get path)
   # pname covers host overrides and appimageTools' extraction/FHS helpers too.
   let binaries = ($paths | where {|path|
@@ -27,12 +28,16 @@ def main [before_file: path, names_file: path] {
   # excluding the compiled toolchain and libraries used to wrap the binaries.
   let drvs = ($binaries | where {|path| $path | str ends-with '.drv' })
   if ($drvs | is-not-empty) {
-    let packages = ($drvs | str join (char nl) | checked nix derivation show --stdin | from json)
-    let inputs = ($packages | values | each {|drv| $drv.inputDrvs | columns } | flatten | uniq)
+    let packages = ($drvs | str join (char nl) | derivations)
+    let inputs = ($packages | values | each {|drv| $drv.inputs.drvs | columns }
+      | flatten | each {|path| '/nix/store' | path join $path } | uniq)
     if ($inputs | is-not-empty) {
-      let dependencies = ($inputs | str join (char nl) | checked nix derivation show --stdin | from json)
-      let sources = ($dependencies | values | each {|drv| $drv.outputs | values } | flatten
-        | where {|output| 'hash' in $output } | get path)
+      let dependencies = ($inputs | str join (char nl) | derivations)
+      # Nix 2.34 uses store-relative keys and omits fixed-output paths from JSON.
+      let sources = ($dependencies | transpose path drv
+        | where {|row| $row.drv.outputs | values | any {|output| 'hash' in $output } }
+        | get path | each {|path| '/nix/store' | path join $path } | chunks 128
+        | each {|roots| checked nix-store --query --outputs ...$roots | lines } | flatten)
       $excluded = ($excluded | append $sources | uniq)
     }
   }

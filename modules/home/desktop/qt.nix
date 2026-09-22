@@ -15,6 +15,10 @@
         color_scheme_path = "${config.xdg.configHome}/qt6ct/colors/noctalia.conf";
         icon_theme = "Papirus-Dark";
       };
+      qt6ctSettings.Fonts = {
+        general = ''"Inter,11,-1,5,50,0,0,0,0,0"'';
+        fixed = ''"JetBrainsMono Nerd Font,11,-1,5,50,0,0,0,0,0"'';
+      };
     };
   };
 }

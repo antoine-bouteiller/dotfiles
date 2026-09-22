@@ -7,6 +7,11 @@
     ./base.nix
   ];
 
+  fonts.packages = with pkgs; [
+    inter
+    nerd-fonts.jetbrains-mono
+  ];
+
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
   environment.systemPackages = [pkgs.nh];
   launchd.daemons.nh-clean = {

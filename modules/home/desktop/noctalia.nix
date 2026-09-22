@@ -57,6 +57,7 @@ in {
           };
         };
         shell = {
+          font_family = "Inter";
           polkit_agent = true;
           greeter_sync.auto_sync = true;
           settings_show_advanced = false;

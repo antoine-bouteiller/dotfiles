@@ -8,6 +8,10 @@
     gtk = {
       enable = true;
       gtk2.force = true;
+      font = {
+        name = "Inter";
+        size = 11;
+      };
       # GTK3 apps otherwise fall back to light Adwaita in a dark session; adw-gtk3
       # is the theme that matches libadwaita's dark styling.
       theme = {

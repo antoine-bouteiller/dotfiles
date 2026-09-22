@@ -14,7 +14,6 @@ in
         enable = true;
         settings = {
           main = {
-            # ghostty ships its own JetBrains Mono; foot resolves the system one.
             font = "JetBrainsMono Nerd Font:size=11";
             pad = "14x14";
           };
@@ -40,6 +39,7 @@ in
         # The cask installs the app bundle.
         package = null;
         settings = {
+          font-family = "JetBrainsMono Nerd Font";
           font-style = "Regular";
           theme = lib.mkForce "ghostty";
           window-theme = "auto";

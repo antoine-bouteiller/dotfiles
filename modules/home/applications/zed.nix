@@ -8,7 +8,7 @@
 mkModule args "local.home-manager.zed" {
   description = "Zed Editor";
   config = _: let
-    fontFamily = "MesloLGM Nerd Font";
+    fontFamily = "JetBrainsMono Nerd Font";
     oxfmtSettings = {
       format_on_save = "on";
       prettier.allowed = false;
@@ -110,6 +110,7 @@ mkModule args "local.home-manager.zed" {
         linked_edits = true;
         preferred_line_length = 160;
         base_keymap = "VSCode";
+        ui_font_family = "Inter";
         ui_font_size = 15;
         buffer_font_size = 14;
         theme = "Fleet Dark";

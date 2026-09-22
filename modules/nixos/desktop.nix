@@ -86,6 +86,7 @@ mkModule args "local.nixos.desktop" {
       enable = true;
       passwordless-sync-users = [host.user];
       settings = {
+        font_family = "Inter";
         # Noctalia auto-syncs its appearance to sync.toml through the constrained helper.
         appearance = {
           scheme = "Synced";
@@ -157,8 +158,15 @@ mkModule args "local.nixos.desktop" {
     # config lists as the fallback for Access and Notification.
     xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
 
-    fonts.packages = with pkgs; [
-      nerd-fonts.jetbrains-mono
-    ];
+    fonts = {
+      packages = with pkgs; [
+        inter
+        nerd-fonts.jetbrains-mono
+      ];
+      fontconfig.defaultFonts = {
+        sansSerif = ["Inter"];
+        monospace = ["JetBrainsMono Nerd Font"];
+      };
+    };
   };
 }

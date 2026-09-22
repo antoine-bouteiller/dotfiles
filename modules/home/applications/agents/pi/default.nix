@@ -110,7 +110,7 @@ in
           package = piWrapped;
           context = ./AGENTS.md;
           settings = {
-            lastChangelogVersion = "0.85.1";
+            lastChangelogVersion = customPkgs.pi.version;
             theme = theme.name;
             defaultProvider = "azure-openai-responses";
             defaultModel = "gpt-6-astra";

@@ -23,6 +23,29 @@
     };
   };
 
+  launchd.user.agents.wallpaper = {
+    script = ''
+      /usr/bin/osascript -l JavaScript <<'JXA'
+      ObjC.import("AppKit");
+      const directory = "${../modules/home/desktop/wallpapers}";
+      const files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(directory, null));
+      const image = $.NSURL.fileURLWithPath(directory + "/" + files[Math.floor(Math.random() * files.length)]);
+      const screens = $.NSScreen.screens;
+      for (let i = 0; i < screens.count; i++) {
+        const error = Ref();
+        if (!$.NSWorkspace.sharedWorkspace.setDesktopImageURLForScreenOptionsError(image, screens.objectAtIndex(i), $({}), error)) {
+          throw new Error(ObjC.unwrap(error[0].localizedDescription));
+        }
+      }
+      JXA
+    '';
+    serviceConfig = {
+      RunAtLoad = true;
+      StartInterval = 1800;
+      LimitLoadToSessionType = "Aqua";
+    };
+  };
+
   # Both the system manual and the uninstaller's embedded system eval build
   # darwin-manual-html, which fails on current nixpkgs (nixos-render-docs
   # dropped --toc-depth; nix-darwin master not yet fixed). Re-enable once

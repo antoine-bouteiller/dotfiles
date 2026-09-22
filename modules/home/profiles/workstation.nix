@@ -17,7 +17,6 @@ in
         terminal.enable = mkDefault true;
         agents = {
           enable = mkDefault true;
-          claude-code.enable = mkDefault true;
           pi.enable = mkDefault true;
         };
       };

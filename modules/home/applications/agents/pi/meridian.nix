@@ -12,7 +12,7 @@
     claude-code = inputs.self.packages.${system}.claude-code;
   };
 in {
-  config = lib.mkIf (cfg.enable && cfg.pi.enable) {
+  config = lib.mkIf (cfg.enable && cfg.pi.enable && cfg.claude-code.enable) {
     home.packages = [package];
 
     xdg.configFile."meridian/sdk-features.json" = {

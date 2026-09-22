@@ -7,6 +7,7 @@
   inherit (config.home) homeDirectory;
 in {
   local.home-manager.workstation.enable = true;
+  local.home-manager.agents.claude-code.enable = true;
 
   programs.mcp.servers = lib.mkIf config.local.home-manager.agents.enable {
     linear = {

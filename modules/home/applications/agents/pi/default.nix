@@ -114,12 +114,17 @@ in
             theme = theme.name;
             defaultProvider = "azure-openai-responses";
             defaultModel = "gpt-6-astra";
-            enabledModels = [
-              "azure-openai-responses/gpt-6-astra"
-              "anthropic/claude-sonnet-5"
-              "anthropic/claude-opus-5"
-              "anthropic/claude-fable-5-1"
-            ];
+            enabledModels =
+              ["azure-openai-responses/gpt-6-astra"]
+              ++ (
+                if agents.claude-code.enable
+                then [
+                  "anthropic/claude-sonnet-5"
+                  "anthropic/claude-opus-5-5"
+                  "anthropic/claude-fable-5-1"
+                ]
+                else ["azure-openai-responses/claude-opus-5-5"]
+              );
             packages = [
               "npm:@ff-labs/pi-fff"
               "git:github.com/antoine-bouteiller/pi-extensions"
@@ -133,7 +138,10 @@ in
             subagents = {
               implementer = "azure-openai-responses/gpt-5.6-terra";
               librarian = "azure-openai-responses/gpt-5.6-luna";
-              reviewer = "anthropic/claude-opus-5";
+              reviewer =
+                if agents.claude-code.enable
+                then "anthropic/claude-opus-5-5"
+                else "azure-openai-responses/claude-opus-5-5";
               scout = "azure-openai-responses/gpt-5.6-luna";
             };
             warnings = {
@@ -142,7 +150,7 @@ in
             doubleEscapeAction = "none";
           };
           models = {
-            providers.anthropic = {
+            providers.anthropic = lib.mkIf agents.claude-code.enable {
               baseUrl = "http://127.0.0.1:3456";
               apiKey = "x";
               compat.supportsMidConvoEffort = false;

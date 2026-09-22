@@ -12,7 +12,8 @@ def derivations []: string -> record {
 
 def main [before_file: path, names_file: path] {
   let before = (open --raw $before_file | lines)
-  let names = (open $names_file)
+  # These nixpkgs packages are not reliably covered by provenance discovery.
+  let names = (open $names_file | append [nvidia plex-desktop] | uniq)
   let store = (checked nix path-info --all --json | from json
     | transpose path info | each {|row| $row.info | upsert path $row.path })
   let paths = ($store | get path)
@@ -21,7 +22,8 @@ def main [before_file: path, names_file: path] {
     let name = ($path | path basename | str substring 33.. | str replace -r '\.drv$' '')
     $names | any {|pname| $name == $pname or ($name | str starts-with $"($pname)-") }
   })
-  let cheap = '(\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$)'
+  # Home Manager's text files and assembled file tree are cheap local builds.
+  let cheap = '(\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$|-hm_|-home-manager-files$)'
   mut excluded = ($binaries | append ($paths | where {|path| $path =~ $cheap }) | uniq)
 
   # Inspect direct fixed-output inputs to find hidden fetchurl bindings without

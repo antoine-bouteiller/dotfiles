@@ -78,11 +78,23 @@ jobs:
         id: cache-inputs
         if: env.CACHIX_PUSH == 'true'
         run: |
-          nix eval --json ".#packages.${{ matrix.system }}" --no-write-lock-file --apply '
-            packages: builtins.map (p: p.pname) (builtins.filter
+          nix eval --json --impure --no-write-lock-file --expr '
+            let
+              flake = builtins.getFlake "git+file://${toString ./.}";
+              lib = flake.inputs.nixpkgs.lib;
+              host = "${{ matrix.host }}";
+              config = (flake.nixosConfigurations.${host}
+                or flake.darwinConfigurations.${host}
+                or flake.homeConfigurations.${host}).config;
+              homes = builtins.attrValues (config.home-manager.users or {})
+                ++ lib.optional (config ? home.packages) config;
+              packages = builtins.attrValues flake.packages.${{ matrix.system }}
+                ++ (config.environment.systemPackages or [])
+                ++ builtins.concatMap (home: home.home.packages) homes;
+            in lib.unique (builtins.map lib.getName (builtins.filter
               (p: builtins.any (s: s.shortName == "binaryNativeCode")
                 (p.meta.sourceProvenance or []))
-              (builtins.attrValues packages))
+              packages))
           ' > "$RUNNER_TEMP/binary-packages.json"
           nu=$(nix build --inputs-from . nixpkgs#nushell --no-link --print-out-paths --no-write-lock-file)
           echo "nu=$nu/bin/nu" >> "$GITHUB_OUTPUT"

@@ -30,13 +30,15 @@ in
     };
 
     config = {cfg}: {
-      home.packages = [
-        (
-          if cfg.sopsAgeKeyHosts == []
-          then package
-          else herdrWrapped
-        )
-      ];
+      home.packages =
+        [
+          (
+            if cfg.sopsAgeKeyHosts == []
+            then package
+            else herdrWrapped
+          )
+        ]
+        ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && config.local.home-manager.desktop.enable) [pkgs.wl-clipboard];
       programs.ssh.settings = lib.genAttrs cfg.sopsAgeKeyHosts (_: {SendEnv = ["SOPS_AGE_KEY"];});
       xdg.configFile."herdr/config.toml" = {
         force = true;

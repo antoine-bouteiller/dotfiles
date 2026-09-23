@@ -39,7 +39,13 @@ def main [target: string] {
   let archive = ^nix flake archive --json $config.public_ref ...$config.nix_args | from json
   let public_source = $archive.path
   let private_source = $archive.inputs.privateConfig.path
-  let expected_user = ^nix eval --raw $"($public_source)#homeConfigurations.vm.config.home.username" --no-write-lock-file --override-input privateConfig $"path:($private_source)"
+  let deployment = ^nix eval --json $"($public_source)#homeConfigurations.vm" --no-write-lock-file --override-input privateConfig $"path:($private_source)" --apply 'home: {
+    username = home.config.home.username;
+    drvPath = home.activationPackage.drvPath;
+    nushell = { inherit (home.pkgs.nushell) drvPath; output = home.pkgs.nushell.outPath; };
+    nh = { inherit (home.pkgs.nh) drvPath; output = home.pkgs.nh.outPath; };
+  }' | from json
+  let expected_user = $deployment.username
   if $expected_user in ['' ci-user] {
     error make {msg: 'remote deployment requires a configured non-CI vm home username'}
   }
@@ -62,12 +68,15 @@ sudo systemctl restart nix-daemon'#
   let store_command = remote-command $expected_user 'exec nix-store "$@"'
   let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
   ^nix copy --to $destination ...(source-paths $archive | uniq)
+  ^nix copy --derivation --to $destination $deployment.drvPath $deployment.nushell.drvPath $deployment.nh.drvPath
 
-  let remote_nu = [nix shell $"path:($archive.inputs.nixpkgs.path)#nushell" $"path:($archive.inputs.nixpkgs.path)#nh" --command nu --no-config-file $"($public_source)/apps/remote.nu"]
+  # Realize the tools once; both SSH phases use the evaluated store paths directly.
+  let build_tools = [nix build --no-link $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
+  let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]
   let prepare = $remote_nu ++ [prepare $expected_user] | each {|arg| shell-quote $arg } | str join ' '
-  ^ssh -A -t -- $target (remote-command $expected_user $"exec ($prepare)")
+  ^ssh -A -t -- $target (remote-command $expected_user $"($build_tools); exec ($prepare)")
 
   # Reconnect after AcceptEnv is configured so activation receives the SOPS key.
-  let activate = $remote_nu ++ [activate $expected_user $public_source $private_source] | each {|arg| shell-quote $arg } | str join ' '
+  let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh"] | each {|arg| shell-quote $arg } | str join ' '
   exec ssh -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
 }

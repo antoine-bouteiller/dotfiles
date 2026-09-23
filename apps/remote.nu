@@ -21,10 +21,11 @@ def 'main prepare' [expected_user: string] {
   ^sudo systemctl reload ssh
 }
 
-def 'main activate' [expected_user: string, public_source: string, private_source: string] {
+def 'main activate' [expected_user: string, activation_drv: string, nh: string] {
   check-user $expected_user
-  ^nh home switch $"path:($public_source)" -c vm -- --no-write-lock-file --override-input privateConfig $"path:($private_source)"
-  ^nh clean user --keep $generations_to_keep --keep-one
+  let result = ^nix build --no-link --json $"($activation_drv)^out" | from json
+  ^$nh home switch ($result | get 0.outputs.out)
+  ^$nh clean user --keep $generations_to_keep --keep-one
 }
 
 def main [] {

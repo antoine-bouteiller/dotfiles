@@ -75,12 +75,14 @@ nix eval --no-write-lock-file \
 ```
 
 `apply-remote` snapshots the current Git-tracked contents of this checkout and `.private/`,
-including uncommitted edits, and copies those sources and their flake inputs to the VM's
-Nix store before building there. No commit, push, or remote checkout is needed; stage new
-files before deploying. It evaluates the VM username from the same snapshot before
-bootstrap and requires the SSH login to match. Remote setup and activation use Nushell
-from the snapshot's pinned nixpkgs; only initial Nix installation and the SSH shell bridge
-use Bash. A VM deployment needs a non-`ci-user` `hosts.vm.user` from private configuration.
+including uncommitted edits. One local evaluation produces the VM username, activation
+derivation, and pinned Nushell/nh tool derivations. It copies the sources, flake inputs,
+and derivation closures to the VM, which builds without evaluating the flake again.
+No commit, push, or remote checkout is needed; stage new files before deploying.
+Before bootstrap, the SSH login must match the evaluated username. Remote setup and
+activation reuse the same realized Nushell/nh store paths; only initial Nix installation
+and the SSH shell bridge use Bash. A VM deployment needs a non-`ci-user` `hosts.vm.user`
+from private configuration.
 
 Public Git uses `programs.git.settings.user.email = globals.email`, the GitHub default.
 Private native Git configuration conditionally supplies the GitLab email for any matching

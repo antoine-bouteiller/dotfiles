@@ -115,13 +115,13 @@ in
             defaultProvider = "azure-openai-responses";
             defaultModel = "gpt-6-astra";
             enabledModels =
-              ["azure-openai-responses/gpt-6-astra"]
+              [
+                "azure-openai-responses/gpt-6-astra"
+                "azure-openai-responses/gpt-6-sol"
+              ]
               ++ (
                 if agents.claude-code.enable
-                then [
-                  "anthropic/claude-sonnet-5"
-                  "anthropic/claude-opus-5-5"
-                ]
+                then ["anthropic/claude-opus-5-5"]
                 else ["azure-openai-responses/claude-opus-5-5"]
               );
             packages = [
@@ -134,15 +134,6 @@ in
             ];
             defaultThinkingLevel = "medium";
             tuiMode = "fullscreen";
-            subagents = {
-              implementer = "azure-openai-responses/gpt-6-sol";
-              librarian = "azure-openai-responses/gpt-6-luna";
-              reviewer =
-                if agents.claude-code.enable
-                then "anthropic/claude-opus-5-5"
-                else "azure-openai-responses/claude-opus-5-5";
-              scout = "azure-openai-responses/gpt-6-luna";
-            };
             warnings = {
               anthropicExtraUsage = false;
             };

@@ -21,7 +21,9 @@ for profile in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh "$HOME/
 done'#
     $command
   ] | str join "\n"
-  $"bash -l -c (shell-quote $script) --"
+  # Nix splits remote-program on whitespace, including quoted script/config newlines.
+  let wrapper = 'eval "$(printf %s ' + ($script | encode base64) + ' | base64 --decode)"'
+  $"bash -l -c (shell-quote $wrapper) --"
 }
 
 def source-paths [archive: record]: nothing -> list<string> {

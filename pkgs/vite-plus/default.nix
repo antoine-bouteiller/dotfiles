@@ -42,6 +42,7 @@ in
     npmDeps = importNpmLock {
       npmRoot = ./npm;
     };
+    npmFlags = ["--legacy-peer-deps"];
 
     buildPhase = ''
       runHook preBuild

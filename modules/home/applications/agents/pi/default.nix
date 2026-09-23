@@ -124,6 +124,17 @@ in
                 then ["anthropic/claude-opus-5-5"]
                 else ["azure-openai-responses/claude-opus-5-5"]
               );
+            herdr = {
+              allowedModels =
+                [
+                  "azure-openai-responses/gpt-6-sol"
+                ]
+                ++ (
+                  if agents.claude-code.enable
+                  then ["anthropic/claude-opus-5-5"]
+                  else ["azure-openai-responses/claude-opus-5-5"]
+                );
+            };
             packages = [
               "npm:@ff-labs/pi-fff"
               "git:github.com/antoine-bouteiller/pi-extensions"

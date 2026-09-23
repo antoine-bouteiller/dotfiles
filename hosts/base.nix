@@ -8,8 +8,6 @@
   };
 
   nix = {
-    package = pkgs.lix;
-
     settings =
       (builtins.fromJSON (builtins.readFile ../lib/nix-settings.json))
       // {

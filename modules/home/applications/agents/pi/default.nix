@@ -121,7 +121,6 @@ in
                 then [
                   "anthropic/claude-sonnet-5"
                   "anthropic/claude-opus-5-5"
-                  "anthropic/claude-fable-5-1"
                 ]
                 else ["azure-openai-responses/claude-opus-5-5"]
               );
@@ -136,13 +135,13 @@ in
             defaultThinkingLevel = "medium";
             tuiMode = "fullscreen";
             subagents = {
-              implementer = "azure-openai-responses/gpt-5.6-terra";
-              librarian = "azure-openai-responses/gpt-5.6-luna";
+              implementer = "azure-openai-responses/gpt-6-sol";
+              librarian = "azure-openai-responses/gpt-6-luna";
               reviewer =
                 if agents.claude-code.enable
                 then "anthropic/claude-opus-5-5"
                 else "azure-openai-responses/claude-opus-5-5";
-              scout = "azure-openai-responses/gpt-5.6-luna";
+              scout = "azure-openai-responses/gpt-6-luna";
             };
             warnings = {
               anthropicExtraUsage = false;

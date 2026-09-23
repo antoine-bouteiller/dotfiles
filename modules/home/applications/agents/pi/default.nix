@@ -133,6 +133,7 @@ in
               "bun"
             ];
             defaultThinkingLevel = "medium";
+            compaction.enabled = false;
             tuiMode = "fullscreen";
             warnings = {
               anthropicExtraUsage = false;

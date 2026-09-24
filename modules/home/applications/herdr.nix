@@ -107,6 +107,7 @@ in
             show_agent_labels_on_pane_borders = true;
             agent_panel_sort = "priority";
             toast.delivery = "terminal";
+            sound.enabled = false;
             pane_gaps = false;
             pane_outer_borders = false;
             pane_scrollbars = false;

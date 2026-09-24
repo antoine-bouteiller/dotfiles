@@ -5,7 +5,7 @@ hard to execute. `.plan/<slug>/` holds `index.md` plus one file per independentl
 (`01-tooling.md`, …).
 
 `index.md` follows [PLAN-FORMAT.md](PLAN-FORMAT.md) and is the only status and checkbox authority — it alone owns
-status, acceptance criteria, task checkboxes, final verification, open questions, and the log. Its
+status, acceptance criteria, task checkboxes, final verification, and open questions. Its
 `## Implementation` collapses each task to one line pointing at the phase file with the detail:
 
 ```markdown
@@ -16,7 +16,7 @@ Each phase file uses the readable task layout from [PLAN-FORMAT.md](PLAN-FORMAT.
 headings beneath the phase heading. Omit each task's completion checkbox; status and checkboxes
 belong only in the index:
 
-````markdown
+```markdown
 # Phase 1 — <independently verifiable outcome>
 
 **Plan:** `index.md`
@@ -24,26 +24,15 @@ belong only in the index:
 
 ## T-001 — <task title>
 
-Requires: none or T-NNN · Covers: AC-001
+Covers: AC-001
 
-<Short explanation of the intended outcome and where the change belongs.>
+<What will work after this task, and where the change belongs.>
 
-**Behavior**
-
-- <required behavior or preservation constraint>
-
-**Files**
-
-- `path/to/file` — <responsibility>
-
-**Verify**
-
-```bash
-<runnable verification command>
+- **Change:** `path/to/file` — <responsibility>
+- **Test:** `path/to/test` — <behavior to demonstrate, when a test applies>
+- **Preserve:** <existing behavior or contract, when relevant>
+- **Verify:** `<command or manual scenario>` → <expected observable result>
 ```
-
-<Expected observable results.>
-````
 
 Rules on top of the single-file rules:
 

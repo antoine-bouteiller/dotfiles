@@ -112,8 +112,7 @@ second full copy; preserve intent, invariants, and rationale the code does not e
 
 Amend the current design in place and refresh affected outcomes and acceptance criteria. Keep
 rationale beside the item it explains when it preserves a surprising choice, external constraint,
-costly-to-reverse decision, or rejected alternative likely to be reintroduced. Routine editing
-history belongs in version control, not a new Changelog section.
+costly-to-reverse decision, or rejected alternative likely to be reintroduced.
 
 When restructuring an existing spec, preserve IDs, live references, and durable rationale rather
 than mechanically discarding legacy sections. Absorb resolved questions into the relevant items

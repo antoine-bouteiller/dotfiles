@@ -50,7 +50,7 @@ Consult the `choosing-visuals` skill when a visual carries the contract better.
 New specs start as `draft`. Amend existing specs in place, preserve IDs, append new ones, set
 `status: amended`, and refresh affected outcomes and acceptance criteria. Reconcile dependent
 contracts and parent/leaf specs in the same amendment. Keep durable rationale beside the decision
-it explains; leave routine amendment history to version control rather than adding a Changelog.
+it explains.
 
 Reserve Open Questions for unresolved human judgments, with the options, trade-offs, and context
 needed to decide. Reuse answers already given. On resolution, absorb the answer into its decision,

@@ -113,7 +113,7 @@ in
             lastChangelogVersion = customPkgs.pi.version;
             theme = theme.name;
             defaultProvider = "azure-openai-responses";
-            defaultModel = "gpt-6-astra";
+            defaultModel = "gpt-6-sol";
             enabledModels =
               [
                 "azure-openai-responses/gpt-6-astra"

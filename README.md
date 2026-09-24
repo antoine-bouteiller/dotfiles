@@ -76,13 +76,21 @@ nix eval --no-write-lock-file \
 
 `apply-remote` snapshots the current Git-tracked contents of this checkout and `.private/`,
 including uncommitted edits. One local evaluation produces the VM username, activation
-derivation, and pinned Nushell/nh tool derivations. It copies the sources, flake inputs,
+derivation, and pinned Nix/Nushell/nh derivations. It copies the sources, flake inputs,
 and derivation closures to the VM, which builds without evaluating the flake again.
 No commit, push, or remote checkout is needed; stage new files before deploying.
 Before bootstrap, the SSH login must match the evaluated username. Remote setup and
 activation reuse the same realized Nushell/nh store paths; only initial Nix installation
 and the SSH shell bridge use Bash. A VM deployment needs a non-`ci-user` `hosts.vm.user`
-from private configuration.
+from private configuration and passwordless sudo for the SSH user.
+
+Deployment also manages the system Nix profile and daemon using upstream Nix and CA
+certificates from the locked VM nixpkgs. Existing profile generations remain available
+for rollback. When replacing Determinate Nix, its configuration and service units are
+backed up in `/etc/nix/before-dotfiles`; `nix.custom.conf` and the store are preserved.
+Temporary GC roots protect transfers and builds until activation finishes. An abruptly
+interrupted deployment can leave `/nix/var/nix/gcroots/dotfiles-*` roots; remove only the
+abandoned deployment's directory after confirming it is no longer running.
 
 Public Git uses `programs.git.settings.user.email = globals.email`, the GitHub default.
 Private native Git configuration conditionally supplies the GitLab email for any matching

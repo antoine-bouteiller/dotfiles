@@ -44,15 +44,24 @@ def main [target: string] {
     drvPath = home.activationPackage.drvPath;
     nushell = { inherit (home.pkgs.nushell) drvPath; output = home.pkgs.nushell.outPath; };
     nh = { inherit (home.pkgs.nh) drvPath; output = home.pkgs.nh.outPath; };
+    nix = let runtime = home.pkgs.buildEnv {
+      name = "remote-nix";
+      paths = [ home.pkgs.nix home.pkgs.cacert ];
+    }; in { inherit (runtime) drvPath; output = runtime.outPath; version = home.pkgs.nix.version; };
   }' | from json
   let expected_user = $deployment.username
   if $expected_user in ['' ci-user] {
     error make {msg: 'remote deployment requires a configured non-CI vm home username'}
   }
 
-  # Bootstrap Nix and trust the validated login before copying sources for Nushell.
-  let install = r#'if ! command -v nix >/dev/null; then
-  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --no-confirm
+  let roots = $"/nix/var/nix/gcroots/dotfiles-(random uuid)"
+  let sources = source-paths $archive | uniq
+  let derivations = [$deployment.drvPath $deployment.nushell.drvPath $deployment.nh.drvPath $deployment.nix.drvPath]
+
+  # Bootstrap upstream Nix; preparation then installs the exact flake-selected package.
+  let install = $"NIX_VERSION=(shell-quote $deployment.nix.version)\n" + r#'sudo -n true || { echo 'Remote deployment requires passwordless sudo' >&2; exit 1; }
+if ! command -v nix >/dev/null; then
+  curl -fsSL "https://releases.nixos.org/nix/nix-$NIX_VERSION/install" | sh -s -- --daemon --yes
 fi
 config=/etc/nix/nix.conf
 if sudo grep -Eq "^!?include nix\\.custom\\.conf$" "$config"; then
@@ -65,18 +74,34 @@ fi
 sudo systemctl restart nix-daemon'#
   ^ssh -A -t -- $target (remote-command $expected_user $install)
 
-  let store_command = remote-command $expected_user 'exec nix-store "$@"'
-  let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
-  ^nix copy --to $destination ...(source-paths $archive | uniq)
-  ^nix copy --derivation --to $destination $deployment.drvPath $deployment.nushell.drvPath $deployment.nh.drvPath
+  let cleanup = $"sudo rm -rf -- (shell-quote $roots)"
+  try {
+    # Direct dangling roots survive GC. Holding its lock during each import makes
+    # them valid before a collector can scan roots, without a transfer-to-root gap.
+    let paths = $sources ++ $derivations | each {|path| shell-quote $path } | str join ' '
+    let create_roots = [
+      $"sudo install -d -m 700 -o (shell-quote $expected_user) (shell-quote $roots)"
+      $"for path in ($paths); do"
+      $'  ln -s "$path" (shell-quote $roots)/"${path##*/}"'
+      'done'
+    ] | str join "\n"
+    ^ssh -t -- $target (remote-command $expected_user $create_roots)
+    let store_command = remote-command $expected_user 'exec sudo -n --preserve-env=NIX_CONFIG flock --shared /nix/var/nix/gc.lock /nix/var/nix/profiles/default/bin/nix-store --option min-free 0 "$@"'
+    let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
+    ^nix copy --to $destination ...$sources
+    ^nix copy --derivation --to $destination ...$derivations
 
-  # Realize the tools once; both SSH phases use the evaluated store paths directly.
-  let build_tools = [nix build --no-link $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
-  let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]
-  let prepare = $remote_nu ++ [prepare $expected_user] | each {|arg| shell-quote $arg } | str join ' '
-  ^ssh -A -t -- $target (remote-command $expected_user $"($build_tools); exec ($prepare)")
+    let build_tools = [nix build --out-link $"($roots)/tools" $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out" $"($deployment.nix.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
+    let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]
+    let prepare = $remote_nu ++ [prepare $expected_user $deployment.nix.output] | each {|arg| shell-quote $arg } | str join ' '
+    ^ssh -A -t -- $target (remote-command $expected_user $"($build_tools); exec ($prepare)")
 
-  # Reconnect after AcceptEnv is configured so activation receives the SOPS key.
-  let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh"] | each {|arg| shell-quote $arg } | str join ' '
-  exec ssh -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+    # Reconnect after AcceptEnv is configured so activation receives the SOPS key.
+    let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh" $"($roots)/home"] | each {|arg| shell-quote $arg } | str join ' '
+    ^ssh -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+  } catch {|err|
+    ^ssh -- $target (remote-command $expected_user $cleanup)
+    error make $err
+  }
+  ^ssh -- $target (remote-command $expected_user $cleanup)
 }

@@ -26,10 +26,6 @@ done'#
   $"bash -l -c (shell-quote $wrapper) --"
 }
 
-def source-paths [archive: record]: nothing -> list<string> {
-  [$archive.path] ++ ($archive.inputs | values | each {|input| source-paths $input } | flatten)
-}
-
 def main [target: string] {
   if $target !~ '^[a-z_][a-z0-9_-]{0,31}@((([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)|(\[[0-9A-Fa-f:.]+\]))$' {
     error make {msg: 'Usage: nix run .#apply-remote -- <user>@<vm-host>'}
@@ -55,7 +51,8 @@ def main [target: string] {
   }
 
   let roots = $"/nix/var/nix/gcroots/dotfiles-(random uuid)"
-  let sources = source-paths $archive | uniq
+  # Only the deployment script needs the flake source; derivations carry their own inputs.
+  let sources = [$public_source]
   let derivations = [$deployment.drvPath $deployment.nushell.drvPath $deployment.nh.drvPath $deployment.nix.drvPath]
 
   # Bootstrap upstream Nix; preparation then installs the exact flake-selected package.

@@ -76,7 +76,7 @@ nix eval --no-write-lock-file \
 
 `apply-remote` snapshots the current Git-tracked contents of this checkout and `.private/`,
 including uncommitted edits. One local evaluation produces the VM username, activation
-derivation, and pinned Nix/Nushell/nh derivations. It copies the sources, flake inputs,
+derivation, and pinned Nix/Nushell/nh derivations. It copies the public script source
 and derivation closures to the VM, which builds without evaluating the flake again.
 No commit, push, or remote checkout is needed; stage new files before deploying.
 Before bootstrap, the SSH login must match the evaluated username. Remote setup and

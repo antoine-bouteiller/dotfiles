@@ -34,7 +34,8 @@ def 'main prepare' [expected_user: string, nix: string] {
     ^sudo rm /etc/systemd/system/determinate-nixd.socket
   }
 
-  "build-users-group = nixbld\n" + (nix-config) + "\n" | ^sudo tee /etc/nix/dotfiles.conf out> /dev/null
+  # Match hosts/base.nix: keep build-time deps so GC doesn't force re-fetching them.
+  "build-users-group = nixbld\nkeep-outputs = true\nkeep-derivations = true\n" + (nix-config) + "\n" | ^sudo tee /etc/nix/dotfiles.conf out> /dev/null
   let config = ^sudo cat /etc/nix/nix.conf | complete
   if 'include dotfiles.conf' not-in ($config.stdout | lines) {
     "\ninclude dotfiles.conf\n" | ^sudo tee -a /etc/nix/nix.conf out> /dev/null
@@ -53,7 +54,7 @@ def 'main activate' [expected_user: string, activation_drv: string, nh: string, 
   check-user $expected_user
   let result = ^/nix/var/nix/profiles/default/bin/nix build --out-link $root --json $"($activation_drv)^out" | from json
   ^$nh home switch ($result | get 0.outputs.out)
-  ^$nh clean user --keep $generations_to_keep --keep-one
+  ^$nh clean user --keep $generations_to_keep --keep-one --no-gcroots
 }
 
 def main [] {

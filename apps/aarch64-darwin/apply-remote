@@ -69,7 +69,14 @@ if ! sudo grep -Fxq "$trusted_user" "$config" 2>/dev/null; then
   printf "\n%s\n" "$trusted_user" | sudo tee -a "$config" >/dev/null
 fi
 sudo systemctl restart nix-daemon'#
-  ^ssh -A -t -- $target (remote-command $expected_user $install)
+
+  # Share one SSH connection across steps, including nix copy. A short /tmp path keeps
+  # the socket under the macOS length limit.
+  let control_dir = ^mktemp -d /tmp/apply-remote.XXXXXX | str trim
+  let mux = [-o ControlMaster=auto -o $"ControlPath=($control_dir)/%C" -o ControlPersist=60 -o LogLevel=ERROR]
+  $env.NIX_SSHOPTS = [($env.NIX_SSHOPTS? | default '') ...$mux] | str join ' ' | str trim
+  let close_master = {|| ^ssh ...$mux -O exit -- $target | complete | ignore }
+  ^ssh ...$mux -A -t -- $target (remote-command $expected_user $install)
 
   let cleanup = $"sudo rm -rf -- (shell-quote $roots)"
   try {
@@ -82,23 +89,29 @@ sudo systemctl restart nix-daemon'#
       $'  ln -s "$path" (shell-quote $roots)/"${path##*/}"'
       'done'
     ] | str join "\n"
-    ^ssh -t -- $target (remote-command $expected_user $create_roots)
+    ^ssh ...$mux -t -- $target (remote-command $expected_user $create_roots)
     let store_command = remote-command $expected_user 'exec sudo -n --preserve-env=NIX_CONFIG flock --shared /nix/var/nix/gc.lock /nix/var/nix/profiles/default/bin/nix-store --option min-free 0 "$@"'
     let destination = $"ssh://($target)?remote-program=($store_command | url encode --all)"
-    ^nix copy --to $destination ...$sources
-    ^nix copy --derivation --to $destination ...$derivations
+    # Plain .drv store paths are copied as-is, not built or substituted.
+    ^nix copy --to $destination ...$sources ...$derivations
 
     let build_tools = [nix build --out-link $"($roots)/tools" $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out" $"($deployment.nix.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
     let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]
     let prepare = $remote_nu ++ [prepare $expected_user $deployment.nix.output] | each {|arg| shell-quote $arg } | str join ' '
-    ^ssh -A -t -- $target (remote-command $expected_user $"($build_tools); exec ($prepare)")
+    ^ssh ...$mux -A -t -- $target (remote-command $expected_user $"($build_tools); exec ($prepare)")
 
-    # Reconnect after AcceptEnv is configured so activation receives the SOPS key.
+    # The master's sshd process predates the reload; reconnect so AcceptEnv applies
+    # and activation receives the SOPS key.
+    do $close_master
     let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh" $"($roots)/home"] | each {|arg| shell-quote $arg } | str join ' '
-    ^ssh -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+    ^ssh ...$mux -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
   } catch {|err|
-    ^ssh -- $target (remote-command $expected_user $cleanup)
+    ^ssh ...$mux -- $target (remote-command $expected_user $cleanup)
+    do $close_master
+    rm -rf $control_dir
     error make $err
   }
-  ^ssh -- $target (remote-command $expected_user $cleanup)
+  ^ssh ...$mux -- $target (remote-command $expected_user $cleanup)
+  do $close_master
+  rm -rf $control_dir
 }

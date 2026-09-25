@@ -112,8 +112,14 @@ in
           settings = {
             lastChangelogVersion = customPkgs.pi.version;
             theme = theme.name;
-            defaultProvider = "azure-openai-responses";
-            defaultModel = "gpt-6-sol";
+            defaultProvider =
+              if agents.claude-code.enable
+              then "anthropic"
+              else "azure-openai-responses";
+            defaultModel =
+              if agents.claude-code.enable
+              then "claude-opus-5-5"
+              else "gpt-6-sol";
             enabledModels =
               [
                 "azure-openai-responses/gpt-6-astra"

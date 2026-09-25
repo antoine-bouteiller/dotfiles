@@ -24,11 +24,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790165032,
-        "narHash": "sha256-+LtQR3ztE+NKW7caeIr7jnnH8XHia4FtXHvtG1Yet4w=",
+        "lastModified": 1790316721,
+        "narHash": "sha256-g1pB0xdbWIStuzr3GH0hARJLVyAgGVmns5SOoguQrj8=",
         "owner": "antoine-bouteiller",
         "repo": "autoscan",
-        "rev": "febd5f3c5c984b9ebe9a8bfde0e0cc149b036d8e",
+        "rev": "976101610c87e97a250fcb775bd761335488522f",
         "type": "github"
       },
       "original": {

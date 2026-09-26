@@ -1,0 +1,1444 @@
+{
+  "controllers": [
+    {
+      "active_mode": 7,
+      "colors": [16711935, 16711935, 16711935, 16711935, 16711935, 16711935, 16711935, 16711935],
+      "description": "ENE SMBus Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "DRAM LED 1"
+        },
+        {
+          "name": "DRAM LED 2"
+        },
+        {
+          "name": "DRAM LED 3"
+        },
+        {
+          "name": "DRAM LED 4"
+        },
+        {
+          "name": "DRAM LED 5"
+        },
+        {
+          "name": "DRAM LED 6"
+        },
+        {
+          "name": "DRAM LED 7"
+        },
+        {
+          "name": "DRAM LED 8"
+        }
+      ],
+      "location": "I2C: SMBus I801 adapter at 0000:00:1f.4 (/dev/i2c-0), address 0x71",
+      "modes": [
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 0,
+          "name": "Off",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Static",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 161,
+          "name": "Breathing",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 33,
+          "name": "Flashing",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 1,
+          "name": "Spectrum Cycle",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 3,
+          "name": "Rainbow",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 163,
+          "name": "Chase Fade",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 163,
+          "name": "Chase",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 1,
+          "name": "Random Flicker",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        }
+      ],
+      "name": "ENE DRAM",
+      "serial": "",
+      "type": 1,
+      "vendor": "ENE",
+      "version": "AUDA0-E6K5-0101",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 8,
+          "leds_max": 8,
+          "leds_min": 8,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "DRAM",
+          "type": 1
+        }
+      ]
+    },
+    {
+      "active_mode": 7,
+      "colors": [16711935, 16711935, 16711935, 16711935, 16711935, 16711935, 16711935, 16711935],
+      "description": "ENE SMBus Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "DRAM LED 1"
+        },
+        {
+          "name": "DRAM LED 2"
+        },
+        {
+          "name": "DRAM LED 3"
+        },
+        {
+          "name": "DRAM LED 4"
+        },
+        {
+          "name": "DRAM LED 5"
+        },
+        {
+          "name": "DRAM LED 6"
+        },
+        {
+          "name": "DRAM LED 7"
+        },
+        {
+          "name": "DRAM LED 8"
+        }
+      ],
+      "location": "I2C: SMBus I801 adapter at 0000:00:1f.4 (/dev/i2c-0), address 0x73",
+      "modes": [
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 0,
+          "name": "Off",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Static",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 161,
+          "name": "Breathing",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 33,
+          "name": "Flashing",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 1,
+          "name": "Spectrum Cycle",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 3,
+          "name": "Rainbow",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 163,
+          "name": "Chase Fade",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 163,
+          "name": "Chase",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 1,
+          "name": "Random Flicker",
+          "speed": 2,
+          "speed_max": 0,
+          "speed_min": 4
+        }
+      ],
+      "name": "ENE DRAM",
+      "serial": "",
+      "type": 1,
+      "vendor": "ENE",
+      "version": "AUDA0-E6K5-0101",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 8,
+          "leds_max": 8,
+          "leds_min": 8,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "DRAM",
+          "type": 1
+        }
+      ]
+    },
+    {
+      "active_mode": 0,
+      "colors": [16711935, 16711935, 16711935, 16711935, 16711935],
+      "description": "Gigabyte RGB Fusion 2 GPU Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "GPU zone 1"
+        },
+        {
+          "name": "GPU zone 2"
+        },
+        {
+          "name": "GPU zone 3"
+        },
+        {
+          "name": "GPU zone 4"
+        },
+        {
+          "name": "GPU zone 5"
+        }
+      ],
+      "location": "I2C: NVIDIA i2c adapter 1 at 1:00.0\n (/dev/i2c-2), address 0x50",
+      "modes": [
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 304,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 289,
+          "name": "Pulse",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 305,
+          "name": "Flash",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 305,
+          "name": "Double Flash",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 17,
+          "name": "Color Cycle",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 305,
+          "name": "Gradient",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 273,
+          "name": "Wave",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0, 0, 0, 0, 0, 0, 0, 0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 337,
+          "name": "Color Shift",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        },
+        {
+          "brightness": 99,
+          "brightness_max": 99,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0, 0, 0],
+          "colors_max": 3,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 337,
+          "name": "Tricolor",
+          "speed": 2,
+          "speed_max": 5,
+          "speed_min": 0
+        }
+      ],
+      "name": "Gigabyte AORUS GeForce RTX 2080 SUPER",
+      "serial": "",
+      "type": 2,
+      "vendor": "Gigabyte",
+      "version": "",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "GPU zone 1",
+          "type": 0
+        },
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "GPU zone 2",
+          "type": 0
+        },
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "GPU zone 3",
+          "type": 0
+        },
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "GPU zone 4",
+          "type": 0
+        },
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "GPU zone 5",
+          "type": 0
+        }
+      ]
+    },
+    {
+      "active_mode": 2,
+      "colors": [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      ],
+      "description": "Roccat Vulcan Keyboard Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "Key: Escape"
+        },
+        {
+          "name": "Key: `"
+        },
+        {
+          "name": "Key: Tab"
+        },
+        {
+          "name": "Key: Caps Lock"
+        },
+        {
+          "name": "Key: Left Shift"
+        },
+        {
+          "name": "Key: Left Control"
+        },
+        {
+          "name": "Key: 1"
+        },
+        {
+          "name": "Key: \\ (ISO)"
+        },
+        {
+          "name": "Key: Left Windows"
+        },
+        {
+          "name": "Key: F1"
+        },
+        {
+          "name": "Key: 2"
+        },
+        {
+          "name": "Key: Q"
+        },
+        {
+          "name": "Key: A"
+        },
+        {
+          "name": "Key: Z"
+        },
+        {
+          "name": "Key: Left Alt"
+        },
+        {
+          "name": "Key: F2"
+        },
+        {
+          "name": "Key: 3"
+        },
+        {
+          "name": "Key: W"
+        },
+        {
+          "name": "Key: S"
+        },
+        {
+          "name": "Key: X"
+        },
+        {
+          "name": "Key: F3"
+        },
+        {
+          "name": "Key: 4"
+        },
+        {
+          "name": "Key: E"
+        },
+        {
+          "name": "Key: D"
+        },
+        {
+          "name": "Key: C"
+        },
+        {
+          "name": "Key: F4"
+        },
+        {
+          "name": "Key: 5"
+        },
+        {
+          "name": "Key: R"
+        },
+        {
+          "name": "Key: F"
+        },
+        {
+          "name": "Key: V"
+        },
+        {
+          "name": "Key: 6"
+        },
+        {
+          "name": "Key: T"
+        },
+        {
+          "name": "Key: G"
+        },
+        {
+          "name": "Key: B"
+        },
+        {
+          "name": "Key: Space"
+        },
+        {
+          "name": "Key: F5"
+        },
+        {
+          "name": "Key: 7"
+        },
+        {
+          "name": "Key: Y"
+        },
+        {
+          "name": "Key: H"
+        },
+        {
+          "name": "Key: N"
+        },
+        {
+          "name": "Key: F6"
+        },
+        {
+          "name": "Key: 8"
+        },
+        {
+          "name": "Key: U"
+        },
+        {
+          "name": "Key: J"
+        },
+        {
+          "name": "Key: M"
+        },
+        {
+          "name": "Key: F7"
+        },
+        {
+          "name": "Key: 9"
+        },
+        {
+          "name": "Key: I"
+        },
+        {
+          "name": "Key: K"
+        },
+        {
+          "name": "Key: ,"
+        },
+        {
+          "name": "Key: F8"
+        },
+        {
+          "name": "Key: 0"
+        },
+        {
+          "name": "Key: O"
+        },
+        {
+          "name": "Key: L"
+        },
+        {
+          "name": "Key: ."
+        },
+        {
+          "name": "Key: Right Alt"
+        },
+        {
+          "name": "Key: F9"
+        },
+        {
+          "name": "Key: -"
+        },
+        {
+          "name": "Key: P"
+        },
+        {
+          "name": "Key: ;"
+        },
+        {
+          "name": "Key: /"
+        },
+        {
+          "name": "Key: Right Fn"
+        },
+        {
+          "name": "Key: F10"
+        },
+        {
+          "name": "Key: ="
+        },
+        {
+          "name": "Key: ["
+        },
+        {
+          "name": "Key: '"
+        },
+        {
+          "name": "Key: Menu"
+        },
+        {
+          "name": "Key: F11"
+        },
+        {
+          "name": "Key: Backspace"
+        },
+        {
+          "name": "Key: ]"
+        },
+        {
+          "name": "Key: #"
+        },
+        {
+          "name": "Key: Right Shift"
+        },
+        {
+          "name": "Key: F12"
+        },
+        {
+          "name": "Key: Enter (ISO)"
+        },
+        {
+          "name": "Key: Right Control"
+        },
+        {
+          "name": "Key: Media Mute"
+        },
+        {
+          "name": "Key: Insert"
+        },
+        {
+          "name": "Key: Delete"
+        },
+        {
+          "name": "Key: Left Arrow"
+        },
+        {
+          "name": "Key: Home"
+        },
+        {
+          "name": "Key: End"
+        },
+        {
+          "name": "Key: Up Arrow"
+        },
+        {
+          "name": "Key: Down Arrow"
+        },
+        {
+          "name": "Key: Page Up"
+        },
+        {
+          "name": "Key: Page Down"
+        },
+        {
+          "name": "Key: Right Arrow"
+        }
+      ],
+      "location": "HID: /dev/hidraw3",
+      "modes": [
+        {
+          "brightness": 69,
+          "brightness_max": 69,
+          "brightness_min": 1,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 48,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 69,
+          "brightness_max": 69,
+          "brightness_min": 1,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 560,
+          "name": "Static",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 69,
+          "brightness_max": 69,
+          "brightness_min": 1,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 529,
+          "name": "Rainbow Wave",
+          "speed": 6,
+          "speed_max": 11,
+          "speed_min": 1
+        },
+        {
+          "brightness": 69,
+          "brightness_max": 69,
+          "brightness_min": 1,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 528,
+          "name": "Default",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        }
+      ],
+      "name": "Roccat Vulcan TKL Pro",
+      "serial": "",
+      "type": 5,
+      "vendor": "Roccat",
+      "version": "1.21",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 86,
+          "leds_max": 86,
+          "leds_min": 86,
+          "matrix_map": {
+            "height": 6,
+            "map": [
+              0, 4294967295, 9, 15, 20, 25, 4294967295, 35, 40, 45, 50, 56, 62, 67, 72, 4294967295,
+              75, 4294967295, 4294967295, 1, 6, 10, 16, 21, 26, 30, 36, 41, 46, 51, 57, 63, 68,
+              4294967295, 4294967295, 76, 79, 83, 2, 4294967295, 11, 17, 22, 27, 31, 37, 42, 47, 52,
+              58, 64, 69, 4294967295, 4294967295, 77, 80, 84, 3, 4294967295, 12, 18, 23, 28, 32, 38,
+              43, 48, 53, 59, 65, 70, 73, 4294967295, 4294967295, 4294967295, 4294967295, 4, 7, 13,
+              19, 24, 29, 33, 39, 44, 49, 54, 60, 4294967295, 71, 4294967295, 4294967295,
+              4294967295, 81, 4294967295, 5, 8, 14, 4294967295, 4294967295, 4294967295, 34,
+              4294967295, 4294967295, 4294967295, 55, 61, 66, 4294967295, 74, 4294967295, 78, 82, 85
+            ],
+            "width": 19
+          },
+          "name": "Keyboard",
+          "type": 2
+        }
+      ]
+    },
+    {
+      "active_mode": 3,
+      "colors": [16711935, 16711935],
+      "description": "Logitech Wireless Lightspeed Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "Primary LED"
+        },
+        {
+          "name": "Logo LED"
+        }
+      ],
+      "location": "HID: /dev/hidraw9 (Receiver) \r\nWireless Index: 255",
+      "modes": [
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 0,
+          "name": "Off",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 100,
+          "brightness_max": 100,
+          "brightness_min": 1,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 48,
+          "name": "Static",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 100,
+          "brightness_max": 100,
+          "brightness_min": 1,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 17,
+          "name": "Spectrum Cycle",
+          "speed": 50,
+          "speed_max": 10,
+          "speed_min": 200
+        },
+        {
+          "brightness": 100,
+          "brightness_max": 100,
+          "brightness_min": 1,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 49,
+          "name": "Breathing",
+          "speed": 50,
+          "speed_max": 10,
+          "speed_min": 200
+        }
+      ],
+      "name": "Heat Gaming Mouse G900",
+      "serial": "",
+      "type": 6,
+      "vendor": "Logitech",
+      "version": "",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "Primary Zone",
+          "type": 0
+        },
+        {
+          "display_name": "",
+          "flags": 4096,
+          "leds_count": 1,
+          "leds_max": 1,
+          "leds_min": 1,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "Logo Zone",
+          "type": 0
+        }
+      ]
+    },
+    {
+      "active_mode": 0,
+      "colors": [
+        16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215,
+        16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215, 16777215,
+        16777215, 16777215
+      ],
+      "description": "NZXT Hue 2 Device",
+      "display_name": "",
+      "flags": 2,
+      "leds": [
+        {
+          "name": "Hue 2 Channel 1, LED 1"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 2"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 3"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 4"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 5"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 6"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 7"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 8"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 9"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 10"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 11"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 12"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 13"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 14"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 15"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 16"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 17"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 18"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 19"
+        },
+        {
+          "name": "Hue 2 Channel 1, LED 20"
+        }
+      ],
+      "location": "HID: /dev/hidraw1",
+      "modes": [
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 1,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 0,
+          "flags": 32,
+          "name": "Direct",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 1,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 64,
+          "name": "Static",
+          "speed": 0,
+          "speed_max": 0,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 65,
+          "name": "Fading",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 1,
+          "flags": 3,
+          "name": "Spectrum Cycle",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 1,
+          "colors_min": 1,
+          "direction": 1,
+          "flags": 67,
+          "name": "Marquee",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 1,
+          "flags": 67,
+          "name": "Cover Marquee",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 2,
+          "colors_min": 1,
+          "direction": 1,
+          "flags": 67,
+          "name": "Alternating",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 65,
+          "name": "Pulsing",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 97,
+          "name": "Breathing",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 8,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 65,
+          "name": "Candle",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 2,
+          "colors": [0],
+          "colors_max": 1,
+          "colors_min": 1,
+          "direction": 0,
+          "flags": 65,
+          "name": "Starry Night",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 1,
+          "flags": 3,
+          "name": "Super Rainbow",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 1,
+          "flags": 3,
+          "name": "Rainbow Pulse",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        },
+        {
+          "brightness": 0,
+          "brightness_max": 0,
+          "brightness_min": 0,
+          "color_mode": 0,
+          "colors_max": 0,
+          "colors_min": 0,
+          "direction": 1,
+          "flags": 3,
+          "name": "Rainbow Flow",
+          "speed": 2,
+          "speed_max": 4,
+          "speed_min": 0
+        }
+      ],
+      "name": "NZXT Smart Device V2",
+      "serial": "00000000001A",
+      "type": 4,
+      "vendor": "NZXT",
+      "version": "1.12.0",
+      "zones": [
+        {
+          "display_name": "",
+          "flags": 4098,
+          "leds_count": 20,
+          "leds_max": 40,
+          "leds_min": 0,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "Hue 2 Channel 1",
+          "segments": [
+            {
+              "flags": 0,
+              "leds_count": 10,
+              "matrix_map": {
+                "height": 0,
+                "width": 0
+              },
+              "name": "Hue 2 strip (10 LEDs)",
+              "start_idx": 0,
+              "type": 1
+            },
+            {
+              "flags": 0,
+              "leds_count": 10,
+              "matrix_map": {
+                "height": 0,
+                "width": 0
+              },
+              "name": "Hue 2 strip (10 LEDs)",
+              "start_idx": 10,
+              "type": 1
+            }
+          ],
+          "type": 1
+        },
+        {
+          "display_name": "",
+          "flags": 2,
+          "leds_count": 0,
+          "leds_max": 40,
+          "leds_min": 0,
+          "matrix_map": {
+            "height": 0,
+            "width": 0
+          },
+          "name": "Hue 2 Channel 2",
+          "type": 1
+        }
+      ]
+    }
+  ],
+  "profile_name": "Purple",
+  "profile_version": 6
+}

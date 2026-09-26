@@ -222,7 +222,7 @@ in {
           }
           {
             CoolerControl = {
-              icon = "coolercontrol.png";
+              icon = "cooler-control.svg";
               href = "https://${localMedia.coolercontrol.domain}";
             };
           }

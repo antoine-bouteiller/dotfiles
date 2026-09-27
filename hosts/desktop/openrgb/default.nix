@@ -7,7 +7,7 @@
 }: {
   services.hardware.openrgb = {
     enable = true;
-    startupProfile = "Purple.json";
+    startupProfile = "Purple";
   };
   systemd.tmpfiles.rules = [
     "r /var/lib/OpenRGB/Purple.orp"

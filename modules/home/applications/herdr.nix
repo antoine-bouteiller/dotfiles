@@ -108,8 +108,9 @@ in
             agent_panel_sort = "priority";
             toast.delivery = "terminal";
             sound.enabled = false;
-            pane_gaps = false;
-            pane_outer_borders = false;
+            pane_borders = "always";
+            pane_gaps = true;
+            pane_outer_borders = true;
             pane_scrollbars = false;
             confirm_close = false;
             prompt_new_tab_name = false;

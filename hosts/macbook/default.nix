@@ -1,12 +1,10 @@
 {
-  inputs,
   host,
   config,
   pkgs,
   ...
 }: let
   inherit (host) user;
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in {
   imports = [
     ../base-darwin.nix
@@ -24,9 +22,6 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
-    # tools
-    customPkgs.vite-plus
-
     # CLI
     agent-browser
     sonarqube-cli

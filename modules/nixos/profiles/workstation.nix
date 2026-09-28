@@ -23,7 +23,6 @@ in
         # Node.js development tools
         nodejs_24
         bun
-        # customPkgs.vite-plus
 
         customPkgs.helium
 

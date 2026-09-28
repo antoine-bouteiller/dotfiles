@@ -48,6 +48,7 @@ in
               node = "lts";
               python = "3.13";
               uv = "latest";
+              "npm:vite-plus" = "latest";
             };
             settings.node.corepack = true;
           };

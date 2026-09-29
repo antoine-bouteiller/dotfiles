@@ -9,6 +9,10 @@ disable-model-invocation: true
 Commit the staged changes when committing is requested. A request for a message or proposed split
 alone authorizes drafting, not committing.
 
+Before starting, check whether the current repository provides its own commit skill, such as one
+under `.agents/skills/`, `.claude/skills/`, or `.pi/skills/`. If it does, load and follow it; where
+it conflicts with these rules, the repository skill wins.
+
 ## Choose commit boundaries
 
 Read `git status --porcelain`, `git diff --cached`, `git diff`, and recent commit subjects.

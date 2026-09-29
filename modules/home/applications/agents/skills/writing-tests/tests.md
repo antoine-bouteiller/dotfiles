@@ -44,3 +44,23 @@ expect(calculateTotal([{ price: 10 }, { price: 5 }])).toBe(15);
 A duplicated calculation is not necessarily guaranteed to pass, but it adds less independent
 evidence. Worked examples, trusted reference implementations, and meaningful properties are all
 valid oracles. Do not replace useful property-based tests with literals merely to match this example.
+
+## Junk patterns
+
+A new test matching one of these fails the gate, and an audit targets existing ones, unless it
+meets the [retention bar](audit.md#retention-bar):
+
+- assertion-free coverage probes, self-comparisons, and identity copiers;
+- copied fixtures, inventories, manifests, or export lists;
+- exact source, import, or string greps;
+- private predicate or call-shape tests duplicated at real boundaries;
+- duplicate invocations of the same contract, or local replays of a shared helper's tests;
+- tests whose only purpose is preserving test-only exports, globals, wrappers, or production code
+  with no non-test callers;
+- expected values produced by the helper or renderer under test;
+- mocks that implement the asserted behavior, or one identical mock standing in for different APIs;
+- fixtures that supply the result, ordering, or callback the code under test should produce, or
+  persistence asserted against a store the path never writes;
+- capability tests that restate declared flags instead of exercising what the flag promises;
+- negative controls that pass for an unrelated reason, such as a rejection from a different guard;
+- names or fixtures that promise more than the input exercises.

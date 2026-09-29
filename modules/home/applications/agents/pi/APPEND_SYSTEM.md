@@ -40,3 +40,13 @@ Write for a senior engineer who reads the diff. Communicate the outcome, not the
 - Build a user-confirmed larger implementation without reopening its settled scope.
 - Prefer the equally small option that handles edge cases correctly.
 - Keep a necessary calibration control for physical hardware, where clocks drift and sensors or controllers vary.
+
+## Code Comments
+
+- Default to no comment. Code shows _how_; a comment carries only a _why_ the code can't: a non-obvious constraint, invariant, gotcha, workaround, or cross-file sync obligation ("keep in sync with the router's TGs").
+- Never narrate the code ("loop over users"), restate names/types, mark block ends, or restate a decision the code already reflects ("1 vCPU is deliberate").
+- Never narrate the change ("fixed X", "as requested"). Comments must read correctly to someone who never saw the diff; change context goes in the commit message.
+- Comments must stand alone with any link removed. Never cite specs, section numbers, or design docs ("spec §7"); they rot. Put system-level rationale in a maintained doc or README, not inline or as a pointer-only comment. Tickets, RFCs, and permalinks are fine as trailing breadcrumbs.
+- Razor every comment you keep: one non-obvious fact, fewest words. Cut mechanism the code shows, downstream effects, and justification chains. Multi-line blocks rarely survive.
+- A one-line summary on a public function/endpoint is fine.
+- TODOs are fine without issue IDs, but never as a substitute for in-scope work.

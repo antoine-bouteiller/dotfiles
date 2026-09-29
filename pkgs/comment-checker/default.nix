@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchurl,
 }: let
-  version = "0.8.0";
+  version = "0.8.2";
 
   # comment-checker links tree-sitter-language-pack, whose build.rs fetches its
   # parser grammars at build time from a GitHub release tagged with the crate's
@@ -32,7 +32,7 @@ in
       owner = "code-yeongyu";
       repo = "go-claude-code-comment-checker";
       rev = "v${version}";
-      hash = "sha256-rV51+vo+6BEU3vh4/WVZxRbNXmvqyrAjMwl872+4MW0=";
+      hash = "sha256-CK/7UjnEE+GGI3KaevRuRnoujhsIPqkmlAHnkQZKrk0=";
     };
 
     cargoHash = "sha256-OieMIlyo4ENmakJIiqHVwSF7wk96TN15FnjbrVYTyaA=";

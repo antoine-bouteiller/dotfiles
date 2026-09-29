@@ -6,8 +6,6 @@
   inputs,
   ...
 } @ args: let
-  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
-
   skillFiles = import ./skills {
     inherit lib inputs;
     inherit (config.local.home-manager.agents) extraSkills;
@@ -37,7 +35,6 @@ in
 
       home.packages = with pkgs; [
         # Utils
-        customPkgs.comment-checker
         rtk
         vtsls
       ];

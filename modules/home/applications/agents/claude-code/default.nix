@@ -46,17 +46,6 @@ in
             disableClaudeAiConnectors = true;
             disableBundledSkills = true;
             hooks = {
-              PostToolUse = [
-                {
-                  matcher = "Write|Edit|MultiEdit";
-                  hooks = [
-                    {
-                      type = "command";
-                      command = "comment-checker";
-                    }
-                  ];
-                }
-              ];
               PreToolUse = [
                 {
                   matcher = "Bash";

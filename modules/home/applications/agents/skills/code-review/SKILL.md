@@ -31,8 +31,16 @@ async, default, and compatibility assumptions. State the invariants that must st
 Use [REVIEW-PROMPTS.md](REVIEW-PROMPTS.md) for the relevant security, performance, correctness,
 architecture, style, and improvement checks. These are investigation prompts, not automatic findings.
 Build concrete counterexamples from reachable inputs and states, including failure/retry and
-concurrency paths where applicable. Inspect tests for assertions or mocks that bypass the behavior
-at risk.
+concurrency paths where applicable.
+
+## Review tests
+
+Make a separate pass over added and changed tests using the `writing-tests` skill as the bar: its
+boundary gate, independent oracles, junk patterns, and mocking guidance. Check that each changed
+behavior and bug fix has a test at its owner boundary that would fail on the pre-change code, and
+that mocks or fixtures do not bypass the behavior at risk. Report missing coverage of risky changed
+behavior as a finding; report low-value or implementation-coupled tests as optional improvements.
+The review stays read-only: do not write or delete tests.
 
 ## Validate candidates
 

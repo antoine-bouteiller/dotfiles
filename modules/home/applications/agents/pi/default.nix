@@ -160,6 +160,7 @@ in
             npmCommand = [
               "bun"
             ];
+            defaultTools = ["+codemode"];
             defaultThinkingLevel = "medium";
             compaction.enabled = false;
             tuiMode = "fullscreen";

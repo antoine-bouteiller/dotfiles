@@ -53,7 +53,7 @@ def 'main prepare' [expected_user: string, nix: string] {
 def 'main activate' [expected_user: string, activation_drv: string, nh: string, root: string] {
   check-user $expected_user
   let result = ^/nix/var/nix/profiles/default/bin/nix build --out-link $root --json $"($activation_drv)^out" | from json
-  ^$nh home switch ($result | get 0.outputs.out)
+  ^$nh home switch --show-activation-logs ($result | get 0.outputs.out)
   ^$nh clean user --keep $generations_to_keep --keep-one --no-gcroots
 }
 

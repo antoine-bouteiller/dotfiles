@@ -181,6 +181,9 @@ in
         home.file = {
           ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
           ".pi/agent/themes/${theme.name}.json".text = builtins.toJSON theme;
+          ".pi/agent/mcp.json" = lib.mkIf (config.programs.mcp.enable && config.programs.mcp.servers != {}) {
+            inherit (config.xdg.configFile."mcp/mcp.json") source;
+          };
           ".pi/agent/extensions/herdr-agent-state.ts" = lib.mkIf config.local.home-manager.herdr.enable {
             source = "${inputs.herdr}/src/integration/assets/pi/herdr-agent-state.ts";
           };

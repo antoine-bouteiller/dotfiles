@@ -133,7 +133,7 @@ in
               allowedModels =
                 [
                   "azure-openai-responses/gpt-6-astra"
-                  "azure-openai-responses/gpt-6-sol"
+                  "azure-openai-responses/gpt-6.1-sol"
                 ]
                 ++ (
                   if agents.claude-code.enable
@@ -147,7 +147,7 @@ in
                   else "azure-openai-responses";
               in {
                 "azure-openai-responses/gpt-6-astra" = "highest-reasoning: complex implementation, debugging, design, and deep review of Claude-produced work";
-                "azure-openai-responses/gpt-6-sol" = "scouting, straightforward research, routine scoped implementation, and lightweight review of Claude-produced work";
+                "azure-openai-responses/gpt-6.1-sol" = "scouting, straightforward research, routine scoped implementation, and lightweight review of Claude-produced work";
                 "${claude}/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design or debugging";
                 "${claude}/claude-sonnet-5-5" = "quick well-scoped tasks and lightweight review of GPT-produced work";
               };

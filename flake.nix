@@ -20,10 +20,6 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # The `cachix` branch is the one upstream builds and pushes to noctalia.cachix.org.
-    # Its nixpkgs is deliberately not followed: a different nixpkgs means a different
-    # derivation hash, which would miss the cache and rebuild the whole C++ tree.
-    noctalia.url = "github:noctalia-dev/noctalia/cachix";
     noctalia-greeter = {
       url = "github:noctalia-dev/noctalia-greeter";
       inputs.nixpkgs.follows = "nixpkgs";

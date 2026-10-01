@@ -1,0 +1,41 @@
+#!/usr/bin/env nu
+use ../../pkgs/update-utils.nu github_headers
+
+# Inputs pinned to a release tag (`v1.2.3`, `name-v1.2.3`); branch refs stay with Renovate.
+const TAG_PATTERN = '^([A-Za-z0-9_-]+-)?v\d+(\.\d+)*$'
+
+def tagged_inputs []: nothing -> table {
+  open --raw flake.lock | from json | get nodes | transpose name node
+  | where {|it| $it.node.original?.type? == "github" and ($it.node.original?.ref? | default "") =~ $TAG_PATTERN }
+}
+
+# Print release-pinned flake inputs as a JSON list.
+def "main list" [] {
+  tagged_inputs | get name | to json --raw | print
+}
+
+# Move a release-pinned flake input to its latest release and relock it.
+def main [input: string] {
+  let entry = tagged_inputs | where name == $input
+  if ($entry | is-empty) { error make {msg: $"($input) is not a release-pinned GitHub input"} }
+  let original = $entry.0.node.original
+  let old = $original.ref
+  let prefix = $old | str replace -r 'v\d+(\.\d+)*$' ''
+
+  let latest = http get --headers (github_headers) $"https://api.github.com/repos/($original.owner)/($original.repo)/releases/latest"
+  | get tag_name
+  if not ($latest =~ $TAG_PATTERN and ($latest | str starts-with $prefix)) {
+    error make {msg: $"($input): latest release ($latest) does not match ($old)'s tag scheme"}
+  }
+  if $latest == $old {
+    print $"($input): already at ($old)"
+    return
+  }
+
+  let flake = open --raw flake.nix
+  let from = $"github:($original.owner)/($original.repo)/($old)\""
+  if not ($flake | str contains $from) { error make {msg: $"($input): ($from) not found in flake.nix"} }
+  $flake | str replace $from $"github:($original.owner)/($original.repo)/($latest)\"" | save --force flake.nix
+  ^nix flake update $input
+  print $"($input): ($old) -> ($latest)"
+}

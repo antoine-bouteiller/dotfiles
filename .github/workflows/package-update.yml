@@ -1,6 +1,7 @@
 name: Update packages
 
-# Flake inputs are updated by Renovate (renovate.json5); this owns pkgs/*/update.nu.
+# Renovate (renovate.json5) owns branch-tracking flake inputs; this owns pkgs/*/update.nu
+# and release-pinned flake inputs, whose tags Renovate's nix manager cannot bump.
 on:
   schedule:
     - cron: "23 4,16 * * *" # 04:23 and 16:23 UTC; off the hour, GitHub drops top-of-hour runs
@@ -11,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
+      inputs: ${{ steps.inputs.outputs.inputs }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -25,6 +27,10 @@ jobs:
           packages=$(nix eval --json .#packages.x86_64-linux --no-write-lock-file \
             --apply 'p: builtins.filter (n: p.${n} ? updateScript) (builtins.attrNames p)')
           echo "packages=$packages" >>"$GITHUB_OUTPUT"
+
+      - name: List release-pinned flake inputs
+        id: inputs
+        run: echo "inputs=$(nix run .#update-input --no-write-lock-file -- list | tail -n1)" >>"$GITHUB_OUTPUT"
 
   update:
     needs: discover
@@ -82,5 +88,54 @@ jobs:
           else
             gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
               --title "$title" --body "Automated update of \`pkgs/$PACKAGE\`."
+          fi
+          gh pr merge "$branch" --rebase --auto --delete-branch
+
+  update-input:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        input: ${{ fromJSON(needs.discover.outputs.inputs) }}
+    name: ${{ matrix.input }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Update ${{ matrix.input }}
+        env:
+          GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+        run: nix run .#update-input --no-write-lock-file -- "${{ matrix.input }}"
+
+      - name: Open auto-merging pull request
+        env:
+          GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+          INPUT: ${{ matrix.input }}
+        run: |
+          git diff --quiet && exit 0
+          old=$(git show HEAD:flake.lock | jq -r --arg i "$INPUT" '.nodes[$i].original.ref')
+          new=$(jq -r --arg i "$INPUT" '.nodes[$i].original.ref' flake.lock)
+          title="chore(deps): update $INPUT ( $old ➜ $new )"
+          branch="update/input-$INPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "$title"
+          git push --force origin "$branch"
+          if gh pr view "$branch" --json state --jq '.state == "OPEN"' | grep -q true; then
+            gh pr edit "$branch" --title "$title"
+          else
+            gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
+              --title "$title" --body "Automated release update of flake input \`$INPUT\`."
           fi
           gh pr merge "$branch" --rebase --auto --delete-branch

@@ -264,15 +264,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1790703285,
-        "narHash": "sha256-TAnfPZFmAXZOIPB0h70OdjIpiyhJaTjZpxRYqH+B+AI=",
+        "lastModified": 1790708764,
+        "narHash": "sha256-uu452Xe23pSvFk7w7fKPjiaqY5QenUIljao2SFAxpc0=",
         "owner": "ogulcancelik",
         "repo": "herdr",
-        "rev": "898f733f92dbbe53c428845534b03adb573f92be",
+        "rev": "7b116c05bfda646af39d2524c54e70c751f57ee8",
         "type": "github"
       },
       "original": {
         "owner": "ogulcancelik",
+        "ref": "v0.9.3",
         "repo": "herdr",
         "type": "github"
       }
@@ -327,15 +328,16 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1790653930,
-        "narHash": "sha256-38wdQXJpQHgRa9F7xiR6EWnZVaSEKBEB0z1WG+aRfqs=",
+        "lastModified": 1790780652,
+        "narHash": "sha256-JQRNs0JG3v7lN1rFNikMyevAQjV0vfCCXjfPxmcKmqQ=",
         "owner": "modem-dev",
         "repo": "hunk",
-        "rev": "0a67560cfd4f4ad2a01251018c4caa538a1f107a",
+        "rev": "7991d3034af1d2116e9c77db31265e409a73bd9f",
         "type": "github"
       },
       "original": {
         "owner": "modem-dev",
+        "ref": "v0.23.0",
         "repo": "hunk",
         "type": "github"
       }
@@ -415,6 +417,7 @@
       },
       "original": {
         "owner": "rynfar",
+        "ref": "meridian-v1.79.0",
         "repo": "meridian",
         "type": "github"
       }

@@ -28,7 +28,7 @@
       commitMessageExtra: "( {{currentDigestShort}} ➜ {{newDigestShort}} )",
     },
     {
-      description: "One PR per flake input",
+      description: "Flake inputs",
       matchManagers: ["nix"],
       additionalBranchPrefix: "nix/",
       semanticCommitType: "chore",
@@ -39,9 +39,17 @@
       automergeType: "pr",
     },
     {
-      description: "Global flake inputs weekly",
+      description: "Core flake inputs together, daily",
       matchManagers: ["nix"],
       matchDepNames: ["nixpkgs", "nixpkgs-unstable", "home-manager", "darwin", "nixos-hardware"],
+      groupName: "flake core",
+      schedule: ["* 0-3 * * *"],
+    },
+    {
+      description: "Non-urgent flake inputs together, weekly",
+      matchManagers: ["nix"],
+      matchDepNames: ["sops-nix", "noctalia-greeter", "agent-browser-skill"],
+      groupName: "flake misc",
       schedule: ["* 0-3 * * 0"],
     },
     {

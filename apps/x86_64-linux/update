@@ -6,93 +6,103 @@ $env.NIX_PATH = "nixpkgs=flake:nixpkgs"
 const INVOKED_PATH = path self
 let system = $INVOKED_PATH | path dirname | path basename
 
-print "==> Updating flake lock file..."
-^nix flake update
-
-print "==> Evaluating updatable packages (this may take a moment)..."
-let nix_apply = '
-  pkgs:
-  let
-    toCmd = s:
-      if builtins.isList s then map toString s
-      else if (builtins.isAttrs s && (s.type or "") == "derivation")
-             || builtins.isPath s
-             || builtins.isString s then [(toString s)]
-      else if builtins.isAttrs s && s ? command then map toString s.command
-      else [];
-  in
-  builtins.listToAttrs (
-    map (n: {
-      name = n;
-      value = {
-        name = pkgs.${n}.name or "";
-        pname = pkgs.${n}.pname or "";
-        version = pkgs.${n}.version or "";
-        command = toCmd pkgs.${n}.updateScript;
-      };
-    })
-    (builtins.filter (n: pkgs.${n} ? updateScript) (builtins.attrNames pkgs))
-  )
-'
-let packages = ^nix eval --json --impure $".#packages.($system)" --apply $nix_apply | from json
-
-mut failed = false
-for entry in ($packages | transpose attr package) {
-  let attr = $entry.attr
-  let package = $entry.package
-  print ""
-  print $"==> Updating ($attr)"
-
-  if ($package.command | is-empty) {
-    print $"    ($attr): empty updateScript, skipping"
-    continue
+# With package attrs, update only those packages and leave flake.lock alone.
+def main [...only: string] {
+  if ($only | is-empty) {
+    print "==> Updating flake lock file..."
+    ^nix flake update
   }
 
-  mut command = $package.command
-  let executable = $command | first
-  # `nix flake update` above dirtied the tree, so a bare-path updateScript
-  # (./update.nu) resolves to an unstable /nix/store/<hash>-source path that
-  # eval and build disagree on — execing it races GC and ENOENTs in CI. Every
-  # updateScript here is a checked-in script that writes to $PWD anyway, so run
-  # the working-copy file directly instead of the store path.
-  # This only covers checked-in ./update.nu; a writeShellApplication
-  # updateScript falls through to the store-path build path below.
-  let relative = $executable | str replace -r '^/nix/store/[^/]+-source/' ''
-  if $relative != $executable and (($env.PWD | path join $relative) | path exists) {
-    $command = $command | update 0 ($env.PWD | path join $relative)
-  } else if ($executable | str starts-with '/nix/store/') and not ($executable | path exists) {
-    print $"    Building updateScript for ($attr)"
-    let built = try {
-      ^nix build --no-link --impure $".#packages.($system).($attr).updateScript"
-      true
-    } catch { false }
-    if not $built {
-      print $"    ($attr): failed to build updateScript"
-      $failed = true
+  print "==> Evaluating updatable packages (this may take a moment)..."
+  let nix_apply = '
+    pkgs:
+    let
+      toCmd = s:
+        if builtins.isList s then map toString s
+        else if (builtins.isAttrs s && (s.type or "") == "derivation")
+               || builtins.isPath s
+               || builtins.isString s then [(toString s)]
+        else if builtins.isAttrs s && s ? command then map toString s.command
+        else [];
+    in
+    builtins.listToAttrs (
+      map (n: {
+        name = n;
+        value = {
+          name = pkgs.${n}.name or "";
+          pname = pkgs.${n}.pname or "";
+          version = pkgs.${n}.version or "";
+          command = toCmd pkgs.${n}.updateScript;
+        };
+      })
+      (builtins.filter (n: pkgs.${n} ? updateScript) (builtins.attrNames pkgs))
+    )
+  '
+  let all_packages = ^nix eval --json --impure $".#packages.($system)" --apply $nix_apply | from json
+  let unknown = $only | where {|attr| $attr not-in ($all_packages | columns) }
+  if ($unknown | is-not-empty) {
+    error make {msg: $"No updatable package: ($unknown | str join ', ')"}
+  }
+  let packages = if ($only | is-empty) { $all_packages } else { $all_packages | select ...$only }
+
+  mut failed = false
+  for entry in ($packages | transpose attr package) {
+    let attr = $entry.attr
+    let package = $entry.package
+    print ""
+    print $"==> Updating ($attr)"
+
+    if ($package.command | is-empty) {
+      print $"    ($attr): empty updateScript, skipping"
       continue
     }
-  }
 
-  let command_to_run = $command
-  let update_failed = try {
-    with-env {
-      UPDATE_NIX_ATTR_PATH: $"packages.($system).($attr)"
-      UPDATE_NIX_NAME: $package.name
-      UPDATE_NIX_PNAME: $package.pname
-      UPDATE_NIX_OLD_VERSION: $package.version
-    } {
-      run-external ...$command_to_run
+    mut command = $package.command
+    let executable = $command | first
+    # `nix flake update` above dirtied the tree, so a bare-path updateScript
+    # (./update.nu) resolves to an unstable /nix/store/<hash>-source path that
+    # eval and build disagree on — execing it races GC and ENOENTs in CI. Every
+    # updateScript here is a checked-in script that writes to $PWD anyway, so run
+    # the working-copy file directly instead of the store path.
+    # This only covers checked-in ./update.nu; a writeShellApplication
+    # updateScript falls through to the store-path build path below.
+    let relative = $executable | str replace -r '^/nix/store/[^/]+-source/' ''
+    if $relative != $executable and (($env.PWD | path join $relative) | path exists) {
+      $command = $command | update 0 ($env.PWD | path join $relative)
+    } else if ($executable | str starts-with '/nix/store/') and not ($executable | path exists) {
+      print $"    Building updateScript for ($attr)"
+      let built = try {
+        ^nix build --no-link --impure $".#packages.($system).($attr).updateScript"
+        true
+      } catch { false }
+      if not $built {
+        print $"    ($attr): failed to build updateScript"
+        $failed = true
+        continue
+      }
     }
-    false
-  } catch {
-    true
-  }
-  if not $update_failed {
-    print $"    ($attr): ok"
-  } else {
-    print ($"    ($attr): failed " + '(continuing)')
-    $failed = true
-  }
-}
 
-if $failed { exit 1 }
+    let command_to_run = $command
+    let update_failed = try {
+      with-env {
+        UPDATE_NIX_ATTR_PATH: $"packages.($system).($attr)"
+        UPDATE_NIX_NAME: $package.name
+        UPDATE_NIX_PNAME: $package.pname
+        UPDATE_NIX_OLD_VERSION: $package.version
+      } {
+        run-external ...$command_to_run
+      }
+      false
+    } catch {
+      true
+    }
+    if not $update_failed {
+      print $"    ($attr): ok"
+    } else {
+      print ($"    ($attr): failed " + '(continuing)')
+      $failed = true
+    }
+  }
+
+  if $failed { exit 1 }
+}

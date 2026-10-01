@@ -1,0 +1,86 @@
+name: Update packages
+
+# Flake inputs are updated by Renovate (renovate.json5); this owns pkgs/*/update.nu.
+on:
+  schedule:
+    - cron: "23 4,16 * * *" # 04:23 and 16:23 UTC; off the hour, GitHub drops top-of-hour runs
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: List packages with an updateScript
+        id: packages
+        run: |
+          packages=$(nix eval --json .#packages.x86_64-linux --no-write-lock-file \
+            --apply 'p: builtins.filter (n: p.${n} ? updateScript) (builtins.attrNames p)')
+          echo "packages=$packages" >>"$GITHUB_OUTPUT"
+
+  update:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.discover.outputs.packages) }}
+    name: ${{ matrix.package }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Record current version
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          echo "OLD_VERSION=$(nix eval --raw ".#packages.x86_64-linux.$PACKAGE.version" --no-write-lock-file 2>/dev/null || true)" >>"$GITHUB_ENV"
+
+      - name: Update ${{ matrix.package }}
+        env:
+          NIX_PATH: nixpkgs=flake:nixpkgs
+          GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+        run: nix run --impure .#update --no-write-lock-file -- "${{ matrix.package }}"
+
+      - name: Format
+        run: nix run ./dev
+
+      - name: Open auto-merging pull request
+        env:
+          GH_TOKEN: ${{ secrets.FLAKE_UPDATE_TOKEN }}
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          git add -A
+          git diff --cached --quiet && exit 0
+          version=$(nix eval --raw ".#packages.x86_64-linux.$PACKAGE.version" --no-write-lock-file 2>/dev/null || true)
+          title="chore(deps): update $PACKAGE ( ${OLD_VERSION:-unknown} ➜ ${version:-unknown} )"
+          branch="update/$PACKAGE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -m "$title"
+          git push --force origin "$branch"
+          if gh pr view "$branch" --json state --jq '.state == "OPEN"' | grep -q true; then
+            gh pr edit "$branch" --title "$title"
+          else
+            gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
+              --title "$title" --body "Automated update of \`pkgs/$PACKAGE\`."
+          fi
+          gh pr merge "$branch" --rebase --auto --delete-branch

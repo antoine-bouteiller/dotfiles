@@ -11,8 +11,7 @@
   minimumReleaseAge: "1 day",
   labels: ["renovate"],
   automergeStrategy: "rebase",
-  // flake.lock is owned by .github/workflows/flake-update.yml — don't double up.
-  nix: { enabled: false },
+  nix: { enabled: true },
   customManagers: [
     {
       customType: "regex",
@@ -23,6 +22,24 @@
     },
   ],
   packageRules: [
+    {
+      description: "One PR per flake input; app inputs daily",
+      matchManagers: ["nix"],
+      additionalBranchPrefix: "nix/",
+      semanticCommitType: "chore",
+      semanticCommitScope: "deps",
+      // git-refs digests carry no release timestamp, which minimumReleaseAge would block forever.
+      minimumReleaseAge: null,
+      schedule: ["* 0-3 * * *"],
+      automerge: true,
+      automergeType: "pr",
+    },
+    {
+      description: "Global flake inputs weekly",
+      matchManagers: ["nix"],
+      matchDepNames: ["nixpkgs", "nixpkgs-unstable", "home-manager", "darwin", "nixos-hardware"],
+      schedule: ["* 0-3 * * 0"],
+    },
     {
       matchManagers: ["custom.regex"],
       pinDigests: true,

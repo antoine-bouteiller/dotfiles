@@ -56,6 +56,7 @@ in {
       sonarqube-cli
       glab
       alsa-lib # libasound.so.2
+      at-spi2-core # libatk-bridge-2.0.so.0
     ];
     # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
     sessionVariables.JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";

@@ -28,14 +28,13 @@
       commitMessageExtra: "( {{currentDigestShort}} ➜ {{newDigestShort}} )",
     },
     {
-      description: "One PR per flake input; app inputs daily",
+      description: "One PR per flake input",
       matchManagers: ["nix"],
       additionalBranchPrefix: "nix/",
       semanticCommitType: "chore",
       semanticCommitScope: "deps",
       // git-refs digests carry no release timestamp, which minimumReleaseAge would block forever.
       minimumReleaseAge: null,
-      schedule: ["* 0-3 * * *"],
       automerge: true,
       automergeType: "pr",
     },

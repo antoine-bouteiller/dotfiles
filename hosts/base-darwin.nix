@@ -59,6 +59,7 @@
   documentation.doc.enable = false;
   system.tools.darwin-uninstaller.enable = false;
   security.pam.services.sudo_local.touchIdAuth = true;
+  system.defaults.screencapture.target = "clipboard";
 
   homebrew = {
     enable = true;

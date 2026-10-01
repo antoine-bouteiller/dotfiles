@@ -62,6 +62,7 @@ in {
           polkit_agent = true;
           greeter_sync.auto_sync = true;
           settings_show_advanced = false;
+          screenshot.save_to_file = false;
           panel = {
             open_near_click_control_center = true;
           };

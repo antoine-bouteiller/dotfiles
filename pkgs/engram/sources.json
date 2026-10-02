@@ -1,14 +1,14 @@
 {
-  "version": "2.2.1",
-  "sourceHash": "sha256-unN6bMnxVJAq3S3DsJCq2rUUddycwkYHGFs92hc+tQU=",
+  "version": "3.0.0",
+  "sourceHash": "sha256-W5LNPxS4qa0fo/ejVQueR13cSLrtVydnsdgLGgIZ4uI=",
   "platforms": {
     "aarch64-darwin": {
-      "url": "https://github.com/Gentleman-Programming/engram/releases/download/v2.2.1/engram_2.2.1_darwin_arm64.tar.gz",
-      "hash": "sha256-Hkz1tn/XnKB1NesB6joDupQoYsIJ3+R+bO6G7Ay+ra8="
+      "url": "https://github.com/Gentleman-Programming/engram/releases/download/v3.0.0/engram_3.0.0_darwin_arm64.tar.gz",
+      "hash": "sha256-VOCA7WSh0be4pdWeWm0XEArb1ppqr7tz0nDb6zfAMmY="
     },
     "x86_64-linux": {
-      "url": "https://github.com/Gentleman-Programming/engram/releases/download/v2.2.1/engram_2.2.1_linux_amd64.tar.gz",
-      "hash": "sha256-UJS752T0x3W7F856xTkxMjyhhKH1fojUWKqkxNbmqFo="
+      "url": "https://github.com/Gentleman-Programming/engram/releases/download/v3.0.0/engram_3.0.0_linux_amd64.tar.gz",
+      "hash": "sha256-Irv9ge6QcaBNRG9lOELDg6MQG1lOiClRmmOnx0dgLmk="
     }
   }
 }

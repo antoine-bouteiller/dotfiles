@@ -5,79 +5,103 @@ description: Write or amend a design specification with intent, shipped outcomes
 
 # Write a design spec
 
-Record the current design truth: why the system exists, what becomes true when it ships, and the
-contracts and acceptance criteria an implementation must satisfy. Keep file edits, task breakdowns,
-execution order, and runnable verification in an implementation plan, not a second design narrative.
+A spec records the current design truth: why the system exists, how the design tends to achieve
+it, what becomes true when it ships, the contracts that shape it, and how correctness is shown.
+It is the single source of truth an implementation follows; task breakdowns and execution order
+are derived from it at implementation time, not authored here.
+
+If the repository provides its own spec workflow, such as `.claude/rules/spec.md`, `/spec:*`
+commands, or `*.feature.json` companions, follow it; where it conflicts with this skill, the
+repository workflow wins.
 
 ## Ground the design
 
-Read the request, affected code, docs, existing specs, and constraints. Identify the problem,
-stakeholders, goals, and non-goals. If the problem cannot be inferred, ask what the feature solves.
-Reuse established decisions and document reasonable assumptions. Resolve factual unknowns through
-code, documentation, or bounded experiments within the task's authorization; ask when human
-judgment is needed on scope, ownership, semantics, trade-offs, risk, or compatibility. Unavailable
-evidence remains an explicit blocker, not an invented answer.
+Read the request, affected code, existing specs, docs, and constraints before writing. When the
+user states a contract in prose, put their words into the spec first and justify every addition
+against them. An addition that changes the count of surfaces, types, layers, or paths the user
+named is a spec change, not an elaboration: ask before building on it.
 
-Describe the intended system in present tense. Include current behavior, compatibility requirements,
-migration constraints, and before/after examples when they explain an important design decision.
-An end-state description must not hide the requirements for reaching it safely.
+Ask about concept set, shape, and count before writing the body; names are cheap to change, a
+concept set is what the document is built on. Resolve factual unknowns through code, docs, or
+bounded experiments within the task's authorization. Ask only when human judgment is needed.
 
 ## Choose the document
 
-Use the path supplied by the user or the repository's convention. Otherwise colocate a module spec
-as `<module-dir>/<slug>.spec.md`; use `doc/architecture/specs/<slug>.spec.md` for cross-cutting work.
-Ask only when location or ownership is materially ambiguous. If a proposed new path exists, inspect
-it: amend it when it is the requested spec, otherwise choose a distinct path and preserve it.
+Use the user's path or the repository's convention, including its extension (`.spec.md` or
+`.spec.mdx`). Otherwise:
 
-Prefer one file. Use an umbrella tree when components have substantial independent design and
-readers benefit from separate ownership. Keep tightly coupled components together; line counts and
-component counts are signals, not mandatory split thresholds.
-Read [UMBRELLA-SPECS.md](UMBRELLA-SPECS.md) only when creating or changing such a tree.
+- Single-module spec: `<module-dir>/<slug>.spec.md`.
+- Cross-cutting spec: `doc/architecture/specs/<slug>.spec.md`.
+- Bugfix spec: next to the spec it fixes, naming it in `related:` and in `## Why`.
+
+If the path exists, amend it when it is the requested spec; otherwise choose a distinct path.
+A single file is the default. Read [TREES.md](TREES.md) when a design may need an umbrella tree
+or when changing an existing one.
 
 ## Draft or amend
 
-Read [SPEC-FORMAT.md](SPEC-FORMAT.md) for the schema and contract dimensions. Use relevant sections
-and preserve the repository's established format. Separate Why, Design, Outcome, Contracts, and
-Acceptance: motivation, decisions, shipped consequences, system boundaries, and proof of correctness.
-Derive Outcome from the resolved decisions, contracts, and acceptance criteria; do not invent scope
-while summarizing. Each outcome needs acceptance evidence.
+Read [SPEC-FORMAT.md](SPEC-FORMAT.md) for the frontmatter, the seven sections, identifiers, and
+contract shape.
 
-Contracts are the primary design surface: show types, payloads, signatures, invariants, and flows
-directly. Add prose for rationale and constraints those representations cannot express. Stay at the
-level needed to judge the architecture, not a mirror of implementation classes or function bodies.
-Consult the `choosing-visuals` skill when a visual carries the contract better.
+- **Show the contract; do not describe it.** Write the signature, schema, event shape, or config
+  block, then prose only for what it cannot carry: why it exists, what it guarantees, what it
+  forbids. Delete a paragraph the fenced block above it already says. Consult the
+  `choosing-visuals` skill when a diagram carries the design better.
+- **Density tracks implementation maturity.** A `draft` with no code behind it is thin: goals,
+  shape-constraining decisions, non-goals, and blocking questions. Rationale earns length by citing
+  a measurement, a shipped constraint, or another spec.
+- **Record what was decided, not how it was reached.** No rewrite counts, drafted-and-deleted
+  alternatives, or reasoning narratives. Keep a rationale inside its item only when the choice is
+  surprising, externally constrained, expensive to reverse, likely to be reconsidered, or prevents
+  a known-invalid alternative from returning. Git is the amendment history; there is no changelog.
+- **Derive Outcome** from resolved decisions, contracts, and criteria; never invent scope while
+  summarizing.
 
-New specs start as `draft`. Amend existing specs in place, preserve IDs, append new ones, set
-`status: amended`, and refresh affected outcomes and acceptance criteria. Reconcile dependent
-contracts and parent/leaf specs in the same amendment. Keep durable rationale beside the decision
-it explains.
+Amend in place, never in a separate amendment file. Set `status: amended`, sub-version items whose
+meaning changed, refresh Outcome and affected Acceptance, and reconcile dependent contracts and
+tree levels in the same change. When the spec disagrees with shipped, tested code, amend the spec
+to match the code.
 
-Reserve Open Questions for unresolved human judgments, with the options, trade-offs, and context
-needed to decide. Reuse answers already given. On resolution, absorb the answer into its decision,
-contract, criterion, or constraint; repoint live references and remove the question without reusing
-its ID. Report pending investigation as an evidence gap, separately from decisions the user must make.
+If the spec carries inline `REVIEW: <comment>` markers, apply instructions, answer fact-based
+questions, and remove resolved markers; reply to anything ambiguous with a `REPLY:` marker.
+
+## Decision rights
+
+Decide and report: the requested change and its mechanical follow-through; format fixes; new
+`[KD]`/`[PI]`/`[C]`/`[VC]`/`[CT]` items recording a decision legitimately made under the task,
+such as naming or module placement; reconciling the spec with shipped code; Outcome; status
+transitions; numbering and restructuring that renumbers nothing.
+
+The user decides before it lands: new or altered `[G]`/`[NG]`; anything changing product scope,
+costing money, or mutating a real environment; changes to shipped behavior, a public API, or a
+schema in use; prose carrying new design intent rather than recording a decision. Never insert
+such an extrapolation silently; ask, or leave a `REPLY:` marker.
 
 ## Review readiness
 
-Check that:
+Run three passes, in order; each asks a different question:
 
-- Goals are addressed, consequential decisions explain their rationale, and remaining questions
-  and evidence gaps are explicit.
-- An informed reader can say what ships. Outcomes match the current design and contracts, and each
-  is demonstrated by concrete acceptance criteria; closing every question alone is not readiness.
-- Design decisions and contracts agree on ownership, invariants, failure behavior,
-  compatibility, and migration constraints where applicable.
-- Contracts expose the actual shapes and boundaries; examples clarify difficult behavior without
-  duplicating a full implementation. Acceptance checks observable behavior at the relevant surface,
-  not merely the presence of source files.
-- Paths and cross-links resolve; existing IDs remain stable and references are unambiguous.
-- For trees, inventory, parent links, and section ownership agree.
+1. **Slim** — does deleting this item change what gets built? Remove what does not.
+2. **Harden** — would an agent implementing this have to stop and ask? Close it by reading code
+   and docs: verify cited states, paths, extensions, counts, and contracts against what exists.
+3. **Check** — is it well-formed and self-consistent? Every changed item agrees with every other;
+   resolve contradictions through the precedence ladder in the `implement` skill and escalate only
+   genuine arbitrations. Outcome is present, current, and every `[SO]` is demonstrated by a `[VC]`.
+   IDs are unique and cited IDs exist; paths are repo-root-relative and resolve; tree structure
+   holds.
 
-Correct failures; if progress needs unavailable information, leave the spec draft or amended and
-report that gap rather than claiming readiness. After passing, a new spec becomes `review`; an
-amendment stays `amended` and is reported as ready for review. Neither implies user acceptance.
-Only set `accepted` when the user explicitly accepts the design.
+Closing every Open Question is not readiness: if an informed reader cannot say what will ship, the
+spec is not ready. Link and format checks prove well-formedness, never rightness; report them in
+one clause, not as the verdict.
 
-Report the path, key decisions, and remaining questions. For a spec-only request, stop before
-implementation. If implementation is already authorized, continue with
-the `writing-plan` skill when needed. Commit only when committing is authorized.
+A new spec that passes becomes `review`; an amendment stays `amended`. Only the user sets
+`accepted`. Report the path, key decisions, and remaining questions. Stop before implementation
+unless it is authorized; then continue with the `implement` skill. Commit only when authorized.
+
+## After implementation
+
+The `implement` skill moves status through `implementing` to `implemented` and fills contract
+anchors. When asked to condense, reconcile the spec with the code it now describes: resolve every
+anchor, classify divergences, keep Why, Design, Outcome, contract intent with anchors, invariants,
+Caveats, and Acceptance meaning, remove detail the anchored code makes authoritative, and set
+`status: condensed`.

@@ -1,120 +1,160 @@
 # Spec format
 
-Use this structure for a new spec when the repository has no established format. Omit empty optional
-sections rather than filling a small spec with N/A; Outcome and Acceptance are needed for readiness.
-When amending a legacy format, preserve its headings and IDs. Add missing outcome and acceptance
-content for the affected design without requiring a whole-document migration.
+## Frontmatter
 
-```markdown
+```yaml
 ---
-title: <Feature or component name>
-kind: umbrella # umbrella specs only; leaves and single specs omit this field
-status: draft | review | accepted | implemented | amended
+title: <component, service, or feature name>
+kind: umbrella # umbrella specs only; leaves and single specs omit it
+status: draft | review | accepted | implementing | implemented | amended | condensed
 author: <git config user.name>
 date: <YYYY-MM-DD>
-parent-spec: # repo-root-relative path to the umbrella above; omit on a top umbrella or single spec
-related: [] # repo-root-relative paths to peer specs, ADRs, or docs; informational only
+module: <repo-root-relative path> # or a list; required on a leaf or single spec owning code
+related: [] # repo-root-relative paths to peer specs, ADRs, docs; informational only
 ---
+```
 
-## Why
+`module:` is the single declaration of which code a spec owns. List every module when a concern
+spans several (for example a backend type and its frontend handler): implementation serializes
+work by module overlap, and an undeclared module is an invisible write race. A spec owning no code
+declares `module: null` and says why. There is no `parent-spec:` field; see [TREES.md](TREES.md).
 
-<2–4 sentences: what problem this solves, why now, who is affected. Motivation, not implementation
-steps.>
+```text
+draft → review → accepted → implementing → implemented → condensed
+                    ↑                                       │
+                    └──────────── amended ←─────────────────┘
+```
 
-- `[G-1]` <goal — why the work is worth doing>
-- `[NG-1]` <explicitly excluded capability>
+## Sections
 
-## Design
+Seven sections, in this order. Omit a section with nothing to say rather than writing N/A;
+`## Outcome` is required at `accepted` and later.
 
-Intentions precede decisions: they are the tiebreakers when a choice is ambiguous.
+| Section             | Carries                                                                  | IDs               |
+| ------------------- | ------------------------------------------------------------------------ | ----------------- |
+| `## Why`            | Problem paragraph, goals, non-goals — what this is for                   | `[G-N]` `[NG-N]`  |
+| `## Design`         | Intentions first, then decisions — how the design tends to achieve it    | `[PI-N]` `[KD-N]` |
+| `## Outcome`        | What becomes true when this ships                                        | `[SO-N]`          |
+| `## Contracts`      | The shapes and boundaries themselves; prose only for what they can't say | `[CT-N]`          |
+| `## Acceptance`     | How correctness will be demonstrated                                     | `[VC-N]`          |
+| `## Caveats`        | Known limits, external assumptions, implementer constraints              | `[C-N]`           |
+| `## Open Questions` | What still needs human judgment                                          | `[OQ-N]`          |
 
-- `[PI-1]` <principle — short name, then one clause of meaning>
+### Why
+
+One paragraph of problem and motivation, then goals and non-goals.
+
+```markdown
+- `[G-1]` Support 1Bn events with sub-second query latency
+- `[NG-1]` Multi-region replication
+```
+
+### Design
+
+Intentions above decisions; the order is load-bearing because `[PI-N]` are the tiebreakers when a
+`[KD-N]` is ambiguous. Before implementation, a one-sentence rationale is usually correct.
+
+```markdown
+- `[PI-1]` Compute-on-write — pre-compute at ingestion, not at query time
 
 | Decision             | Choice         | Rationale                          |
 | -------------------- | -------------- | ---------------------------------- |
 | `[KD-1]` Persistence | Event sourcing | Audit trail required by compliance |
-
-## Outcome
-
-- `[SO-1]` <capability, behavior, boundary, or meaningful removal that becomes true when this
-  ships, derived from decisions and contracts> — demonstrated by `[VC-1]`
-
-## Contracts
-
-### `[CT-1]` <contract name>
-
-<Show the type, schema, API, event, configuration, boundary, or behavioral invariant itself.
-Add rationale and constraints the representation cannot express; use Contract detail below.
-Link to the implementing code when it exists.>
-
-For an umbrella, include a compact inventory linking each child spec to its owned modules and
-responsibility. Cite the contracts that establish architectural dependencies; do not copy leaf
-contracts here.
-
-## Acceptance
-
-- `[VC-1]` Given <precondition>, when <action>, then <observable result> — demonstrates `[SO-1]`
-
-## Caveats
-
-- `[C-1]` <known limitation, external assumption, or migration constraint>
-
-## Open Questions
-
-- `[OQ-1]` <unresolved human judgment> — needs: <decision context>; <options and trade-offs>
 ```
 
-IDs are sequential within their prefix. Preserve existing IDs and append new ones; annotate a
-superseded decision instead of silently reusing its identifier. Cross-spec references name both
-the file and ID because different specs may use the same local IDs. Paths in frontmatter are
-repo-root-relative.
+### Outcome
 
-For umbrella trees, adapt section ownership using [UMBRELLA-SPECS.md](UMBRELLA-SPECS.md).
-Execution task order belongs in a plan; a spec may describe component dependencies that constrain
-the design.
+Capabilities added or changed, behaviors that will exist, boundaries introduced or altered,
+meaningful removals. Distinct from goals (why), contracts (shape), and acceptance (proof).
 
-## Outcome and acceptance
+```markdown
+- `[SO-1]` Every event carries a monotonic sequence number, so a reader can resume from a
+  cursor instead of replaying the log. — demonstrated by `[VC-3]`
+```
 
-Keep Outcome to at most seven coherent bullets, derived from resolved decisions, contracts, and
-criteria. It is not a task list, file inventory, or release note. Refresh it when those sources
-change. A spec ready for review must make what ships explicit, with each outcome backed by at least
-one acceptance criterion and each criterion citing the outcome it demonstrates where applicable.
+At most seven bullets: a coherence check, not a summary, plan, release note, or file list. Derived
+from resolved `[KD]`, `[CT]`, and `[VC]`, and refreshed when they move. A bullet no `[VC]`
+demonstrates is either missing a criterion or is not an outcome.
 
-Acceptance defines observable correctness, including important failure and compatibility cases.
-Name the test or concrete scenario that can demonstrate each criterion at the relevant surface;
-the plan chooses runnable commands and task coverage. Neither implementation progress nor a build
-alone proves behavioral acceptance.
+### Contracts
 
-## Contract detail
+The primary design surface. A `[CT-N]` is a type, API, schema, event, config shape, subsystem
+boundary, or behavioral invariant. Each declares a `kind` and, once implemented, a code anchor
+(`null` until then); the anchor lets a condensed spec reference the code instead of copying it.
 
-Show the contract directly rather than narrating an implementation. Include only dimensions that
-affect the design:
+```markdown
+| ID       | Kind   | Contract                                           | Anchor                          |
+| -------- | ------ | -------------------------------------------------- | ------------------------------- |
+| `[CT-1]` | api    | `EventStore.append(Event) -> Result<Seq, Reject>`  | `libs/…/EventStore.java#append` |
+| `[CT-2]` | schema | `events(seq bigserial pk, payload jsonb not null)` | `…/V3__events.sql`              |
+```
 
-- Ownership, dependency boundaries, and what remains private.
-- Types, required and optional fields, defaults, serialization, and invariants.
-- Public signatures, events, configuration, requests, and responses.
-- State transitions, concurrency, transaction boundaries, and cancellation.
-- Failure behavior, recovery, and user-visible outcomes.
-- Persistence, compatibility, migrations, and rollback constraints.
-- Trust boundaries, authorization, sensitive data, and necessary observability.
+`kind` ∈ `type | api | schema | event | config | boundary | invariant`. A contract too large for a
+row gets a `### [CT-N] <name>` subsection with a `Kind: … · Anchor: …` line, then the fenced shape
+and only the prose it cannot carry.
 
-For a retrying write, for example, specify which outcomes are retryable, the attempt budget,
-idempotency or reconciliation after uncertain results, and cancellation behavior. A signature alone
-does not establish these guarantees.
+Include only dimensions that affect the design: ownership and what stays private; fields, defaults,
+serialization, invariants; state transitions, concurrency, transactions, cancellation; failure
+behavior and recovery; persistence, compatibility, migration, rollback; trust boundaries and
+sensitive data. A signature alone does not establish retry, idempotency, or cancellation guarantees.
 
-Use compact code, payloads, or diagrams for the contract and its difficult branches. Explain the
-responsibilities and interactions needed for architectural judgment, not every internal class.
-Include current behavior where it explains compatibility; leave step-by-step implementation work
-to the plan. Link to code-authoritative definitions once implemented rather than maintaining a
-second full copy; preserve intent, invariants, and rationale the code does not express.
+Diagrams are semantic core here, not appendix: sequence for interaction, state for lifecycle, flow
+for transformation, class for the shape of the domain model at the altitude of architectural
+judgment, never mirroring every class. An umbrella's component inventory lists its children and
+their `module:` values, derived from the children rather than authored independently.
 
-## Amendments
+A concrete walkthrough longer than ~30 lines moves to a companion `<stem>.examples.md` (same
+extension as the spec) as `[EX-N]`, leaving a pointer.
 
-Amend the current design in place and refresh affected outcomes and acceptance criteria. Keep
-rationale beside the item it explains when it preserves a surprising choice, external constraint,
-costly-to-reverse decision, or rejected alternative likely to be reintroduced.
+### Acceptance
 
-When restructuring an existing spec, preserve IDs, live references, and durable rationale rather
-than mechanically discarding legacy sections. Absorb resolved questions into the relevant items
-and repoint their citations before removing them. Never reuse removed IDs. An amendment must not
-imply that a previous acceptance covers the changed design.
+Concrete, testable criteria, each mapping to at least one test and citing the `[SO-N]` it
+demonstrates where one applies.
+
+```markdown
+- `[VC-1]` Given X, when Y, then Z. — demonstrates `[SO-2]`
+```
+
+Assert each criterion as end-to-end as the surface allows: a real artifact, session, or harness.
+Never a source-tree grep or "file contains X" proxy, and never a live LLM as a CI gate; pin a
+deterministic surrogate for CI and record the live run as manual qualification.
+
+### Caveats
+
+```markdown
+- `[C-1]` Assumes Postgres ≥ 16 — the migrator relies on `MERGE`.
+```
+
+### Open Questions
+
+An `[OQ-N]` exists only where answering requires human judgment rather than more agent work. If
+inspection, docs, experiments, or reasoning can settle it, do that work now instead.
+
+```markdown
+- `[OQ-2]` Should an event's tenant be derived from the session or carried on the envelope?
+  — needs: `boundary` · event-envelope ownership, the tenancy model in `tenancy.spec.md`
+```
+
+`needs:` names one judgment class, then one to three knowledge prerequisites a person must
+understand to judge it (what must be understood, not an explanation).
+
+| Class       | The question is about                                   |
+| ----------- | ------------------------------------------------------- |
+| `boundary`  | An architectural boundary, ownership, or responsibility |
+| `tradeoff`  | Competing desirable properties                          |
+| `semantics` | What something means in the domain                      |
+| `risk`      | Risk appetite, or an expensive or irreversible choice   |
+| `priority`  | Product or business priority, scope cuts, milestones    |
+| `compat`    | A compatibility or migration choice                     |
+
+A question fitting no class is not an open question. Never raise one for identifiers, links,
+placement, sequencing, derivable dependencies, formatting, naming, or anything the code answers.
+On resolution, fold the answer into the item it changes, repoint live citations, and delete the
+`[OQ-N]` line; record a rejected alternative in the absorbing item only when it has durable value.
+
+## Identifiers
+
+Sequential within a file, append-only, never renumbered, never reused; take the next free number
+without asking. When an item's meaning changes, add a sub-version (`[VC-3]` → `[VC-3.1]`) and keep
+the original struck through. Cross-spec references name both file and ID. Cross-reference with
+repo-root-relative paths, never `./` or `../`. Code fences always specify a language.

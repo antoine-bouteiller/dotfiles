@@ -109,6 +109,7 @@
           go-jls = pkgs.callPackage ./pkgs/go-jls {};
           pi = pkgs.callPackage ./pkgs/pi {};
           engram = pkgs.callPackage ./pkgs/engram {};
+          lightpanda = pkgs.callPackage ./pkgs/lightpanda {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           helium = pkgs.callPackage ./pkgs/helium.nix {};

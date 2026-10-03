@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "platforms": {
+    "x86_64-linux": {
+      "url": "https://github.com/lightpanda-io/browser/releases/download/1.0.0/lightpanda-x86_64-linux",
+      "hash": "sha256-qlpLjtU9Hjizxz9bJkfQqEqC5nRFV/RfmpyFhYqgMcM="
+    },
+    "aarch64-linux": {
+      "url": "https://github.com/lightpanda-io/browser/releases/download/1.0.0/lightpanda-aarch64-linux",
+      "hash": "sha256-aXkZJLzuQ7E7Ikr0yEViLF/mb9vBuBQ7+qOcqPhSRPU="
+    },
+    "aarch64-darwin": {
+      "url": "https://github.com/lightpanda-io/browser/releases/download/1.0.0/lightpanda-aarch64-macos",
+      "hash": "sha256-lVRABTqEdU3WTGL5cESaVqKzUM30PqXy6AmnMEe4Fz0="
+    }
+  }
+}

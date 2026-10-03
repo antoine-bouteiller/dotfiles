@@ -53,13 +53,17 @@ in {
       bat
       yamllint
       agent-browser
+      inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.lightpanda
       sonarqube-cli
       glab
       alsa-lib # libasound.so.2
       at-spi2-core # libatk-bridge-2.0.so.0
     ];
-    # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
-    sessionVariables.JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";
+    sessionVariables = {
+      # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
+      JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";
+      AGENT_BROWSER_ENGINE = "lightpanda";
+    };
   };
 
   # Standalone HM cannot change the login shell; hand interactive bash off to zsh.

@@ -1,5 +1,6 @@
 {
   host,
+  inputs,
   config,
   pkgs,
   ...
@@ -19,11 +20,13 @@ in {
 
   environment.variables = {
     NODE_OPTIONS = "--max-old-space-size=4096";
+    AGENT_BROWSER_ENGINE = "lightpanda";
   };
 
   environment.systemPackages = with pkgs; [
     # CLI
     agent-browser
+    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.lightpanda
     sonarqube-cli
     gh
     glab

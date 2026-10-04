@@ -45,6 +45,11 @@ in
             model = "fable[1m]";
             disableClaudeAiConnectors = true;
             disableBundledSkills = true;
+            extraKnownMarketplaces.spec-kit.source = {
+              source = "github";
+              repo = "antoine-bouteiller/spec-kit";
+            };
+            enabledPlugins."spec-kit@spec-kit" = true;
             hooks = {
               PreToolUse = [
                 {

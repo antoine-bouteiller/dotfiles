@@ -32,7 +32,6 @@ in {
     glab
     yamllint
     shellcheck
-    beads
   ];
 
   users.users.${user} = {

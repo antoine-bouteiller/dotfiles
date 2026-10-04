@@ -12,17 +12,8 @@
   labels: ["renovate"],
   automergeStrategy: "rebase",
   commitMessageExtra: "( {{currentVersion}} ➜ {{newVersion}} )",
-  nix: { enabled: true },
-  // Branch-tracking flake inputs lack a pinned rev, so only lock file maintenance updates them.
-  lockFileMaintenance: {
-    enabled: true,
-    schedule: ["* 0-3 * * 0"],
-    commitMessageExtra: "",
-    semanticCommitType: "chore",
-    semanticCommitScope: "deps",
-    automerge: true,
-    automergeType: "pr",
-  },
+  nix: { enabled: false },
+  lockFileMaintenance: { enabled: false },
   customManagers: [
     {
       customType: "regex",

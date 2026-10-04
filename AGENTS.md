@@ -68,7 +68,8 @@ Secrets via sops-nix. Entry point: `flake.nix`.
   It declares the `enable` toggle, binds `cfg`, and wraps the body in `mkIf cfg.enable`; extra options
   go under `options`, module imports under `imports`.
 - Prefer nixpkgs packages over Homebrew casks when both exist.
-- Renovate owns GitHub Actions, pinned Docker digests, and branch-tracking flake inputs (one weekly
-  `flake.lock` maintenance PR; groups and schedules in `renovate.json5`); the twice-daily `package-update.yml` workflow owns `pkgs/*` updaters
-  and flake inputs pinned to a release tag (`.#update-input`), one PR each. Pin an input to its
-  current tag (`github:owner/repo/v1.2.3`) to opt it into release tracking.
+- Renovate owns GitHub Actions and pinned Docker digests. Weekly `flake-update.yml` updates both
+  flake locks and refreshes the Caddy plugin hash against the new nixpkgs; keep those changes in
+  one PR. The twice-daily `package-update.yml` owns `pkgs/*` updaters and flake inputs pinned to a
+  release tag (`.#update-input`), one PR each. Pin an input to its current tag
+  (`github:owner/repo/v1.2.3`) to opt it into release tracking.

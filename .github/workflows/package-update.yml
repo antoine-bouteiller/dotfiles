@@ -1,7 +1,7 @@
 name: Update packages
 
-# Renovate (renovate.json5) owns branch-tracking flake inputs; this owns pkgs/*/update.nu
-# and release-pinned flake inputs, whose tags Renovate's nix manager cannot bump.
+# Weekly flake-update.yml owns lock maintenance; this owns pkgs/*/update.nu
+# and release-pinned flake inputs.
 on:
   schedule:
     - cron: "23 4,16 * * *" # 04:23 and 16:23 UTC; off the hour, GitHub drops top-of-hour runs

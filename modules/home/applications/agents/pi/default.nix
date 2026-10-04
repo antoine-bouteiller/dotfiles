@@ -153,7 +153,7 @@ in
             packages = [
               "npm:@ff-labs/pi-fff"
               "git:github.com/antoine-bouteiller/pi-extensions"
-              "git:github.com/antoine-bouteiller/plan-viewer"
+              "git:github.com/antoine-bouteiller/spec-kit"
             ];
             npmCommand = [
               "bun"

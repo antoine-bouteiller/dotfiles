@@ -25,6 +25,10 @@ mkModule args "local.home-manager.desktop" {
 
   config = _: {
     local.home-manager.terminal.enable = lib.mkDefault true;
+    services.udiskie = {
+      enable = true;
+      tray = "never";
+    };
 
     assertions = [
       {

@@ -8,7 +8,7 @@ def main --wrapped [...args: string] {
 
   print 'Applying darwin configuration...'
   let host = (^hostname -s | str trim)
-  ^nh darwin switch $config.public_ref -H $host ...$split_args.nh_args -- ...$split_args.nix_args ...$config.nix_args
+  ^nh darwin switch --show-activation-logs $config.public_ref -H $host ...$split_args.nh_args -- ...$split_args.nix_args ...$config.nix_args
   print 'Switch to new generation complete!'
   source clean
 }

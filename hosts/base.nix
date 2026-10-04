@@ -40,7 +40,6 @@
 
     # Development tools
     curl
-    gh
     alejandra
     nixd
     ffmpeg

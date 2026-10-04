@@ -29,7 +29,6 @@ in {
     agent-browser
     inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.lightpanda
     sonarqube-cli
-    gh
     glab
     yamllint
     shellcheck

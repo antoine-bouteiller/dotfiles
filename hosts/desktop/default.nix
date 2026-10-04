@@ -20,6 +20,12 @@ in {
 
   flakePath = "${config.users.users.${user}.home}/dotfiles";
 
+  autoUpgrade = {
+    enable = true;
+    sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
+    schedule.weekday = null;
+  };
+
   local.nixos.workstation.enable = true;
   local.nixos.gaming.enable = true;
   secureBoot.enable = true;

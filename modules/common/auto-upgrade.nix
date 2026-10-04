@@ -103,12 +103,17 @@ in {
   config = lib.mkIf cfg.enable (
     if isDarwin
     then {
+      environment.etc.gitconfig.text = ''
+        [safe]
+          directory = ${builtins.toJSON flakePath}
+      '';
       environment.etc."ssh/ssh_known_hosts".text = lib.concatStringsSep "\n" (
         map (key: "github.com ${key}") githubKeys
       );
 
       launchd.daemons.nix-auto-upgrade = {
         script = ''
+          set -e
           export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
           ${lib.getExe updateFlakeScript}
           darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}"
@@ -122,6 +127,11 @@ in {
       };
     }
     else {
+      programs.git = {
+        enable = true;
+        config.safe.directory = flakePath;
+      };
+
       programs.ssh.knownHosts = lib.listToAttrs (
         lib.imap0 (
           i: key:

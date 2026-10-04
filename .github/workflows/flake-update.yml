@@ -49,7 +49,12 @@ jobs:
         run: |
           git add -A
           git diff --cached --quiet && exit 0
-          title="chore(deps): update flake locks and Caddy plugin hash"
+          title="chore(deps): update flake locks"
+          body="Automated weekly update of both flake locks."
+          if ! git diff --cached --quiet -- pkgs/caddy-cloudflare; then
+            title="$title and Caddy plugin hash"
+            body="Automated weekly update of both flake locks and the Caddy plugin hash, verified against the updated nixpkgs."
+          fi
           branch="update/flake"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -57,9 +62,9 @@ jobs:
           git commit -m "$title"
           git push --force origin "$branch"
           if gh pr view "$branch" --json state --jq '.state == "OPEN"' | grep -q true; then
-            gh pr edit "$branch" --title "$title"
+            gh pr edit "$branch" --title "$title" --body "$body"
           else
             gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" \
-              --title "$title" --body "Automated weekly update of both flake locks and the Caddy plugin hash, verified against the updated nixpkgs."
+              --title "$title" --body "$body"
           fi
           gh pr merge "$branch" --rebase --auto --delete-branch

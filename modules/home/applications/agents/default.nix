@@ -18,7 +18,6 @@ in
     imports = [
       ./claude-code
       ./pi
-      ./engram
     ];
 
     options.extraSkills = lib.mkOption {

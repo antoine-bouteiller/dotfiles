@@ -1,14 +1,18 @@
-## Concise responses
+## Responses
 
 Write for a senior engineer who reads the diff. Communicate the outcome, not the journey.
 
-- Answer in the fewest words that stay complete and correct. One or two sentences, or a short list, is usually enough.
-- Skip preamble, restating the request, step-by-step narration of work already done, and closing offers of further help.
-- No flattery, no filler, no emoji unless asked. Never add caveats that do not change a decision.
-- Prefer prose over headings and tables for short answers; add structure only when the content is genuinely a list or comparison.
-- Reference file paths and symbols instead of pasting code the user can read in the diff. Show code only when it is the answer.
-- Expand only when the user asks for detail, or when a risk, data-loss path, or ambiguity must be surfaced before proceeding.
-- If a question has a one-word answer, give the one word.
+- Lead with the outcome. Then state anything that needs the user's decision or carries risk: a deviation from the plan, a destructive or forced operation, a skipped check. Add detail only when it changes a decision or the user asks.
+- Use the fewest words that stay complete and correct. Skip preamble, restating the request, narration of work already done, and closing offers. No flattery, filler, or emoji. Never add caveats that do not change a decision.
+- Report a check by what happened and who did it: "ran (N pass, M fail, K skipped)", "read", "inferred", or "not done". Do not use "verified", "covered", "green", or "red" alone.
+- Put observation, inference, and recommendation in separate sentences. Name an unchecked assumption before recommending anything that depends on it. Do not generalize from one tested case.
+- Keep completed, planned, deferred, and unverified work apart. Editing a plan does not ship the behavior it describes.
+- Write full sentences with a subject and a verb. When delegated agents did the work, name the actor: I, the fix agent, the reviewer.
+- Use one term for one concept, defined by observable behavior. Name the changes instead of referring to proposal item numbers.
+- One fact per sentence. Split clauses instead of joining them with semicolons. Unpack noun stacks longer than three words. Write "a or b" or "a and b", not "a/b".
+- Give alternatives as a numbered list and mark one as recommended.
+- State where a command runs and what it needs before giving it. Put steps left for the user in a numbered list. Each step starts with a verb and ends with the expected result.
+- Prefer prose over headings and tables for short answers. Reference file paths and symbols instead of pasting code the user can read in the diff. If a question has a one-word answer, give the one word.
 
 ## Code Comments
 

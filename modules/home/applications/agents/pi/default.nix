@@ -115,37 +115,37 @@ in
             defaultProvider =
               if agents.claude-code.enable
               then "anthropic"
-              else "azure-openai-responses";
+              else "azure";
             defaultModel =
               if agents.claude-code.enable
               then "claude-opus-5-5"
               else "gpt-6.1-sol";
             enabledModels =
               [
-                "azure-openai-responses/gpt-6.1-sol"
+                "azure/gpt-6.1-sol"
               ]
               ++ (
                 if agents.claude-code.enable
                 then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
-                else ["azure-openai-responses/claude-opus-5-5" "azure-openai-responses/claude-sonnet-5-5"]
+                else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
               );
             herdr = {
               allowedModels =
                 [
-                  "azure-openai-responses/gpt-6.1-sol"
+                  "azure/gpt-6.1-sol"
                 ]
                 ++ (
                   if agents.claude-code.enable
                   then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
-                  else ["azure-openai-responses/claude-opus-5-5" "azure-openai-responses/claude-sonnet-5-5"]
+                  else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
                 );
               modelNotes = let
                 claude =
                   if agents.claude-code.enable
                   then "anthropic"
-                  else "azure-openai-responses";
+                  else "azure";
               in {
-                "azure-openai-responses/gpt-6.1-sol" = "default for implementation, debugging, design/architecture, scouting, and research; required for all reviews of Claude-produced work (including Sonnet)";
+                "azure/gpt-6.1-sol" = "default for implementation, debugging, design/architecture, scouting, and research; required for all reviews of Claude-produced work (including Sonnet)";
                 "${claude}/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
                 "${claude}/claude-sonnet-5-5" = "quick, well-scoped implementation tasks; lightweight review of GPT-produced work";
               };

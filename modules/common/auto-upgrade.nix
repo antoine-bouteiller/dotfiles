@@ -106,6 +106,7 @@ in {
       environment.etc.gitconfig.text = ''
         [safe]
           directory = ${builtins.toJSON flakePath}
+          directory = ${builtins.toJSON "${flakePath}/.private"}
       '';
       environment.etc."ssh/ssh_known_hosts".text = lib.concatStringsSep "\n" (
         map (key: "github.com ${key}") githubKeys
@@ -116,7 +117,11 @@ in {
           set -e
           export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
           ${lib.getExe updateFlakeScript}
-          darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}"
+          set --
+          if [ -d "${flakePath}/.private/.git" ]; then
+            set -- --no-write-lock-file --override-input privateConfig "git+file://${flakePath}/.private"
+          fi
+          darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}" "$@"
         '';
         serviceConfig = {
           StartCalendarInterval = [darwinInterval];

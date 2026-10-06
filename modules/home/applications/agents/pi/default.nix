@@ -160,7 +160,7 @@ in
             ];
             defaultTools = ["+codemode"];
             defaultThinkingLevel = "medium";
-            compaction.enabled = false;
+            compaction.enabled = true;
             tuiMode = "fullscreen";
             warnings = {
               anthropicExtraUsage = false;
@@ -168,6 +168,7 @@ in
             doubleEscapeAction = "none";
           };
           models = {
+            providers.azure.modelOverrides."gpt-6.1-sol".contextWindow = 1050000;
             providers.anthropic = lib.mkIf agents.claude-code.enable {
               baseUrl = "http://127.0.0.1:3456";
               apiKey = "x";

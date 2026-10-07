@@ -53,9 +53,12 @@ in {
     extraEnv.STEAM_FORCE_DESKTOPUI_SCALING = "2";
   };
 
-  # RTX 2080 SUPER (Turing): supported by the open kernel module.
+  # RTX 2080 SUPER (Turing): use the proprietary module so suspend keeps the
+  # monolithic RM path instead of the open module's GSP-based path.
   services.xserver.videoDrivers = ["nvidia"];
-  hardware.nvidia.open = true;
+  hardware.nvidia.open = false;
+  hardware.nvidia.gsp.enable = false;
+  hardware.nvidia.moduleParams.nvidia.NVreg_EnableGpuFirmware = 0;
   hardware.nvidia.powerManagement.enable = true;
 
   # Publish only connected displays as sinks so Noctalia can switch between them.

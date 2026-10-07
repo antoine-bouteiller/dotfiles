@@ -36,7 +36,7 @@
       url = "github:modem-dev/hunk/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    meridian.url = "github:rynfar/meridian/meridian-v1.79.0";
+    meridian.url = "github:rynfar/meridian/meridian-v1.80.0";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {

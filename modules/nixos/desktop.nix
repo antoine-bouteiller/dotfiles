@@ -140,6 +140,7 @@ mkModule args "local.nixos.desktop" {
 
     # noctalia's gtk template applies itself through gsettings.
     programs.dconf.enable = true;
+    programs.xfconf.enable = true;
 
     # Secret Service provider (org.freedesktop.secrets): without it chromium falls back to
     # its plaintext store and NetworkManager keeps wifi PSKs system-wide. The module wires

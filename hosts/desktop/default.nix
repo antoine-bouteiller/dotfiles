@@ -6,6 +6,7 @@
   ...
 }: let
   inherit (host) user;
+  outputs = import ./outputs.nix;
 in {
   imports =
     [../base-nixos.nix ./openrgb]
@@ -28,6 +29,7 @@ in {
 
   local.nixos.workstation.enable = true;
   local.nixos.gaming.enable = true;
+  services.displayManager.noctalia-greeter.settings.output.name = outputs.asus;
   secureBoot.enable = true;
 
   environment.systemPackages = [pkgs.olympus];

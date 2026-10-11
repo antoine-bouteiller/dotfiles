@@ -11,7 +11,22 @@
     vimAlias = true;
     viAlias = true;
     # nvim-treesitter (main) needs the tree-sitter CLI; mason's prebuilt one requires a newer glibc than the standalone HM host.
-    extraPackages = [pkgs.tree-sitter];
+    extraPackages = with pkgs; [
+      stdenv.cc
+      tree-sitter
+      git
+      ripgrep
+      fd
+      fzf
+      curl
+      gnutar
+      gzip
+      unzip
+      bash
+      nixd
+      alejandra
+      statix
+    ];
     initLua = ''
       require("config.lazy")
     '';
@@ -25,6 +40,7 @@
     "nvim/lua/config/remote_clipboard.lua".source = ./lazyvim/lua/config/remote_clipboard.lua;
     "nvim/lua/plugins/disable-news-alert.lua".source = ./lazyvim/lua/plugins/disable-news-alert.lua;
     "nvim/lua/plugins/catppuccin.lua".source = ./lazyvim/lua/plugins/catppuccin.lua;
+    "nvim/lua/plugins/nix.lua".source = ./lazyvim/lua/plugins/nix.lua;
     "nvim/lua/plugins/snacks-animated-scrolling-off.lua".source = ./lazyvim/lua/plugins/snacks-animated-scrolling-off.lua;
     "nvim/plugin/after/transparency.lua".source = ./lazyvim/plugin/after/transparency.lua;
     "nvim/lazyvim.json".source = ./lazyvim/lazyvim.json;

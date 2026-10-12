@@ -1,5 +1,6 @@
 {
   mkModule,
+  mkUserService,
   config,
   lib,
   pkgs,
@@ -22,6 +23,13 @@
     done
     eval exec "$cmd"
   '';
+
+  # Extension updates need no API keys, so skip the sops wrapper.
+  piUpdateExtensions = pkgs.writeShellApplication {
+    name = "pi-update-extensions";
+    runtimeInputs = [pkgs.bun pkgs.git];
+    text = "exec ${lib.getExe customPkgs.pi} update --extensions";
+  };
 
   inherit ((import ../../../../../lib/palette.nix {inherit lib;})) colors;
   theme = {
@@ -104,33 +112,24 @@ in
     };
 
     config = _:
-      lib.mkIf agents.enable {
-        programs.pi-coding-agent = {
-          enable = true;
-          package = piWrapped;
-          context = ./AGENTS.md;
-          settings = {
-            lastChangelogVersion = customPkgs.pi.version;
-            theme = theme.name;
-            defaultProvider =
-              if agents.claude-code.enable
-              then "anthropic"
-              else "azure";
-            defaultModel =
-              if agents.claude-code.enable
-              then "claude-opus-5-5"
-              else "gpt-6.1-sol";
-            enabledModels =
-              [
-                "azure/gpt-6.1-sol"
-              ]
-              ++ (
+      lib.mkIf agents.enable (lib.mkMerge [
+        {
+          programs.pi-coding-agent = {
+            enable = true;
+            package = piWrapped;
+            context = ./AGENTS.md;
+            settings = {
+              lastChangelogVersion = customPkgs.pi.version;
+              theme = theme.name;
+              defaultProvider =
                 if agents.claude-code.enable
-                then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
-                else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
-              );
-            herdr = {
-              allowedModels =
+                then "anthropic"
+                else "azure";
+              defaultModel =
+                if agents.claude-code.enable
+                then "claude-opus-5-5"
+                else "gpt-6.1-sol";
+              enabledModels =
                 [
                   "azure/gpt-6.1-sol"
                 ]
@@ -139,54 +138,70 @@ in
                   then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
                   else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
                 );
-              modelNotes = let
-                claude =
-                  if agents.claude-code.enable
-                  then "anthropic"
-                  else "azure";
-              in {
-                "azure/gpt-6.1-sol" = "default for implementation, debugging, design/architecture, scouting, and research; required for all reviews of Claude-produced work (including Sonnet)";
-                "${claude}/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
-                "${claude}/claude-sonnet-5-5" = "quick, well-scoped implementation tasks; lightweight review of GPT-produced work";
+              herdr = {
+                allowedModels =
+                  [
+                    "azure/gpt-6.1-sol"
+                  ]
+                  ++ (
+                    if agents.claude-code.enable
+                    then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
+                    else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
+                  );
+                modelNotes = let
+                  claude =
+                    if agents.claude-code.enable
+                    then "anthropic"
+                    else "azure";
+                in {
+                  "azure/gpt-6.1-sol" = "default for implementation, debugging, design/architecture, scouting, and research; required for all reviews of Claude-produced work (including Sonnet)";
+                  "${claude}/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
+                  "${claude}/claude-sonnet-5-5" = "quick, well-scoped implementation tasks; lightweight review of GPT-produced work";
+                };
+              };
+              packages = [
+                "npm:@ff-labs/pi-fff"
+                "git:github.com/antoine-bouteiller/pi-extensions"
+                "git:github.com/antoine-bouteiller/spec-kit"
+              ];
+              npmCommand = [
+                "bun"
+              ];
+              defaultTools = ["+codemode"];
+              defaultThinkingLevel = "medium";
+              compaction.enabled = true;
+              tuiMode = "fullscreen";
+              warnings = {
+                anthropicExtraUsage = false;
+              };
+              doubleEscapeAction = "none";
+            };
+            models = {
+              providers.azure.modelOverrides."gpt-6.1-sol".contextWindow = 1050000;
+              providers.anthropic = lib.mkIf agents.claude-code.enable {
+                baseUrl = "http://127.0.0.1:3456";
+                apiKey = "x";
+                compat.supportsMidConvoEffort = false;
+                headers.x-meridian-agent = "pi";
               };
             };
-            packages = [
-              "npm:@ff-labs/pi-fff"
-              "git:github.com/antoine-bouteiller/pi-extensions"
-              "git:github.com/antoine-bouteiller/spec-kit"
-            ];
-            npmCommand = [
-              "bun"
-            ];
-            defaultTools = ["+codemode"];
-            defaultThinkingLevel = "medium";
-            compaction.enabled = true;
-            tuiMode = "fullscreen";
-            warnings = {
-              anthropicExtraUsage = false;
-            };
-            doubleEscapeAction = "none";
           };
-          models = {
-            providers.azure.modelOverrides."gpt-6.1-sol".contextWindow = 1050000;
-            providers.anthropic = lib.mkIf agents.claude-code.enable {
-              baseUrl = "http://127.0.0.1:3456";
-              apiKey = "x";
-              compat.supportsMidConvoEffort = false;
-              headers.x-meridian-agent = "pi";
-            };
-          };
-        };
 
-        home.file = {
-          ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
-          ".pi/agent/themes/${theme.name}.json".text = builtins.toJSON theme;
-          ".pi/agent/mcp.json" = lib.mkIf (config.programs.mcp.enable && config.programs.mcp.servers != {}) {
-            inherit (config.xdg.configFile."mcp/mcp.json") source;
+          home.file = {
+            ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;
+            ".pi/agent/themes/${theme.name}.json".text = builtins.toJSON theme;
+            ".pi/agent/mcp.json" = lib.mkIf (config.programs.mcp.enable && config.programs.mcp.servers != {}) {
+              inherit (config.xdg.configFile."mcp/mcp.json") source;
+            };
+            ".pi/agent/extensions/herdr-agent-state.ts" = lib.mkIf config.local.home-manager.herdr.enable {
+              source = "${inputs.herdr}/src/integration/assets/pi/herdr-agent-state.ts";
+            };
           };
-          ".pi/agent/extensions/herdr-agent-state.ts" = lib.mkIf config.local.home-manager.herdr.enable {
-            source = "${inputs.herdr}/src/integration/assets/pi/herdr-agent-state.ts";
-          };
-        };
-      };
+        }
+        (mkUserService args "pi-update-extensions" {
+          description = "Update pi extensions";
+          command = lib.getExe piUpdateExtensions;
+          interval = 3600;
+        })
+      ]);
   }

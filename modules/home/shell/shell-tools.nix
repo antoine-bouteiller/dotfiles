@@ -12,9 +12,6 @@
   carapaceInit = pkgs.runCommand "carapace-init.zsh" {} ''
     ${pkgs.carapace}/bin/carapace _carapace zsh > $out
   '';
-  miseInit = pkgs.runCommand "mise-init.zsh" {} ''
-    ${pkgs.mise}/bin/mise activate zsh > $out
-  '';
 in
   mkModule args "local.home-manager.shell-tools" {
     description = "shell tools (zoxide, direnv, carapace, mise)";
@@ -41,7 +38,6 @@ in
 
         mise = {
           enable = true;
-          enableZshIntegration = false;
           globalConfig = {
             tools = {
               bun = "latest";
@@ -50,7 +46,10 @@ in
               uv = "latest";
               "npm:vite-plus" = "latest";
             };
-            settings.node.corepack = true;
+            settings = {
+              node.corepack = true;
+              tool_update.global_auto = true;
+            };
           };
         };
 
@@ -64,7 +63,6 @@ in
           fi
           source ${direnvInit}
           source ${carapaceInit}
-          source ${miseInit}
         '';
       };
     };

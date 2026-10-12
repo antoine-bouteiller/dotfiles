@@ -163,6 +163,7 @@
         inherit inputs globals;
         host = globals.hosts.vm // {name = "vm";};
         mkModule = import ./lib/module.nix nixpkgs.lib;
+        mkUserService = import ./lib/user-service.nix nixpkgs.lib;
       };
       modules = [./hosts/vm/home.nix];
     };

@@ -25,6 +25,9 @@
         home.enableNixpkgsReleaseCheck = false;
       }
     ];
-    extraSpecialArgs = {inherit inputs globals host mkModule;};
+    extraSpecialArgs = {
+      inherit inputs globals host mkModule;
+      mkUserService = import ../../lib/user-service.nix lib;
+    };
   };
 }

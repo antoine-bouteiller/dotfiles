@@ -67,6 +67,9 @@ Secrets via sops-nix. Entry point: `flake.nix`.
   `{mkModule, ...} @ args: mkModule args "local.home-manager.foo" {description = "…"; config = {cfg}: {…};}`.
   It declares the `enable` toggle, binds `cfg`, and wraps the body in `mkIf cfg.enable`; extra options
   go under `options`, module imports under `imports`.
+- Declare Home Manager background services with `mkUserService args "<name>" {description; command; environment?; interval?;}`
+  (`lib/user-service.nix`, a Home Manager special arg). It emits a systemd user unit on Linux and a launchd agent on
+  macOS. Without `interval` the service runs at login and restarts on failure. With `interval` it runs at login and every `interval` seconds.
 - Prefer nixpkgs packages over Homebrew casks when both exist.
 - Renovate owns GitHub Actions and pinned Docker digests. Weekly `flake-update.yml` updates both
   flake locks and refreshes the Caddy plugin hash against the new nixpkgs; keep those changes in

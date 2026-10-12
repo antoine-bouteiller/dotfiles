@@ -2,64 +2,36 @@
   config,
   inputs,
   lib,
+  mkUserService,
   pkgs,
   ...
-}: let
+} @ args: let
   cfg = config.local.home-manager.agents;
-  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   system = pkgs.stdenv.hostPlatform.system;
   package = inputs.meridian.packages.${system}.default.override {
     claude-code = inputs.self.packages.${system}.claude-code;
   };
 in {
-  config = lib.mkIf (cfg.enable && cfg.pi.enable && cfg.claude-code.enable) {
-    home.packages = [package];
+  config = lib.mkIf (cfg.enable && cfg.pi.enable && cfg.claude-code.enable) (lib.mkMerge [
+    {
+      home.packages = [package];
 
-    xdg.configFile."meridian/sdk-features.json" = {
-      force = true;
-      text = builtins.toJSON {
-        pi.codeSystemPrompt = false;
-      };
-    };
-
-    systemd.user.services.meridian = lib.mkIf (!isDarwin) {
-      Unit.Description = "Meridian agent";
-      Service = {
-        ExecStart = lib.getExe package;
-        Environment = [
-          "MERIDIAN_MAX_CONCURRENT=4"
-          "MERIDIAN_NO_FILE_CHANGES=1"
-          "MERIDIAN_TELEMETRY_PERSIST=1"
-          "MERIDIAN_TELEMETRY_RETENTION_DAYS=2"
-        ];
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-      Install.WantedBy = ["default.target"];
-    };
-
-    launchd.agents.meridian = lib.mkIf isDarwin {
-      enable = true;
-      config = {
-        ProgramArguments = [
-          (lib.getExe package)
-        ];
-        EnvironmentVariables = {
-          MERIDIAN_MAX_CONCURRENT = "4";
-          MERIDIAN_NO_FILE_CHANGES = "1";
-          MERIDIAN_TELEMETRY_PERSIST = "1";
-          MERIDIAN_TELEMETRY_RETENTION_DAYS = "2";
+      xdg.configFile."meridian/sdk-features.json" = {
+        force = true;
+        text = builtins.toJSON {
+          pi.codeSystemPrompt = false;
         };
-        KeepAlive = {
-          Crashed = true;
-          SuccessfulExit = false;
-        };
-        RunAtLoad = true;
-        ProcessType = "Background";
-        ThrottleInterval = 5;
-        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/meridian.log";
-        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/meridian.err";
       };
-    };
-  };
+    }
+    (mkUserService args "meridian" {
+      description = "Meridian agent";
+      command = lib.getExe package;
+      environment = {
+        MERIDIAN_MAX_CONCURRENT = "4";
+        MERIDIAN_NO_FILE_CHANGES = "1";
+        MERIDIAN_TELEMETRY_PERSIST = "1";
+        MERIDIAN_TELEMETRY_RETENTION_DAYS = "2";
+      };
+    })
+  ]);
 }

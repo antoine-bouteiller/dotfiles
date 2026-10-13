@@ -113,16 +113,18 @@ in {
       );
 
       launchd.daemons.nix-auto-upgrade = {
-        script = ''
-          set -e
-          export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
-          ${lib.getExe updateFlakeScript}
-          set --
-          if [ -d "${flakePath}/.private/.git" ]; then
-            set -- --no-write-lock-file --override-input privateConfig "git+file://${flakePath}/.private"
-          fi
-          darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}" "$@"
-        '';
+        serviceConfig.ProgramArguments = [
+          (lib.getExe (pkgs.writeShellScriptBin "nix-auto-upgrade" ''
+            set -e
+            export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
+            ${lib.getExe updateFlakeScript}
+            set --
+            if [ -d "${flakePath}/.private/.git" ]; then
+              set -- --no-write-lock-file --override-input privateConfig "git+file://${flakePath}/.private"
+            fi
+            darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}" "$@"
+          ''))
+        ];
         serviceConfig = {
           StartCalendarInterval = [darwinInterval];
           StandardOutPath = "/tmp/nix-auto-upgrade.log";

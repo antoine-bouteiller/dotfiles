@@ -14,9 +14,11 @@
 
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
   environment.systemPackages = [pkgs.nh];
+  # serviceConfig.ProgramArguments skips nix-darwin's /bin/sh wrapper, so Login
+  # Items shows the executable's name instead of "sh".
   launchd.daemons.nh-clean = {
-    command = "${lib.getExe pkgs.nh} clean all --keep 2 --keep-one";
     serviceConfig = {
+      ProgramArguments = [(lib.getExe pkgs.nh) "clean" "all" "--keep" "2" "--keep-one"];
       RunAtLoad = false;
       StartCalendarInterval = [
         {
@@ -29,21 +31,23 @@
   };
 
   launchd.user.agents.wallpaper = {
-    script = ''
-      /usr/bin/osascript -l JavaScript <<'JXA'
-      ObjC.import("AppKit");
-      const directory = "${../modules/home/desktop/wallpapers}";
-      const files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(directory, null));
-      const image = $.NSURL.fileURLWithPath(directory + "/" + files[Math.floor(Math.random() * files.length)]);
-      const screens = $.NSScreen.screens;
-      for (let i = 0; i < screens.count; i++) {
-        const error = Ref();
-        if (!$.NSWorkspace.sharedWorkspace.setDesktopImageURLForScreenOptionsError(image, screens.objectAtIndex(i), $({}), error)) {
-          throw new Error(ObjC.unwrap(error[0].localizedDescription));
+    serviceConfig.ProgramArguments = [
+      (lib.getExe (pkgs.writeShellScriptBin "wallpaper" ''
+        /usr/bin/osascript -l JavaScript <<'JXA'
+        ObjC.import("AppKit");
+        const directory = "${../modules/home/desktop/wallpapers}";
+        const files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(directory, null));
+        const image = $.NSURL.fileURLWithPath(directory + "/" + files[Math.floor(Math.random() * files.length)]);
+        const screens = $.NSScreen.screens;
+        for (let i = 0; i < screens.count; i++) {
+          const error = Ref();
+          if (!$.NSWorkspace.sharedWorkspace.setDesktopImageURLForScreenOptionsError(image, screens.objectAtIndex(i), $({}), error)) {
+            throw new Error(ObjC.unwrap(error[0].localizedDescription));
+          }
         }
-      }
-      JXA
-    '';
+        JXA
+      ''))
+    ];
     serviceConfig = {
       RunAtLoad = true;
       StartInterval = 1800;

@@ -51,6 +51,8 @@ in {
 
   launchd.agents.${name} = lib.mkIf isDarwin {
     enable = true;
+    # Shows the agent by name instead of "sh" in Login Items.
+    waitForNixStore = false;
     config =
       {
         ProgramArguments = [command];

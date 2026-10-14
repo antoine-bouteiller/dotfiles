@@ -16,6 +16,7 @@ lib: args: name: {
   inherit (args) config pkgs;
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   periodic = interval != null;
+  launchdProgram = import ./launchd-program.nix {inherit lib pkgs;};
 in {
   systemd.user = lib.mkIf (!isDarwin) {
     services.${name} =
@@ -55,12 +56,14 @@ in {
     waitForNixStore = false;
     config =
       {
-        ProgramArguments = [command];
+        ProgramArguments = launchdProgram {
+          inherit name;
+          logDir = "${config.home.homeDirectory}/Library/Logs";
+          command = [command];
+        };
         EnvironmentVariables = environment;
         RunAtLoad = true;
         ProcessType = "Background";
-        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/${name}.log";
-        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/${name}.err";
       }
       // (
         if periodic

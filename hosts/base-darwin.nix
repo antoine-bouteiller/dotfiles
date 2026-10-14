@@ -2,7 +2,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  launchdProgram = import ../lib/launchd-program.nix {inherit lib pkgs;};
+in {
   imports = [
     ./base.nix
   ];
@@ -14,11 +16,14 @@
 
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
   environment.systemPackages = [pkgs.nh];
-  # serviceConfig.ProgramArguments skips nix-darwin's /bin/sh wrapper, so Login
-  # Items shows the executable's name instead of "sh".
+  # serviceConfig.ProgramArguments skips nix-darwin's /bin/sh wrapper.
   launchd.daemons.nh-clean = {
     serviceConfig = {
-      ProgramArguments = [(lib.getExe pkgs.nh) "clean" "all" "--keep" "2" "--keep-one"];
+      ProgramArguments = launchdProgram {
+        name = "nh-clean";
+        logDir = "/Library/Logs";
+        command = [(lib.getExe pkgs.nh) "clean" "all" "--keep" "2" "--keep-one"];
+      };
       RunAtLoad = false;
       StartCalendarInterval = [
         {
@@ -31,23 +36,27 @@
   };
 
   launchd.user.agents.wallpaper = {
-    serviceConfig.ProgramArguments = [
-      (lib.getExe (pkgs.writeShellScriptBin "wallpaper" ''
-        /usr/bin/osascript -l JavaScript <<'JXA'
-        ObjC.import("AppKit");
-        const directory = "${../modules/home/desktop/wallpapers}";
-        const files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(directory, null));
-        const image = $.NSURL.fileURLWithPath(directory + "/" + files[Math.floor(Math.random() * files.length)]);
-        const screens = $.NSScreen.screens;
-        for (let i = 0; i < screens.count; i++) {
-          const error = Ref();
-          if (!$.NSWorkspace.sharedWorkspace.setDesktopImageURLForScreenOptionsError(image, screens.objectAtIndex(i), $({}), error)) {
-            throw new Error(ObjC.unwrap(error[0].localizedDescription));
+    serviceConfig.ProgramArguments = launchdProgram {
+      name = "wallpaper";
+      logDir = "$HOME/Library/Logs";
+      command = [
+        (pkgs.writeShellScript "wallpaper" ''
+          /usr/bin/osascript -l JavaScript <<'JXA'
+          ObjC.import("AppKit");
+          const directory = "${../modules/home/desktop/wallpapers}";
+          const files = ObjC.deepUnwrap($.NSFileManager.defaultManager.contentsOfDirectoryAtPathError(directory, null));
+          const image = $.NSURL.fileURLWithPath(directory + "/" + files[Math.floor(Math.random() * files.length)]);
+          const screens = $.NSScreen.screens;
+          for (let i = 0; i < screens.count; i++) {
+            const error = Ref();
+            if (!$.NSWorkspace.sharedWorkspace.setDesktopImageURLForScreenOptionsError(image, screens.objectAtIndex(i), $({}), error)) {
+              throw new Error(ObjC.unwrap(error[0].localizedDescription));
+            }
           }
-        }
-        JXA
-      ''))
-    ];
+          JXA
+        '')
+      ];
+    };
     serviceConfig = {
       RunAtLoad = true;
       StartInterval = 1800;

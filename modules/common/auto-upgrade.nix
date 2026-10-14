@@ -9,6 +9,7 @@
   inherit (config) flakePath;
 
   isDarwin = options ? launchd;
+  launchdProgram = import ../../lib/launchd-program.nix {inherit lib pkgs;};
 
   githubKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
@@ -113,22 +114,24 @@ in {
       );
 
       launchd.daemons.nix-auto-upgrade = {
-        serviceConfig.ProgramArguments = [
-          (lib.getExe (pkgs.writeShellScriptBin "nix-auto-upgrade" ''
-            set -e
-            export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
-            ${lib.getExe updateFlakeScript}
-            set --
-            if [ -d "${flakePath}/.private/.git" ]; then
-              set -- --no-write-lock-file --override-input privateConfig "git+file://${flakePath}/.private"
-            fi
-            darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}" "$@"
-          ''))
-        ];
+        serviceConfig.ProgramArguments = launchdProgram {
+          name = "nix-auto-upgrade";
+          logDir = "/Library/Logs";
+          command = [
+            (pkgs.writeShellScript "nix-auto-upgrade" ''
+              set -e
+              export PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:$PATH
+              ${lib.getExe updateFlakeScript}
+              set --
+              if [ -d "${flakePath}/.private/.git" ]; then
+                set -- --no-write-lock-file --override-input privateConfig "git+file://${flakePath}/.private"
+              fi
+              darwin-rebuild switch --flake "${flakePath}#${config.networking.hostName}" "$@"
+            '')
+          ];
+        };
         serviceConfig = {
           StartCalendarInterval = [darwinInterval];
-          StandardOutPath = "/tmp/nix-auto-upgrade.log";
-          StandardErrorPath = "/tmp/nix-auto-upgrade.err";
           ProcessType = "Background";
         };
       };

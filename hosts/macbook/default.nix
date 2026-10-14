@@ -66,6 +66,7 @@ in {
       NSGlobalDomain = {
         AppleShowAllExtensions = true;
         ApplePressAndHoldEnabled = false;
+        AppleSpacesSwitchOnActivate = true;
 
         KeyRepeat = 2;
         InitialKeyRepeat = 15;
@@ -90,6 +91,8 @@ in {
           "/Applications/Telegram.app/"
         ];
       };
+
+      CustomUserPreferences."com.apple.dock"."workspaces-auto-swoosh" = true;
 
       finder = {
         _FXShowPosixPathInTitle = false;

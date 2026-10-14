@@ -56,8 +56,8 @@ in {
       at-spi2-core # libatk-bridge-2.0.so.0
     ];
     sessionVariables = {
-      # mise-managed JDKs read this; cap heap so a runaway JVM cannot OOM the VM.
-      JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=70";
+      # mise-managed JDKs read this; low enough that several concurrent JVMs fit in RAM.
+      JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=25";
       AGENT_BROWSER_ENGINE = "lightpanda";
     };
   };

@@ -42,6 +42,7 @@
         ruff
         vscode-langservers-extracted
         yaml-language-server
+        svelte-language-server
       ];
       # Absolute paths: extraPackages are appended to PATH, so another tsc (e.g. TypeScript 5) would win.
       initLua = ''

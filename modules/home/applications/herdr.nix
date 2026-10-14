@@ -92,15 +92,15 @@ in
             rename_tab = "prefix+r";
             close_tab = "prefix+k";
             switch_tab = ["prefix+1..9" "alt+1..9"];
-            previous_tab = ["prefix+p" "alt+left"];
-            next_tab = ["prefix+n" "alt+right"];
+            previous_tab = ["prefix+p" "prefix+left"];
+            next_tab = ["prefix+n" "prefix+right"];
             move_tab_previous = "alt+shift+left";
             move_tab_next = "alt+shift+right";
             new_workspace = "prefix+shift+c";
             rename_workspace = "prefix+shift+r";
             close_workspace = "prefix+shift+k";
-            previous_workspace = ["prefix+shift+p" "alt+up"];
-            next_workspace = ["prefix+shift+n" "alt+down"];
+            previous_workspace = ["prefix+shift+p" "prefix+up"];
+            next_workspace = ["prefix+shift+n" "prefix+down"];
           };
 
           ui = {

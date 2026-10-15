@@ -28,4 +28,8 @@ in {
   '';
 
   manual.manpages.enable = false;
+
+  # zsh exports XDG_CONFIG_HOME, so Home Manager must write configs there instead of
+  # ~/Library/Application Support.
+  xdg.enable = true;
 }

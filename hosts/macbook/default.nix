@@ -16,7 +16,10 @@ in {
   autoUpgrade = {
     enable = true;
     sshKeyPath = "${config.users.users.${user}.home}/.ssh/id_ed25519";
-    schedule.weekday = null;
+    schedule = {
+      hour = 10;
+      weekday = null;
+    };
   };
 
   environment.variables = {

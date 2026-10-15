@@ -31,6 +31,16 @@
       herdr pane run "$left" pi >/dev/null
     '';
   };
+
+  herdrNvim = pkgs.writeShellApplication {
+    name = "herdr-nvim";
+    runtimeInputs = [package pkgs.jq];
+    text = ''
+      pane=$(herdr tab create --label NeoVim --focus ''${HERDR_WORKSPACE_ID:+--workspace "$HERDR_WORKSPACE_ID"} | jq -r .result.root_pane.pane_id)
+      herdr pane rename "$pane" NeoVim >/dev/null
+      herdr pane run "$pane" nvim . >/dev/null
+    '';
+  };
 in
   mkModule args "local.home-manager.herdr" {
     description = "HerdR terminal session manager";
@@ -50,6 +60,7 @@ in
             else herdrWrapped
           )
           herdrDev
+          herdrNvim
         ]
         ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && config.local.home-manager.desktop.enable) [pkgs.wl-clipboard];
       programs.ssh.settings = lib.genAttrs cfg.sopsAgeKeyHosts (_: {SendEnv = ["SOPS_AGE_KEY"];});
@@ -119,6 +130,11 @@ in
                 key = "prefix+shift+d";
                 type = "shell";
                 command = lib.getExe herdrDev;
+              }
+              {
+                key = "prefix+shift+v";
+                type = "shell";
+                command = lib.getExe herdrNvim;
               }
             ];
           };

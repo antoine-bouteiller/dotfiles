@@ -19,6 +19,18 @@
     fi
     exec ${lib.getExe package} "$@"
   '';
+
+  # Dev tab: pi on the left, two empty shells stacked on the right.
+  herdrDev = pkgs.writeShellApplication {
+    name = "herdr-dev";
+    runtimeInputs = [package pkgs.jq];
+    text = ''
+      left=$(herdr tab create --label Dev --focus ''${HERDR_WORKSPACE_ID:+--workspace "$HERDR_WORKSPACE_ID"} | jq -r .result.root_pane.pane_id)
+      right=$(herdr pane split "$left" --direction right --ratio 0.5 --no-focus | jq -r .result.pane.pane_id)
+      herdr pane split "$right" --direction down --ratio 0.85 --no-focus >/dev/null
+      herdr pane run "$left" pi >/dev/null
+    '';
+  };
 in
   mkModule args "local.home-manager.herdr" {
     description = "HerdR terminal session manager";
@@ -37,6 +49,7 @@ in
             then package
             else herdrWrapped
           )
+          herdrDev
         ]
         ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && config.local.home-manager.desktop.enable) [pkgs.wl-clipboard];
       programs.ssh.settings = lib.genAttrs cfg.sopsAgeKeyHosts (_: {SendEnv = ["SOPS_AGE_KEY"];});
@@ -101,6 +114,13 @@ in
             close_workspace = "prefix+shift+k";
             previous_workspace = ["prefix+shift+p" "prefix+up"];
             next_workspace = ["prefix+shift+n" "prefix+down"];
+            command = [
+              {
+                key = "prefix+shift+d";
+                type = "shell";
+                command = lib.getExe herdrDev;
+              }
+            ];
           };
 
           ui = {

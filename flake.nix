@@ -32,10 +32,6 @@
       url = "github:ogulcancelik/herdr/v0.9.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hunk = {
-      url = "github:modem-dev/hunk/v0.23.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     meridian.url = "github:rynfar/meridian/meridian-v1.82.0";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     # External Claude Code skills, pinned as non-flake sources.

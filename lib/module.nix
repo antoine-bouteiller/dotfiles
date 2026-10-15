@@ -2,9 +2,9 @@
 # the option, binds `cfg`, and wraps the body in `mkIf cfg.enable`.
 #
 #   {mkModule, ...} @ args:
-#     mkModule args "local.home-manager.hunk" {
-#       description = "Hunk diff viewer";
-#       config = {cfg}: {programs.hunk.enable = true;};
+#     mkModule args "local.home-manager.foo" {
+#       description = "Foo";
+#       config = {cfg}: {programs.foo.enable = true;};
 #     }
 lib: args: name: {
   description,

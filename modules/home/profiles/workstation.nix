@@ -11,7 +11,6 @@ in
     config = _: {
       local.home-manager = {
         herdr.enable = mkDefault true;
-        hunk.enable = mkDefault true;
         shell-tools.enable = mkDefault true;
         zed.enable = mkDefault true;
         terminal.enable = mkDefault true;

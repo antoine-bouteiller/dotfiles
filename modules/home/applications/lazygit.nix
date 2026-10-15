@@ -3,6 +3,8 @@
 in {
   programs.lazygit = {
     enable = true;
+    # Lazygit ignores core.pager; delta reads its options from gitconfig.
+    settings.git.pagers = [{pager = "delta --paging=never";}];
     settings.gui.theme = {
       activeBorderColor = [colors.blue "bold"];
       inactiveBorderColor = [colors.surfaceRaised];

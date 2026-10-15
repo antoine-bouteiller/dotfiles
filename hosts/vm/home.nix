@@ -31,7 +31,6 @@ in {
   local.home-manager = {
     shell-tools.enable = true;
     herdr.enable = true;
-    hunk.enable = true;
     zed.enable = true;
     agents = {
       enable = true;

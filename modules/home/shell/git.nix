@@ -16,7 +16,6 @@
     minusEmph = mix colors.background colors.red 0.6;
     plus = mix colors.background colors.green 0.8;
     plusEmph = mix colors.background colors.green 0.6;
-    hunkHeader = mix colors.background colors.magenta 0.8;
   };
 in {
   home.activation.gitAllowedSigners = lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -120,9 +119,9 @@ in {
       file-style = colors.text;
       file-decoration-style = "${colors.textFaint} ul";
       hunk-header-style = "file line-number syntax";
-      hunk-header-decoration-style = diff.hunkHeader;
-      hunk-header-file-style = diff.hunkHeader;
-      hunk-header-line-number-style = diff.hunkHeader;
+      hunk-header-decoration-style = "${colors.surfaceHover} box";
+      hunk-header-file-style = colors.magenta;
+      hunk-header-line-number-style = colors.textFaint;
 
       line-numbers-left-style = colors.textFaint;
       line-numbers-right-style = colors.textFaint;

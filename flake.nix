@@ -32,7 +32,7 @@
       url = "github:ogulcancelik/herdr/v0.9.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    meridian.url = "github:rynfar/meridian/meridian-v1.83.0";
+    meridian.url = "github:rynfar/meridian/meridian-v1.83.1";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {

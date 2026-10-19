@@ -29,14 +29,10 @@ in {
   local.home-manager.sourcePath = "${inputs.self}";
 
   local.home-manager = {
-    shell-tools.enable = true;
-    herdr.enable = true;
-    zed.enable = true;
-    agents = {
-      enable = true;
-      claude-code.enable = true;
-      pi.enable = true;
-    };
+    workstation.enable = true;
+    # Headless: reached over SSH, no local terminal emulator.
+    terminal.enable = false;
+    agents.claude-code.enable = true;
   };
 
   home = {

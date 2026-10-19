@@ -292,16 +292,16 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1792176713,
-        "narHash": "sha256-Lo/6WvKQvDZAU+hpI+7gqM5BHinOXqTiVUcTHWrnL+Y=",
+        "lastModified": 1792421575,
+        "narHash": "sha256-uPh7NGX9L52lrYsCkwVStvV4+Bz0aXHr7mCuKb+Pvg0=",
         "owner": "rynfar",
         "repo": "meridian",
-        "rev": "095b4869b5fe386e2f3a273cc5b60ec3853c8659",
+        "rev": "0c9fcc93048efcd3df9faa9b3c4fb63309dc6018",
         "type": "github"
       },
       "original": {
         "owner": "rynfar",
-        "ref": "meridian-v1.83.1",
+        "ref": "meridian-v1.84.0",
         "repo": "meridian",
         "type": "github"
       }

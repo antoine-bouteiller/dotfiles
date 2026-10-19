@@ -162,7 +162,7 @@ in
               packages = [
                 "npm:@ff-labs/pi-fff"
                 "git:github.com/antoine-bouteiller/pi-extensions"
-                "git:github.com/antoine-bouteiller/spec-kit"
+                "git:github.com/antoine-bouteiller/skills"
               ];
               npmCommand = [
                 "bun"

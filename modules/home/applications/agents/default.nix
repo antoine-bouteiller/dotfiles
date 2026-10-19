@@ -9,8 +9,6 @@
   skillFiles = import ./skills {
     inherit lib inputs;
     inherit (config.local.home-manager.agents) extraSkills;
-    inherit (config.lib.file) mkOutOfStoreSymlink;
-    agentsDir = "${config.local.home-manager.sourcePath}/modules/home/applications/agents";
   };
 in
   mkModule args "local.home-manager.agents" {

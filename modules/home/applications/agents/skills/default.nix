@@ -1,44 +1,10 @@
-# Skill discovery: the local skills/ tree stays editable in place, and every
-# SKILL.md-bearing directory becomes one entry. Renders the
-# home.file set for a single agent dir, e.g. ".agents" or ".claude".
+# Renders the home.file set of external and extra skills for a single agent
+# dir, e.g. ".agents" or ".claude".
 {
   lib,
   inputs,
-  mkOutOfStoreSymlink,
-  agentsDir,
   extraSkills ? {},
 }: let
-  root = ./.;
-
-  findSkills = relPath: let
-    fullPath = root + (lib.optionalString (relPath != "") "/${relPath}");
-    entries = builtins.readDir fullPath;
-    dirs = lib.filterAttrs (_: type: type == "directory") entries;
-  in
-    lib.concatLists (
-      lib.mapAttrsToList (
-        name: _: let
-          subRelPath =
-            if relPath == ""
-            then name
-            else "${relPath}/${name}";
-          subEntries = builtins.readDir (root + "/${subRelPath}");
-          hasSkillMd = subEntries ? "SKILL.md";
-        in
-          if hasSkillMd
-          then [
-            {
-              name = lib.replaceStrings ["/"] [":"] subRelPath;
-              path = subRelPath;
-            }
-          ]
-          else findSkills subRelPath
-      )
-      dirs
-    );
-
-  skills = findSkills "";
-
   # External skills pinned as flake inputs, symlinked into every agent's
   # skills dir so they stay available even without claude-code.
   externalSkills = {
@@ -46,15 +12,8 @@
   };
 in
   dir:
-    builtins.listToAttrs (
-      (map (skill: {
-          name = "${dir}/skills/${skill.name}";
-          value.source = mkOutOfStoreSymlink "${agentsDir}/skills/${skill.path}";
-        })
-        skills)
-      ++ lib.mapAttrsToList (name: path: {
-        name = "${dir}/skills/${name}";
-        value.source = path;
-      })
-      (externalSkills // extraSkills)
-    )
+    lib.mapAttrs' (name: path: {
+      name = "${dir}/skills/${name}";
+      value.source = path;
+    })
+    (externalSkills // extraSkills)

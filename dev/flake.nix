@@ -42,6 +42,7 @@
               name = "gitleaks";
               package = pkgs.gitleaks;
               entry = "${pkgs.gitleaks}/bin/gitleaks protect --staged --config .gitleaks.toml";
+              args = [];
               pass_filenames = false;
             };
           };

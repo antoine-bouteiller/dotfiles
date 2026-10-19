@@ -16,6 +16,7 @@ in
     imports = [
       ./claude-code
       ./pi
+      inputs.spec-viewer.homeManagerModules.default
     ];
 
     options.extraSkills = lib.mkOption {
@@ -29,6 +30,9 @@ in
     # Shared across every agent CLI: MCP integration, util packages and the skill tree.
     config = {cfg}: {
       programs.mcp.enable = lib.mkDefault (config.programs.mcp.servers != {});
+
+      programs.spec-viewer.enable = lib.mkDefault true;
+      programs.zsh.shellAliases.sv = "spec-viewer";
 
       home.packages = with pkgs; [
         # Utils

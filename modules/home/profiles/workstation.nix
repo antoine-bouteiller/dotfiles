@@ -1,8 +1,6 @@
 {
   mkModule,
   lib,
-  pkgs,
-  inputs,
   ...
 } @ args: let
   inherit (lib) mkDefault;
@@ -21,7 +19,5 @@ in
           pi.enable = mkDefault true;
         };
       };
-      home.packages = [inputs.spec-viewer.packages.${pkgs.stdenv.hostPlatform.system}.default];
-      programs.zsh.shellAliases.sv = "spec-viewer";
     };
   }

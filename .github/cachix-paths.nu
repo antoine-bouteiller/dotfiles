@@ -6,14 +6,10 @@ def --wrapped checked [command: string, ...args: string]: any -> string {
   $result.stdout
 }
 
-def derivations []: string -> record {
-  $in | checked nix derivation show --stdin | from json | get derivations
-}
-
 def main [before_file: path, names_file: path] {
   let before = (open --raw $before_file | lines)
   # These nixpkgs packages are not reliably covered by provenance discovery.
-  let names = (open $names_file | append [nvidia plex-desktop] | uniq)
+  let names = (open $names_file | append [nvidia plex-desktop plexmediaserver bun] | uniq)
   let store = (checked nix path-info --all --json | from json
     | transpose path info | each {|row| $row.info | upsert path $row.path })
   let paths = ($store | get path)
@@ -23,26 +19,15 @@ def main [before_file: path, names_file: path] {
     $names | any {|pname| $name == $pname or ($name | str starts-with $"($pname)-") }
   })
   # Home Manager's text files and assembled file tree are cheap local builds.
-  let cheap = '(\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$|-hm_|-home-manager-files$)'
-  mut excluded = ($binaries | append ($paths | where {|path| $path =~ $cheap }) | uniq)
-
-  # Inspect direct fixed-output inputs to find hidden fetchurl bindings without
-  # excluding the compiled toolchain and libraries used to wrap the binaries.
-  let drvs = ($binaries | where {|path| $path | str ends-with '.drv' })
-  if ($drvs | is-not-empty) {
-    let packages = ($drvs | str join (char nl) | derivations)
-    let inputs = ($packages | values | each {|drv| $drv.inputs.drvs | columns }
-      | flatten | each {|path| '/nix/store' | path join $path } | uniq)
-    if ($inputs | is-not-empty) {
-      let dependencies = ($inputs | str join (char nl) | derivations)
-      # Nix 2.34 uses store-relative keys and omits fixed-output paths from JSON.
-      let sources = ($dependencies | transpose path drv
-        | where {|row| $row.drv.outputs | values | any {|output| 'hash' in $output } }
-        | get path | each {|path| '/nix/store' | path join $path } | chunks 128
-        | each {|roots| checked nix-store --query --outputs ...$roots | lines } | flatten)
-      $excluded = ($excluded | append $sources | uniq)
-    }
-  }
+  # rust-overlay toolchain components end in a target triple and only repackage
+  # upstream binaries. Crane's `-deps-` artifacts are build-only caches.
+  let cheap = '(\.tgz$|-bun-pkg-|-bun-cache$|-vendor$|-vendor-staging$|-zig-cache$|-hm_|-home-manager-files$|-(x86_64|aarch64)-(unknown|apple)-[a-z0-9_-]+$|-deps-[0-9][^/]*$)'
+  # Fixed-output paths are fetched sources and archives that clients can refetch.
+  let fetched = ($store | where {|info|
+    let ca = ($info.ca? | default '')
+    if ($ca | describe) == 'string' { $ca starts-with 'fixed:' } else { $ca.method != 'text' }
+  } | get path)
+  let excluded = ($binaries | append ($paths | where {|path| $path =~ $cheap }) | append $fetched | uniq)
 
   # Cachix pushes closures. Exclude transitive referrers too, batching roots to
   # stay below macOS's argument-size limit. Only query realized store paths.

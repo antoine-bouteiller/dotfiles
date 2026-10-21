@@ -6,10 +6,7 @@
   inputs,
   ...
 } @ args: let
-  skillFiles = import ./skills {
-    inherit lib inputs;
-    inherit (config.local.home-manager.agents) extraSkills;
-  };
+  skillFiles = import ./skills {inherit lib inputs;};
 in
   mkModule args "local.home-manager.agents" {
     description = "agent CLIs";
@@ -18,12 +15,6 @@ in
       ./pi
       inputs.spec-viewer.homeManagerModules.default
     ];
-
-    options.extraSkills = lib.mkOption {
-      type = lib.types.attrsOf lib.types.path;
-      default = {};
-      description = "Additional skill directories, keyed by skill name, shared by all agents.";
-    };
 
     # claude-code.enable and pi.enable are declared by the sub-modules that own them.
 

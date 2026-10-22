@@ -477,7 +477,11 @@
       }
     },
     "privateConfig": {
-      "flake": false,
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
         "path": "./private-config",
         "type": "path"

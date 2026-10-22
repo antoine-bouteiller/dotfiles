@@ -43,10 +43,10 @@
       url = "github:vercel-labs/agent-browser";
       flake = false;
     };
-    # Optional public fixture; private deployments can override this non-flake input.
+    # Public fixture; local apply overrides it with the .private flake.
     privateConfig = {
       url = "path:./private-config";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 

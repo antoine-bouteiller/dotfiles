@@ -43,10 +43,13 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - Integrated Home Manager imports `hosts/<name>/home.nix` for `host.user`, shares `modules/home`, disables the release check, and forwards special args; `hosts/base-nixos.nix` owns the normal Linux user, while standalone `vm` imports its home directly with explicit identity.
 - Agent modules and assets live in `modules/home/applications/agents/{claude-code,pi,skills}`. Agent context, settings, hooks, and external skills come from the Nix store; first-party skills live in the `antoine-bouteiller/skills` repo, loaded as a Pi package and a Claude Code plugin.
 - `local.home-manager.sourcePath` is the runtime path for Pi secrets, Zed files, and zsh; integrated homes default to `flakePath`, while `vm` uses `${inputs.self}` for checkout-free remote deployment.
-- `privateConfig` is an optional non-flake input. The tracked `private-config/` fixture is empty;
-  `.private/` is an independent ignored Git repository selected by local apply scripts. Its
-  `default.nix` may set `hosts.vm.user`; its optional `home.nix` is the single shared private
-  Home Manager hook. Private modules own work identity and host-specific work shell settings.
+- `privateConfig` is a flake input whose `nixpkgs` follows the root. The tracked `private-config/`
+  fixture exports empty `homeModules.default` and `hosts`; `.private/` is an independent ignored
+  Git repository with its own `flake.nix` and `flake.lock`, selected by local apply scripts. It
+  may set `hosts.vm.user`; its `homeModules.default` is the single shared private Home Manager
+  hook. Declare private inputs (company repos) in `.private/flake.nix` with
+  `inputs.nixpkgs.follows = "nixpkgs"`; public modules must never reference them, since CI
+  evaluates the fixture. Private modules own work identity and host-specific work shell settings.
   `.private/` must be a directory rather than a symlink. No legacy environment variables are
   required. Never copy private values into public files or output them in diagnostics.
 - `local.nixos.workstation` selects desktop, the Home Manager workstation profile, and shared `dell`/`desktop` packages; `local.nixos.desktop` owns resolved, PipeWire, Bluetooth, and xwayland-satellite; Darwin selects the Home Manager profile directly.

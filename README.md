@@ -54,17 +54,18 @@ Flakes ignore untracked files: `git add` new `.nix` files before applying.
 
 ## Private configuration
 
-The public flake works without private data. Its `privateConfig` input defaults to the
-tracked `private-config/` fixture, whose VM username is the `ci-user` fixture. An
+The public flake works without private data. Its `privateConfig` flake input defaults to
+the tracked `private-config/` fixture, whose VM username falls back to `ci-user`. An
 independent, ignored Git checkout at `.private/` may replace it; it must be a directory,
-not a symlink. Private `default.nix` can optionally provide `hosts.vm.user`; private
-`home.nix` is an optional Home Manager module shared by the configured hosts. No legacy
+not a symlink. The private flake can output `hosts.vm.user` and `homeModules.default`, a
+Home Manager module shared by the configured hosts. Private flake inputs, such as company
+repositories, are locked in `.private/flake.lock`; the public lock only records the fixture. No legacy
 environment variables are required. Keep identities, work-only shell settings, and
 encrypted SOPS data in that checkout, not in this repository.
 
 Local `apply` commands select `.private/` automatically when it is present. Both the
 public checkout and private checkout are read as Git snapshots, so stage newly added
-private files such as `default.nix` or `home.nix` before applying. Do not use a
+private files such as `flake.nix` or `flake.lock` before applying. Do not use a
 `path:<public-root>` reference: its ignored private checkout and `.git` data can be copied
 to the Nix store. Use a `git+file` reference instead:
 

@@ -46,7 +46,7 @@ export def main []: nothing -> record<root: string, public_ref: string, nix_args
     fail '.private must be an independent Git repository'
   }
 
-  for entry in [default.nix home.nix] {
+  for entry in [flake.nix flake.lock] {
     let entry_path = $"($private_root)/($entry)"
     if ($entry_path | path exists) {
       let tracked = (^git -C $private_root ls-files --error-unmatch -- $entry | complete)

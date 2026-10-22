@@ -153,6 +153,15 @@ in
             mouse_capture = true;
             tab_bar_right = [{type = "zoom";} {type = "hostname";}];
             window_title = "{hostname}: {workspace}";
+            sidebar.agents.rows = [
+              ["state_icon" "machine" "workspace"]
+              [
+                {
+                  token = "$subagent";
+                  dim = true;
+                }
+              ]
+            ];
           };
 
           worktrees.directory = "~/Workspace/wortkrees";

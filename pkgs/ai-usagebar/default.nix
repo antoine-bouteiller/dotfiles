@@ -20,16 +20,34 @@ in
     # The tarball's members sit at its root, so there is no directory to strip.
     sourceRoot = ".";
 
-    nativeBuildInputs = [autoPatchelfHook];
-    buildInputs = [stdenv.cc.cc.lib];
+    nativeBuildInputs = lib.optional stdenv.hostPlatform.isLinux autoPatchelfHook;
+    buildInputs = lib.optional stdenv.hostPlatform.isLinux stdenv.cc.cc.lib;
 
-    installPhase = ''
-      runHook preInstall
+    installPhase =
+      ''
+        runHook preInstall
 
-      install -Dm755 ai-usagebar ai-usagebar-tui -t $out/bin
+      ''
+      + (
+        if stdenv.hostPlatform.isDarwin
+        then ''
+          mkdir -p $out/Applications $out/bin
+          cp -R "AI Usage.app" $out/Applications/
+          for bin in ai-usagebar ai-usagebar-tui ai-usagebar-tray; do
+            ln -s "$out/Applications/AI Usage.app/Contents/MacOS/$bin" $out/bin/$bin
+          done
+        ''
+        else ''
+          install -Dm755 ai-usagebar ai-usagebar-tui -t $out/bin
+        ''
+      )
+      + ''
 
-      runHook postInstall
-    '';
+        runHook postInstall
+      '';
+
+    # Stripping would invalidate the upstream ad-hoc signatures that arm64 macOS requires.
+    dontStrip = stdenv.hostPlatform.isDarwin;
 
     passthru.updateScript = ./update.nu;
 
@@ -40,6 +58,6 @@ in
       license = licenses.mit;
       sourceProvenance = with sourceTypes; [binaryNativeCode];
       mainProgram = "ai-usagebar";
-      platforms = ["x86_64-linux" "aarch64-linux"];
+      platforms = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
     };
   }

@@ -108,6 +108,7 @@
           fff-mcp = pkgs.callPackage ./pkgs/fff-mcp {};
           pi = pkgs.callPackage ./pkgs/pi {};
           lightpanda = pkgs.callPackage ./pkgs/lightpanda {};
+          ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           helium = pkgs.callPackage ./pkgs/helium.nix {};
@@ -117,7 +118,6 @@
         }
         // nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           neostation = pkgs.callPackage ./pkgs/neostation {};
-          ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
         }
     );
 

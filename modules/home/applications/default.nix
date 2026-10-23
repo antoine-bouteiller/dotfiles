@@ -7,5 +7,6 @@
     ./herdr.nix
     ./zed.nix
     ./agents
+    ./ai-usagebar.nix
   ];
 }

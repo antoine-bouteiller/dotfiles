@@ -8,6 +8,14 @@
     "aarch64-linux": {
       "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.43.0/ai-usagebar-linux-aarch64.tar.gz",
       "hash": "sha256-w2kW5NcxI107kdLrTv3ZGBGgUvUSlvORJsQd5/9VVRU="
+    },
+    "x86_64-darwin": {
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.43.0/ai-usagebar-macos-x86_64.tar.gz",
+      "hash": "sha256-6Y7qbliq6mvRGqzGxD6ydd1QeJKxdbm++jetiSy4C7k="
+    },
+    "aarch64-darwin": {
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.43.0/ai-usagebar-macos-aarch64.tar.gz",
+      "hash": "sha256-5sKbI9Cxzi/h0B+TP7jyMCJyWeLB7WAkODZMfXBduQY="
     }
   }
 }

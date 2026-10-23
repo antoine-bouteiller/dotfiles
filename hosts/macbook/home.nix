@@ -7,6 +7,7 @@
 in {
   local.home-manager.workstation.enable = true;
   local.home-manager.agents.claude-code.enable = true;
+  local.home-manager.ai-usagebar.enable = true;
 
   home = {
     packages = [

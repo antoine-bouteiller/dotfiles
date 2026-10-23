@@ -5,8 +5,10 @@ use ../update-utils.nu [root_dir github_headers to_sri]
 
 const repo = "akitaonrails/ai-usagebar"
 const platforms = {
-  "x86_64-linux": "x86_64"
-  "aarch64-linux": "aarch64"
+  "x86_64-linux": "linux-x86_64"
+  "aarch64-linux": "linux-aarch64"
+  "x86_64-darwin": "macos-x86_64"
+  "aarch64-darwin": "macos-aarch64"
 }
 
 def main [] {
@@ -26,8 +28,8 @@ def main [] {
   let base = $"https://github.com/($repo)/releases/download/($latest_tag)"
 
   mut platforms_data = {}
-  for platform in ($platforms | transpose nix_platform arch) {
-    let url = $"($base)/ai-usagebar-linux-($platform.arch).tar.gz"
+  for platform in ($platforms | transpose nix_platform asset) {
+    let url = $"($base)/ai-usagebar-($platform.asset).tar.gz"
     let hex = http get $"($url).sha256" | decode utf-8 | str trim | split row " " | first
     let hash = to_sri $hex
     $platforms_data = $platforms_data | insert $platform.nix_platform {url: $url, hash: $hash}

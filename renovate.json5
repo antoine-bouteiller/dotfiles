@@ -13,6 +13,8 @@
   automergeStrategy: "rebase",
   commitMessageExtra: "( {{currentVersion}} ➜ {{newVersion}} )",
   nix: { enabled: false },
+  // vite-plus is updated by update.nu.
+  ignorePaths: ["pkgs/vite-plus/npm/**"],
   lockFileMaintenance: { enabled: false },
   customManagers: [
     {

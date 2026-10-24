@@ -103,6 +103,8 @@
         };
       in
         {
+          bun = pkgs.callPackage ./pkgs/bun {};
+          vite-plus = pkgs.callPackage ./pkgs/vite-plus {};
           claude-code = pkgs.callPackage ./pkgs/claude-code {};
           caddy-cloudflare = pkgs.callPackage ./pkgs/caddy-cloudflare {};
           fff-mcp = pkgs.callPackage ./pkgs/fff-mcp {};

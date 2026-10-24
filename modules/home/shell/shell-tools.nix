@@ -1,4 +1,5 @@
 {
+  inputs,
   mkModule,
   pkgs,
   ...
@@ -12,10 +13,19 @@
   carapaceInit = pkgs.runCommand "carapace-init.zsh" {} ''
     ${pkgs.carapace}/bin/carapace _carapace zsh > $out
   '';
+  customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in
   mkModule args "local.home-manager.shell-tools" {
     description = "shell tools (zoxide, direnv, carapace, mise)";
     config = _: {
+      home.packages = [
+        customPkgs.bun
+        customPkgs.vite-plus
+        pkgs.nodejs
+        pkgs.python313
+        pkgs.uv
+      ];
+
       programs = {
         zoxide = {
           enable = true;
@@ -36,22 +46,7 @@ in
           enableZshIntegration = false;
         };
 
-        mise = {
-          enable = true;
-          globalConfig = {
-            tools = {
-              bun = "latest";
-              node = "lts";
-              python = "3.13";
-              uv = "latest";
-              "npm:vite-plus" = "latest";
-            };
-            settings = {
-              node.corepack = true;
-              tool_update.global_auto = true;
-            };
-          };
-        };
+        mise.enable = true;
 
         zsh.envExtra = ''
           export CARAPACE_BRIDGES='zsh,bash'

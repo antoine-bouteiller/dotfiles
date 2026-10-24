@@ -20,10 +20,6 @@ in
       ];
 
       environment.systemPackages = with pkgs; [
-        # Node.js development tools
-        nodejs_24
-        bun
-
         customPkgs.helium
 
         # Plex's only DisplayManager backend is X11DisplayManager, which XOpenDisplay()s

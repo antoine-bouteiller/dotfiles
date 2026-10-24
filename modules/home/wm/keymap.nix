@@ -19,23 +19,22 @@
     z = "W";
     v = "V";
     b = "B";
+    h = "H";
     j = "J";
     k = "K";
     l = "L";
-    semicolon = "M";
     r = "R";
   };
 
   # Rendered bare to focus and with SHIFT to move the focused window.
   directions = ["left" "right" "up" "down"];
 
-  # Vim's HJKL slid one key right, so the home row reads J K L M under azerty.
-  # Bound alongside the arrows, not instead of them.
+  # Vim's HJKL, bound alongside the arrows, not instead of them.
   directionLetters = {
-    left = "j";
-    down = "k";
-    up = "l";
-    right = "semicolon";
+    left = "h";
+    down = "j";
+    up = "k";
+    right = "l";
   };
 
   # Column widths to cycle through, as fractions of the screen.

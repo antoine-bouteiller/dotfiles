@@ -1,16 +1,6 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: [
-    "config:recommended",
-    ":disableRateLimiting",
-    ":ignoreUnstable",
-    "helpers:pinGitHubActionDigestsToSemver",
-  ],
-  configMigration: true,
-  dependencyDashboard: false,
-  minimumReleaseAge: "1 day",
-  labels: ["renovate"],
-  automergeStrategy: "rebase",
+  extends: ["github>antoine-bouteiller/renovate"],
   commitMessageExtra: "( {{currentVersion}} ➜ {{newVersion}} )",
   nix: { enabled: false },
   // vite-plus is updated by update.nu.
@@ -27,28 +17,16 @@
   ],
   packageRules: [
     {
-      matchUpdateTypes: ["digest"],
-      commitMessageExtra: "( {{currentDigestShort}} ➜ {{newDigestShort}} )",
-    },
-    {
       matchManagers: ["custom.regex"],
       pinDigests: true,
       semanticCommitType: "chore",
       semanticCommitScope: "deps",
     },
     {
-      description: "Auto-merge patch, minor and digest updates",
-      matchUpdateTypes: ["patch", "minor", "digest"],
+      description: "Auto-merge digest updates",
+      matchUpdateTypes: ["digest"],
       automerge: true,
       automergeType: "pr",
-    },
-    {
-      description: "Auto-merge GitHub Actions patch and digest updates",
-      matchManagers: ["github-actions"],
-      matchUpdateTypes: ["patch", "digest"],
-      automerge: true,
-      automergeType: "pr",
-      ignoreTests: true,
     },
   ],
 }

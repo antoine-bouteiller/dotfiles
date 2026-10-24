@@ -40,6 +40,7 @@
         statix
         ty
         ruff
+        rust-analyzer
         vscode-langservers-extracted
         yaml-language-server
         svelte-language-server
@@ -57,6 +58,7 @@
       "lazyvim.plugins.extras.lang.json"
       "lazyvim.plugins.extras.lang.nix"
       "lazyvim.plugins.extras.lang.python"
+      "lazyvim.plugins.extras.lang.rust"
       "lazyvim.plugins.extras.lang.typescript"
       "lazyvim.plugins.extras.lang.yaml"
     ];

@@ -13,6 +13,11 @@
   carapaceInit = pkgs.runCommand "carapace-init.zsh" {} ''
     ${pkgs.carapace}/bin/carapace _carapace zsh > $out
   '';
+  # `corepack enable` defaults to writing next to node, which is read-only in the store.
+  corepackShims = pkgs.runCommand "corepack-shims" {} ''
+    mkdir -p $out/bin
+    ${pkgs.nodejs}/bin/corepack enable --install-directory $out/bin
+  '';
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
 in
   mkModule args "local.home-manager.shell-tools" {
@@ -22,6 +27,7 @@ in
         customPkgs.bun
         customPkgs.vite-plus
         pkgs.nodejs
+        corepackShims
         pkgs.python3
         pkgs.uv
       ];

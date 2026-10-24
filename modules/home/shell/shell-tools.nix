@@ -22,7 +22,7 @@ in
         customPkgs.bun
         customPkgs.vite-plus
         pkgs.nodejs
-        pkgs.python313
+        pkgs.python3
         pkgs.uv
       ];
 

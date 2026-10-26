@@ -35,10 +35,7 @@ in {
     boot.loader.systemd-boot.enable = lib.mkForce false;
 
     boot.initrd = {
-      systemd = {
-        enable = true;
-        tpm2.enable = true;
-      };
+      systemd.tpm2.enable = true;
       # The TPM must be reachable in stage 1 to unseal the LUKS key.
       availableKernelModules = [
         "tpm_tis"

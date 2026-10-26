@@ -78,7 +78,6 @@ mkModule args "local.nixos.desktop" {
       };
       kernelParams = ["quiet" "splash" "udev.log_level=3"];
       consoleLogLevel = 0;
-      initrd.verbose = false;
     };
 
     # The greeter enables greetd and points it at its own wlroots compositor; the

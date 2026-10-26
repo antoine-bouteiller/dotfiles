@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   mkModule,
   pkgs,
@@ -7,8 +8,11 @@
   zoxideInit = pkgs.runCommand "zoxide-init.zsh" {} ''
     ${pkgs.zoxide}/bin/zoxide init zsh --cmd cd > $out
   '';
+  # Hooks embed the invoking path; use the profile path so open shells survive GC.
+  profileBin = "${config.home.profileDirectory}/bin";
   direnvInit = pkgs.runCommand "direnv-init.zsh" {} ''
-    ${pkgs.direnv}/bin/direnv hook zsh > $out
+    ${pkgs.direnv}/bin/direnv hook zsh \
+      | sed 's|${pkgs.direnv}/bin/direnv|${profileBin}/direnv|' > $out
   '';
   carapaceInit = pkgs.runCommand "carapace-init.zsh" {} ''
     ${pkgs.carapace}/bin/carapace _carapace zsh > $out
@@ -52,7 +56,10 @@ in
           enableZshIntegration = false;
         };
 
-        mise.enable = true;
+        mise = {
+          enable = true;
+          enableZshIntegration = false;
+        };
 
         zsh.envExtra = ''
           export CARAPACE_BRIDGES='zsh,bash'
@@ -63,6 +70,7 @@ in
             source ${zoxideInit}
           fi
           source ${direnvInit}
+          eval "$(${profileBin}/mise activate zsh)"
           source ${carapaceInit}
         '';
       };

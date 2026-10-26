@@ -36,7 +36,7 @@
       url = "github:antoine-bouteiller/spec-viewer/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    meridian.url = "github:rynfar/meridian/meridian-v1.85.0";
+    meridian.url = "github:rynfar/meridian/meridian-v1.86.0";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {

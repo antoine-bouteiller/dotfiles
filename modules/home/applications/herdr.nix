@@ -157,6 +157,18 @@ in
               ["state_icon" "machine" "workspace"]
               [
                 {
+                  token = "state_text";
+                  rules = [
+                    {
+                      equals = "idle";
+                      fg = colors.textFaint;
+                    }
+                  ];
+                }
+                "agent"
+              ]
+              [
+                {
                   token = "$subagent";
                   dim = true;
                 }

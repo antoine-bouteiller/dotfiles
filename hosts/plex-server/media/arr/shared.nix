@@ -15,7 +15,11 @@ in
           enable = true;
           dataDir = constants.${name}.dataDir;
           settings = {
-            server.bindAddress = "127.0.0.1";
+            server = {
+              bindAddress = "127.0.0.1";
+              # Loopback hosts stay allowed, so local API clients are unaffected.
+              allowedHosts = config.local.media.${name}.domain;
+            };
             auth.method = "external";
             postgres = {
               host = "/run/pgbouncer";

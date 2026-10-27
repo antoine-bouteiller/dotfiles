@@ -49,6 +49,7 @@
       initLua = ''
         vim.g.nix_tsc = "${lib.getExe' pkgs.typescript "tsc"}"
         vim.g.nix_fff_dir = "${pkgs.vimPlugins.fff-nvim}"
+        vim.g.nix_latex2text = "${lib.getExe' pkgs.python3Packages.pylatexenc "latex2text"}"
         require("config.lazy")
       '';
     };

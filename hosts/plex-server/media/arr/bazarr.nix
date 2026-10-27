@@ -14,6 +14,8 @@ in {
     enable = true;
     group = constants.libraryOwner.group;
     dataDir = constants.bazarr.dataDir;
+    # With IPv6 disabled, the default "*" leaks the IPv4 socket and the 0.0.0.0 fallback hits EADDRINUSE.
+    settings.general.ip = "127.0.0.1";
   };
 
   systemd.services.bazarr = {

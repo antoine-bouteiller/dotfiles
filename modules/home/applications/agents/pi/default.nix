@@ -168,7 +168,7 @@ in
                 "bun"
               ];
               defaultTools = ["+codemode"];
-              defaultThinkingLevel = "medium";
+              defaultThinkingLevel = "high";
               compaction.enabled = true;
               tuiMode = "fullscreen";
               warnings = {

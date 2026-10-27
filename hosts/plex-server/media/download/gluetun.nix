@@ -54,6 +54,22 @@
       # Expose gluetun's control server (public IP / VPN status) for the
       # homepage gluetun widget; localhost-only since homepage runs on the host.
       ports = ["127.0.0.1:8000:8000"];
+      volumes = [
+        "${(pkgs.formats.toml {}).generate "gluetun-auth.toml" {
+          roles = [
+            {
+              name = "homepage";
+              routes = [
+                "GET /v1/publicip/ip"
+                "GET /v1/vpn/status"
+                "GET /v1/openvpn/portforwarded"
+                "GET /v1/portforward"
+              ];
+              auth = "none";
+            }
+          ];
+        }}:/gluetun/auth/config.toml:ro"
+      ];
       extraOptions = [
         "--cap-add=NET_ADMIN"
         "--device=/dev/net/tun:/dev/net/tun"

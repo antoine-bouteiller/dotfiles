@@ -9,6 +9,10 @@
 } @ args: let
   agents = config.local.home-manager.agents;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
+  claudeProvider =
+    if agents.claude-code.enable
+    then "anthropic"
+    else "azure";
 
   secretFiles = ["${config.local.home-manager.sourcePath}/secrets/agent.yaml"] ++ agents.pi.extraSecretFiles;
 
@@ -186,6 +190,32 @@ in
               };
             };
           };
+
+          # Bare gcm (staged) and gcam (tracked) let pi commit with the conventional-commit
+          # skill, which is explicit-invocation only. The skill asks before splitting, so -p
+          # mode must delegate that decision. mkAfter places this after the git.nix aliases.
+          programs.zsh.initContent = lib.mkAfter ''
+            unalias gcm gcam 2>/dev/null
+            gcm() {
+              emulate -L zsh
+              if (( $# )); then
+                git commit -m "$@"
+                return
+              fi
+              git diff --cached --quiet && { print -u2 "nothing staged to commit"; return 1; }
+              ${lib.getExe piWrapped} -p --no-session --no-mcp --offline --tools bash,read --thinking low \
+                --model ${claudeProvider}/claude-sonnet-5-5 \
+                "/skill:conventional-commit Commit the staged changes. Splitting is delegated: split into several commits when the skill's rules call for it, without asking."
+            }
+            gcam() {
+              emulate -L zsh
+              if (( $# )); then
+                git commit -a -m "$@"
+                return
+              fi
+              git add -u && gcm
+            }
+          '';
 
           home.file = {
             ".pi/agent/APPEND_SYSTEM.md".source = ./APPEND_SYSTEM.md;

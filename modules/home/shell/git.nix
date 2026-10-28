@@ -154,6 +154,7 @@ in {
     "gcan!" = "git commit -v -a --no-edit --amend";
     gcam = "git commit -a -m";
     "gcam!" = "git commit -a --amend";
+    gcm = "git commit -m";
     gcmsg = "git commit -m";
 
     # --- Branches & Checkout ---

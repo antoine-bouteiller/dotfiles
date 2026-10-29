@@ -111,6 +111,7 @@
           pi = pkgs.callPackage ./pkgs/pi {};
           lightpanda = pkgs.callPackage ./pkgs/lightpanda {};
           ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
+          rex = pkgs.callPackage ./pkgs/rex {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           helium = pkgs.callPackage ./pkgs/helium.nix {};

@@ -17,15 +17,17 @@
   secretFiles = ["${config.local.home-manager.sourcePath}/secrets/agent.yaml"] ++ agents.pi.extraSecretFiles;
 
   # pi runs with the agent API keys decrypted into its own process only.
-  # sops exec-env takes one file, so each extra file wraps the command in another layer.
+  # Decrypting then exec'ing, rather than nesting `sops exec-env`, keeps pi as the terminal's
+  # foreground process, which Rex uses to identify the pane. Earlier files take precedence.
   piWrapped = pkgs.writeShellScriptBin "pi" ''
+    set -o pipefail
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: ''export ${name}=''${${name}:-${lib.escapeShellArg value}}'') agents.pi.env)}
     export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-${config.home.homeDirectory}/.config/sops/age/keys.txt}"
-    cmd="${lib.getExe customPkgs.pi} $(printf '%q ' "$@")"
-    for f in ${lib.escapeShellArgs secretFiles}; do
-      cmd="${lib.getExe pkgs.sops} exec-env $f $(printf '%q' "$cmd")"
+    for f in ${lib.escapeShellArgs (lib.reverseList secretFiles)}; do
+      exports=$(${lib.getExe pkgs.sops} decrypt --output-type json "$f" | ${lib.getExe pkgs.jq} -r 'to_entries[] | "export \(.key)=\(.value | @sh)"') || exit
+      eval "$exports"
     done
-    eval exec "$cmd"
+    exec ${lib.getExe customPkgs.pi} "$@"
   '';
 
   # Extension updates need no API keys, so skip the sops wrapper.

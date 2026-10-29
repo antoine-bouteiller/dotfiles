@@ -70,6 +70,9 @@ in {
   # nix-darwin passes --sidebar-depth. Uninstaller stays available via
   # `nix run nix-darwin#darwin-uninstaller`.
   documentation.doc.enable = false;
+  # nix-darwin HUPs nix-daemon on every activation when /etc/nix/machines is missing, and
+  # Home Manager activation can then hit the daemon mid-restart ("Connection refused").
+  environment.etc."nix/machines".text = lib.mkDefault "";
   system.tools.darwin-uninstaller.enable = false;
   security.pam.services.sudo_local.touchIdAuth = true;
   system.defaults.screencapture.target = "clipboard";

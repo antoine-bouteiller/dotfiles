@@ -14,8 +14,9 @@ in {
     nerd-fonts.jetbrains-mono
   ];
 
+  environment.systemPackages = [pkgs.nh pkgs.localsend];
+
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
-  environment.systemPackages = [pkgs.nh];
   # serviceConfig.ProgramArguments skips nix-darwin's /bin/sh wrapper.
   launchd.daemons.nh-clean = {
     serviceConfig = {

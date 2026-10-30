@@ -7,11 +7,11 @@
   writeShellScript,
 }: let
   pname = "amethyst-mod-manager";
-  version = "2.5.5";
+  version = "2.6.0";
 
   src = fetchurl {
     url = "https://github.com/ChrisDKN/Amethyst-Mod-Manager/releases/download/v${version}/AmethystModManager-${version}-x86_64.AppImage";
-    hash = "sha256-9U7p9g+8WcD+BQV1Llfn08Mgeg2/dSVaaixVRI63Z9Q=";
+    hash = "sha256-+icz44QnliY7OtHn+AJH0djmmBsAr2Eq12G4SsNIgLQ=";
   };
 
   # Upstream uses DwarFS, which appimageTools.extract does not support.

@@ -462,6 +462,23 @@
       },
       "parent": []
     },
+    "rex": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793377904,
+        "narHash": "sha256-R1qIKHwEsUazvDWMG2gCPDimEtWGQtog+bKON7Qy7oc=",
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/snapshot/0.0.1793377904-ge6592f.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz"
+      }
+    },
     "root": {
       "inputs": {
         "agent-browser-skill": "agent-browser-skill",
@@ -475,6 +492,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "noctalia-greeter": "noctalia-greeter",
         "privateConfig": "privateConfig",
+        "rex": "rex",
         "sops-nix": "sops-nix",
         "spec-viewer": "spec-viewer"
       }

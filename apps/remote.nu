@@ -47,7 +47,11 @@ def 'main prepare' [expected_user: string, nix: string] {
   ^sudo systemctl enable --now nix-daemon.socket
   ^sudo systemctl restart nix-daemon.service
   "AcceptEnv SOPS_AGE_KEY\n" | ^sudo tee /etc/ssh/sshd_config.d/50-sops-age.conf out> /dev/null
+  # Rex clients reach the server socket through `ssh -L`; the image's sshd_config disables it.
+  "AllowStreamLocalForwarding yes\n" | ^sudo tee /etc/ssh/sshd_config.d/50-rex.conf out> /dev/null
   ^sudo systemctl reload ssh
+  # User services, such as the Rex server, would otherwise stop with the last SSH session.
+  ^sudo loginctl enable-linger $expected_user
 }
 
 def 'main activate' [expected_user: string, activation_drv: string, nh: string, root: string, sops_key_file: string] {

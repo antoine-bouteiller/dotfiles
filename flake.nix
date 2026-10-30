@@ -33,6 +33,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     meridian.url = "github:rynfar/meridian/meridian-v1.87.0";
+    # Linux CLI and server; the lock records the immutable release URL behind this channel.
+    rex = {
+      url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     # External Claude Code skills, pinned as non-flake sources.
     agent-browser-skill = {

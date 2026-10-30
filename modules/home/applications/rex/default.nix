@@ -6,7 +6,13 @@
   lib,
   ...
 } @ args: let
-  package = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.rex;
+  cfg = config.local.home-manager.rex;
+  appPackage = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.rex;
+  # The app bundles the CLI.
+  package =
+    if cfg.client.enable
+    then appPackage
+    else config.programs.rex.package;
   agents = config.local.home-manager.agents;
   claude = agents.enable && agents.claude-code.enable;
   inherit (import ../../../../lib/palette.nix {inherit lib;}) colors hexToRgb;
@@ -70,33 +76,59 @@
   '';
 in
   mkModule args "local.home-manager.rex" {
-    description = "Rex terminal multiplexer app";
+    description = "Rex CLI and config";
+    imports = [inputs.rex.homeManagerModules.default];
+
+    options = {
+      client.enable = lib.mkEnableOption "the Rex app, which also runs a server while open";
+      # Without it, the first rex command starts a server that exits after its last session.
+      server.enable = lib.mkEnableOption "a persistent Rex server as a systemd user service";
+      hosts = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+        default = {};
+        example = {studio = ["unix:///tmp/rex-studio.sock"];};
+        description = "Rex hosts by label, each reached at its endpoints in turn.";
+      };
+    };
 
     config = _: {
       assertions = [
         {
-          assertion = pkgs.stdenv.hostPlatform.isDarwin;
-          message = "local.home-manager.rex ships the macOS app only.";
+          assertion = cfg.client.enable -> pkgs.stdenv.hostPlatform.isDarwin;
+          message = "local.home-manager.rex.client packages the macOS app only.";
         }
       ];
 
-      home.packages = [package];
+      programs.rex = {
+        enable = true;
+        # The app's CLI comes without the terminfo entry and ssh guard this module installs.
+        package = lib.mkIf cfg.client.enable null;
+      };
+      services.rex.enable = cfg.server.enable;
+
+      home.packages = lib.mkIf cfg.client.enable [appPackage];
 
       # Sparkle would replace the Nix-managed app with a version the store CLI doesn't match.
-      targets.darwin.defaults."com.superlogical.rex" = {
+      targets.darwin.defaults."com.superlogical.rex" = lib.mkIf cfg.client.enable {
         SUEnableAutomaticChecks = false;
         "Workspace.darkThemeID" = themeId;
       };
 
       # Rex reads custom themes as JSON in a data value, which targets.darwin.defaults cannot
       # write. This replaces any theme created in the app.
-      home.activation.rexTheme = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      home.activation.rexTheme = lib.mkIf cfg.client.enable (lib.hm.dag.entryAfter ["writeBoundary"] ''
         run /usr/bin/defaults write com.superlogical.rex Workspace.customThemes \
           -data "$(/usr/bin/xxd -p ${themes} | /usr/bin/tr -d '\n')"
-      '';
+      '');
 
       xdg.configFile."rex/init.lua" = {
-        source = ./init.lua;
+        text =
+          builtins.readFile ./init.lua
+          + lib.concatStrings (lib.mapAttrsToList (label: endpoints: ''
+
+              rex.host(${lib.generators.toLua {} {inherit label endpoints;}})
+            '')
+            cfg.hosts);
         onChange = "${lib.getExe package} config reload --autostart=false >/dev/null 2>&1 || true";
       };
 

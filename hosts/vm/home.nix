@@ -5,24 +5,7 @@
   lib,
   pkgs,
   ...
-}: let
-  # Long-lived remote sessions survive SSH connections. Keep their inherited path
-  # stable, without letting short-lived SSH probes displace a working connection.
-  # A socket can outlive its usable agent; require keys and bound health checks.
-  sshAgentSocket = ''
-    if [[ -n "''${SSH_CONNECTION:-}" ]]; then
-      if [[ -n "''${SSH_AUTH_SOCK:-}" &&
-            "$SSH_AUTH_SOCK" != "$HOME/.ssh/agent.sock" &&
-            -S "$SSH_AUTH_SOCK" ]] &&
-         ! SSH_AUTH_SOCK="$HOME/.ssh/agent.sock" ${pkgs.coreutils}/bin/timeout 2s ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1 &&
-         ${pkgs.coreutils}/bin/timeout 2s ${pkgs.openssh}/bin/ssh-add -l >/dev/null 2>&1; then
-        mkdir -p -m 700 -- "$HOME/.ssh"
-        ln -sfn -- "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
-      fi
-      export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
-    fi
-  '';
-in {
+}: {
   imports = [../../modules/home];
 
   # Shared modules use the checkout path normally supplied by NixOS/nix-darwin.
@@ -33,6 +16,10 @@ in {
     workstation.enable = true;
     # Headless: reached over SSH, no local terminal emulator.
     terminal.enable = false;
+    rex = {
+      enable = true;
+      server.enable = true;
+    };
     agents.claude-code.enable = true;
   };
 
@@ -70,11 +57,8 @@ in {
   # Standalone HM cannot change the login shell; hand interactive bash off to zsh.
   programs.bash = {
     enable = true;
-    # Must run before the interactive guard: `ssh host command` sessions are non-interactive.
-    bashrcExtra = sshAgentSocket;
     initExtra = "exec ${lib.getExe pkgs.zsh} -l";
   };
-  programs.zsh.envExtra = sshAgentSocket;
 
   targets.genericLinux.enable = true;
   programs.home-manager.enable = true;

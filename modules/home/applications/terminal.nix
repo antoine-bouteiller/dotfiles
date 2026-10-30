@@ -32,6 +32,9 @@ in
         };
       };
 
-      local.home-manager.rex.enable = lib.mkIf isDarwin (lib.mkDefault true);
+      local.home-manager.rex = lib.mkIf isDarwin {
+        enable = lib.mkDefault true;
+        client.enable = lib.mkDefault true;
+      };
     };
   }

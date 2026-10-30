@@ -14,17 +14,19 @@
     then "anthropic"
     else "azure";
 
-  secretFiles = ["${config.local.home-manager.sourcePath}/secrets/agent.yaml"] ++ agents.pi.extraSecretFiles;
+  agentSecretFile =
+    if agents.pi.agentSecretFile != null
+    then agents.pi.agentSecretFile
+    else config.sops.secrets.pi-agent.path;
+  secretFiles = [agentSecretFile] ++ agents.pi.secretFiles;
 
-  # pi runs with the agent API keys decrypted into its own process only.
-  # Decrypting then exec'ing, rather than nesting `sops exec-env`, keeps pi as the terminal's
+  # Exec'ing pi, rather than nesting it under another command, keeps pi as the terminal's
   # foreground process, which Rex uses to identify the pane. Earlier files take precedence.
   piWrapped = pkgs.writeShellScriptBin "pi" ''
     set -o pipefail
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: ''export ${name}=''${${name}:-${lib.escapeShellArg value}}'') agents.pi.env)}
-    export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-${config.home.homeDirectory}/.config/sops/age/keys.txt}"
     for f in ${lib.escapeShellArgs (lib.reverseList secretFiles)}; do
-      exports=$(${lib.getExe pkgs.sops} decrypt --output-type json "$f" | ${lib.getExe pkgs.jq} -r 'to_entries[] | "export \(.key)=\(.value | @sh)"') || exit
+      exports=$(${lib.getExe pkgs.yq-go} -o json . "$f" | ${lib.getExe pkgs.jq} -r 'to_entries[] | "export \(.key)=\(.value | @sh)"') || exit
       eval "$exports"
     done
     exec ${lib.getExe customPkgs.pi} "$@"
@@ -111,15 +113,27 @@ in
       description = "Default environment variables for pi; existing non-empty values take precedence.";
     };
 
-    options.extraSecretFiles = lib.mkOption {
+    options.agentSecretFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "secrets/agent.yaml decrypted by the system; null decrypts it with Home Manager's sops-nix.";
+    };
+
+    options.secretFiles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
-      description = "Additional sops files decrypted into pi's environment, alongside secrets/agent.yaml.";
+      description = "Additional decrypted YAML files loaded into pi's environment; secrets/agent.yaml wins on conflicts.";
     };
 
     config = _:
       lib.mkIf agents.enable (lib.mkMerge [
         {
+          sops.secrets.pi-agent = lib.mkIf (agents.pi.agentSecretFile == null) {
+            sopsFile = inputs.self + "/secrets/agent.yaml";
+            key = "";
+            format = "yaml";
+          };
+
           programs.pi-coding-agent = {
             enable = true;
             package = piWrapped;

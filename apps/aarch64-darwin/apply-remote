@@ -37,6 +37,7 @@ def main [target: string] {
   let private_source = $archive.inputs.privateConfig.path
   let deployment = ^nix eval --json $"($public_source)#homeConfigurations.vm" --no-write-lock-file --override-input privateConfig $"path:($private_source)" --apply 'home: {
     username = home.config.home.username;
+    sopsKeyFile = home.config.sops.age.keyFile;
     drvPath = home.activationPackage.drvPath;
     nushell = { inherit (home.pkgs.nushell) drvPath; output = home.pkgs.nushell.outPath; };
     nh = { inherit (home.pkgs.nh) drvPath; output = home.pkgs.nh.outPath; };
@@ -103,8 +104,15 @@ sudo systemctl restart nix-daemon'#
     # The master's sshd process predates the reload; reconnect so AcceptEnv applies
     # and activation receives the SOPS key.
     do $close_master
-    let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh" $"($roots)/home"] | each {|arg| shell-quote $arg } | str join ' '
-    ^ssh ...$mux -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+    let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh" $"($roots)/home" $deployment.sopsKeyFile] | each {|arg| shell-quote $arg } | str join ' '
+    let age_key = if ($env.SOPS_AGE_KEY? | is-not-empty) {
+      $env.SOPS_AGE_KEY
+    } else {
+      open --raw ($env.SOPS_AGE_KEY_FILE? | default ($env.HOME | path join .config/sops/age/keys.txt))
+    }
+    with-env {SOPS_AGE_KEY: $age_key} {
+      ^ssh ...$mux -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")
+    }
   } catch {|err|
     ^ssh ...$mux -- $target (remote-command $expected_user $cleanup)
     do $close_master

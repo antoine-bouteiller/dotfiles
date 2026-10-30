@@ -1,4 +1,5 @@
 {
+  config,
   host,
   inputs,
   lib,
@@ -34,6 +35,14 @@ in {
     terminal.enable = false;
     agents.claude-code.enable = true;
   };
+
+  # The age key exists only while apply-remote activates, which writes it here and
+  # removes it after; login runs skip, and secrets stay on disk across reboots.
+  sops = {
+    age.keyFile = "${config.xdg.stateHome}/sops-nix/age-key.txt";
+    defaultSecretsMountPoint = "${config.xdg.stateHome}/sops-nix/secrets.d";
+  };
+  systemd.user.services.sops-nix.Unit.ConditionPathExists = config.sops.age.keyFile;
 
   home = {
     username = host.user;

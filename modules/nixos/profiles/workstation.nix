@@ -1,5 +1,7 @@
 {
   mkModule,
+  config,
+  host,
   pkgs,
   lib,
   inputs,
@@ -13,9 +15,21 @@ in
     config = _: {
       local.nixos.desktop.enable = lib.mkDefault true;
 
+      # The SSH host key is a recipient of secrets/agent.yaml; users have no age key here.
+      sops = {
+        age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+        secrets.pi-agent = {
+          sopsFile = inputs.self + "/secrets/agent.yaml";
+          key = "";
+          format = "yaml";
+          owner = host.user;
+        };
+      };
+
       home-manager.sharedModules = [
         {
           local.home-manager.workstation.enable = lib.mkDefault true;
+          local.home-manager.agents.pi.agentSecretFile = config.sops.secrets.pi-agent.path;
         }
       ];
 

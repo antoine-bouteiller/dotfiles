@@ -50,10 +50,22 @@ def 'main prepare' [expected_user: string, nix: string] {
   ^sudo systemctl reload ssh
 }
 
-def 'main activate' [expected_user: string, activation_drv: string, nh: string, root: string] {
+def 'main activate' [expected_user: string, activation_drv: string, nh: string, root: string, sops_key_file: string] {
   check-user $expected_user
+  if ($env.SOPS_AGE_KEY? | is-empty) {
+    error make {msg: 'Activation needs SOPS_AGE_KEY for sops-nix'}
+  }
   let result = ^/nix/var/nix/profiles/default/bin/nix build --out-link $root --json $"($activation_drv)^out" | from json
-  ^$nh home switch --show-activation-logs ($result | get 0.outputs.out)
+  # sops-nix runs only while this file exists, so the key never outlives activation.
+  ^install -D -m 600 /dev/null $sops_key_file
+  try {
+    $env.SOPS_AGE_KEY | save --force $sops_key_file
+    ^$nh home switch --show-activation-logs ($result | get 0.outputs.out)
+  } catch {|err|
+    rm --force $sops_key_file
+    error make {msg: $err.msg}
+  }
+  rm --force $sops_key_file
   ^$nh clean user --keep $generations_to_keep --keep-one --no-gcroots
 }
 

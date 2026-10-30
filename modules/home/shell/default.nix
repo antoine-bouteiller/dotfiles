@@ -5,6 +5,6 @@
     ./git.nix
     ./ssh.nix
     ./shell-tools.nix
-    ./runenv.nix
+    ./sops.nix
   ];
 }

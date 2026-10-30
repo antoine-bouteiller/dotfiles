@@ -48,7 +48,10 @@ return {
   },
   {
     "folke/noice.nvim",
-    -- Auto-hover on blank positions would otherwise notify "No information available".
-    opts = { lsp = { hover = { silent = true } } },
+    opts = {
+      -- Auto-hover on blank positions would otherwise notify "No information available".
+      lsp = { hover = { silent = true } },
+      presets = { lsp_doc_border = true },
+    },
   },
 }

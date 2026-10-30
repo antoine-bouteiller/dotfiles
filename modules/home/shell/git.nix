@@ -110,8 +110,8 @@ in {
       gitCredentialHelper.enable = true;
     };
 
-    # Git defaults LESS to FRX when unset. -X keeps less off the alternate screen, so herdr
-    # scrolls its own scrollback instead of turning the wheel into arrow keys.
+    # Git defaults LESS to FRX when unset. -X keeps less off the alternate screen, so the
+    # terminal scrolls its own scrollback instead of turning the wheel into arrow keys.
     home.sessionVariables.LESS = "-FR";
 
     programs.delta = {

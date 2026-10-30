@@ -25,7 +25,7 @@ local function focused(ctx)
   end
 end
 
--- herdr follows the focused pane's directory for new tabs; Rex starts them in $HOME.
+-- Rex starts new tabs in $HOME; these follow the focused pane's directory instead.
 local function cwd_of(process)
   return process and process.foreground and process.foreground.cwd
 end

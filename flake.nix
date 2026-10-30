@@ -28,10 +28,6 @@
       url = "github:antoine-bouteiller/autoscan";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    herdr = {
-      url = "github:ogulcancelik/herdr/v0.9.5";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     spec-viewer = {
       url = "github:antoine-bouteiller/spec-viewer/main";
       inputs.nixpkgs.follows = "nixpkgs";

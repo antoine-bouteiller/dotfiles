@@ -9,7 +9,6 @@
   agents = config.local.home-manager.agents;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
   hooksDir = ./hooks;
-  herdrHook = "${config.programs.claude-code.configDir}/hooks/herdr-agent-state.sh";
 in
   mkModule args "local.home-manager.agents.claude-code" {
     description = "claude-code, with its config and ~/.claude/skills";
@@ -22,8 +21,6 @@ in
           package = customPkgs.claude-code;
           enableMcpIntegration = true;
           context = ./CLAUDE.md;
-          # herdr reports the integration from this path, so the hook must live here.
-          hooks."herdr-agent-state.sh" = lib.mkIf config.local.home-manager.herdr.enable "${inputs.herdr}/src/integration/assets/claude/herdr-agent-state.sh";
           settings = {
             permissions = {
               deny = [
@@ -70,18 +67,6 @@ in
                     {
                       type = "command";
                       command = "${hooksDir}/block-dangerous-git.sh";
-                    }
-                  ];
-                }
-              ];
-              SessionStart = lib.mkIf config.local.home-manager.herdr.enable [
-                {
-                  matcher = "^(startup|resume|clear|compact|fork)$";
-                  hooks = [
-                    {
-                      type = "command";
-                      command = "bash '${herdrHook}' session";
-                      timeout = 10;
                     }
                   ];
                 }

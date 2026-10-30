@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  # HerdR's daemon and panes survive SSH connections. Keep their inherited path
+  # Long-lived remote sessions survive SSH connections. Keep their inherited path
   # stable, without letting short-lived SSH probes displace a working connection.
   # A socket can outlive its usable agent; require keys and bound health checks.
   sshAgentSocket = ''
@@ -61,7 +61,7 @@ in {
   # Standalone HM cannot change the login shell; hand interactive bash off to zsh.
   programs.bash = {
     enable = true;
-    # Must run before the interactive guard: HerdR starts via `ssh host command`.
+    # Must run before the interactive guard: `ssh host command` sessions are non-interactive.
     bashrcExtra = sshAgentSocket;
     initExtra = "exec ${lib.getExe pkgs.zsh} -l";
   };

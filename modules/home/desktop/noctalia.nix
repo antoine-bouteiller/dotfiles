@@ -177,6 +177,8 @@ in {
       customPkgs.ai-usagebar
       # `nightwatch75/dns-switcher`'s lookup tester shells out to `dig`.
       pkgs.dnsutils
+      # Neovim's Wayland clipboard provider.
+      pkgs.wl-clipboard
     ];
   };
 }

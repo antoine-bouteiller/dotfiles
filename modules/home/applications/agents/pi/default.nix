@@ -205,9 +205,32 @@ in
                 return
               fi
               git diff --cached --quiet && { print -u2 "nothing staged to commit"; return 1; }
-              ${lib.getExe piWrapped} -p --no-session --no-mcp --offline --tools bash,read --thinking low \
-                --model ${claudeProvider}/claude-sonnet-5-5 \
-                "/skill:conventional-commit Commit the staged changes. Splitting is delegated: split into several commits when the skill's rules call for it, without asking."
+              local out ret spinner
+              if [[ -t 2 ]]; then
+                {
+                  local frames=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏) i=1
+                  while :; do
+                    print -nu2 "\r$frames[i] Committing…"
+                    i=$(( i % $#frames + 1 ))
+                    sleep 0.1
+                  done
+                } &!
+                spinner=$!
+              fi
+              # Captured so pi's reply cannot land on the spinner line; `always` stops it on Ctrl-C.
+              {
+                out=$(${lib.getExe piWrapped} -p --no-session --no-mcp --offline --tools bash,read --thinking low \
+                  --model ${claudeProvider}/claude-sonnet-5-5 \
+                  "/skill:conventional-commit Commit the staged changes. Splitting is delegated: split into several commits when the skill's rules call for it, without asking.")
+                ret=$?
+              } always {
+                if [[ -n $spinner ]]; then
+                  kill $spinner 2>/dev/null
+                  print -nu2 "\r\e[2K"
+                fi
+              }
+              [[ -n $out ]] && print -r -- "$out"
+              return ret
             }
             gcam() {
               emulate -L zsh

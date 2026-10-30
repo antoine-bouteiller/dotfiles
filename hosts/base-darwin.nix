@@ -98,7 +98,6 @@ in {
     casks = [
       # Development Tools
       "orbstack"
-      "ghostty"
       "zed"
       "dbx"
 

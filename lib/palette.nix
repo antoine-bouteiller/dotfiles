@@ -38,6 +38,8 @@
     then below
     else below + 1;
 in {
+  inherit hexToRgb;
+
   colors = {
     blush = "#ead5cf";
     salmon = "#e6bfba";

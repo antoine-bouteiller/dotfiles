@@ -39,7 +39,7 @@
 
   inherit ((import ../../../../../lib/palette.nix {inherit lib;})) colors;
   theme = {
-    name = "pi";
+    name = "Dotfiles";
     vars = colors;
     export = {
       pageBg = colors.backgroundDark;

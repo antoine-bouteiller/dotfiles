@@ -11,7 +11,7 @@ in {
   config = lib.mkIf config.local.home-manager.desktop.enable {
     programs.noctalia = {
       enable = true;
-      customPalettes.nix.dark = {
+      customPalettes.Dotfiles.dark = {
         mPrimary = colors.textSecondary;
         mOnPrimary = colors.background;
         # Secondary also colors tooltip labels, so it must contrast with the surface.
@@ -128,7 +128,7 @@ in {
         theme = {
           mode = "dark";
           source = "custom";
-          custom_palette = "nix";
+          custom_palette = "Dotfiles";
           templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot"];
         };
       };

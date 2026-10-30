@@ -3,7 +3,7 @@
 in {
   programs.btop = {
     enable = true;
-    themes.btop = ''
+    themes.Dotfiles = ''
       theme[main_bg]="${colors.background}"
       theme[main_fg]="${colors.text}"
       theme[title]="${colors.text}"
@@ -54,7 +54,7 @@ in {
       theme[followed_fg]="${colors.background}"
     '';
     settings = {
-      color_theme = "btop";
+      color_theme = "Dotfiles";
       theme_background = true;
       truecolor = true;
       force_tty = false;

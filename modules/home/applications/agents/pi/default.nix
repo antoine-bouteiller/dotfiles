@@ -144,7 +144,7 @@ in
                   then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
                   else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
                 );
-              herdr = {
+              subagents = {
                 allowedModels =
                   [
                     "azure/gpt-6.1-sol"

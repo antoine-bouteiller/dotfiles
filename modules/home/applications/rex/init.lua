@@ -93,5 +93,5 @@ rex.action({
   end,
 })
 
-rex.bind("cmd+shift+d", "dev_tab")
+rex.bind("cmd+shift+e", "dev_tab")
 rex.bind("cmd+shift+v", "nvim_tab")

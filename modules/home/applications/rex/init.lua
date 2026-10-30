@@ -49,6 +49,13 @@ local function is_empty(window, block_id, process)
     and ancestors[1].pid == process.child.pid
 end
 
+-- The server makes the new window active, but the app keeps showing its current tab.
+-- queue fails without an invoking app (CLI) and Remote Control off; the window still opens.
+local function new_tab(options)
+  local result = check(rex.session.new_window(options))
+  pcall(rex.client.queue, "session.select", { session_id = rex.session_id, window_id = result.window_id })
+end
+
 rex.action({
   name = "dev_tab",
   title = "Open Dev Tab",
@@ -70,10 +77,10 @@ rex.action({
       return
     end
 
-    check(rex.session.new_window({
+    new_tab({
       window_label = "Dev",
       layout = rex.layout.horizontal(0.5, term({ cwd = cwd, initial_input = "pi\n" }), right),
-    }))
+    })
   end,
 })
 
@@ -82,14 +89,14 @@ rex.action({
   title = "Open NeoVim Tab",
   run = function(ctx)
     local _, _, process = focused(ctx)
-    check(rex.session.new_window({
+    new_tab({
       window_label = "NeoVim",
       layout = rex.layout.block({
         flavor = shell,
         label = "NeoVim",
         options = { cwd = cwd_of(process), initial_input = "nvim .\n" },
       }),
-    }))
+    })
   end,
 })
 

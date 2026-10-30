@@ -113,6 +113,7 @@ in {
       "unnaturalscrollwheels"
 
       "spotify"
+      "plex"
     ];
     greedyCasks = true;
     masApps = {

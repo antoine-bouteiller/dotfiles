@@ -6,6 +6,7 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlczrZU/ZG/rKQomLJYjLM4hDDMwYvge2Rl2OLQWojG antoinebouteiller@desktop"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIfK4sKI0QpEbaADjQm/7bK3DlNY/akOh+6yC+q3aG17 work-key"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJf/EE7y7ua7CVtBHXJqSN+jl5xN+c2hKyjI3oVFG9LT antoinebouteiller@antoine-dell"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCx2e0bW0kSgvBWkltAtLZjC9vYj/XGeO3CFxg5EV2N bitwarden-ssh-agent"
   ];
   # Keyed by hosts/<name>; passed to every module as the `host` special arg.
   hosts = {

@@ -8,10 +8,11 @@
   rewrites = "${pkgs.nushell}/bin/nu --no-config-file ${./rewrites.nu}";
   adguardYaml = "/var/lib/AdGuardHome/AdGuardHome.yaml";
   handoffDir = "/run/adguardhome-tailscale-rewrites";
+  port = 3000;
 in {
   config = {
     local.media.adguard = {
-      port = config.services.adguardhome.port;
+      inherit port;
     };
 
     # AdGuard owns port 53 on every address, so resolved would have nowhere to
@@ -26,11 +27,10 @@ in {
 
     services.adguardhome = {
       enable = true;
-      # Bind only the admin UI to loopback; DNS remains available on Tailscale.
-      host = "127.0.0.1";
-      port = 3000;
       mutableSettings = true;
       settings = {
+        # Bind only the admin UI to loopback; DNS remains available on Tailscale.
+        http.address = "127.0.0.1:${toString port}";
         dns = {
           bind_hosts = ["0.0.0.0"];
           port = 53;

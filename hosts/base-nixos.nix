@@ -1,4 +1,5 @@
 {
+  config,
   globals,
   host,
   lib,
@@ -59,6 +60,8 @@ in {
     };
     gnupg.sshKeyPaths = [];
   };
+  # The key is root-only; the user's `sops` reads it through sudo.
+  environment.variables.SOPS_AGE_KEY_CMD = "sudo cat ${config.sops.age.keyFile}";
 
   i18n.defaultLocale = "en_GB.UTF-8";
   console = {

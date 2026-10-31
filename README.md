@@ -58,7 +58,8 @@ Flakes ignore untracked files: `git add` new `.nix` files before applying.
 `.sops.yaml` anchors one age recipient per `hosts/<name>` plus `admin`, and a single rule
 encrypts every file in `secrets/` to all of them. `.private/.sops.yaml` lists only `admin`
 and `macbook`. NixOS hosts decrypt with `/var/lib/sops-nix/key.txt`, independent of their
-SSH host key. The Mac uses `~/.config/sops/age/keys.txt` and forwards it to `vm`.
+SSH host key. That key is root-only: `SOPS_AGE_KEY_CMD` makes `sops edit` read it through
+`sudo`, and takes effect at the next login. The Mac uses `~/.config/sops/age/keys.txt` and forwards it to `vm`.
 
 The admin identity lives only in the Bitwarden secure note `sops-admin-age-key`: its
 notes hold the `AGE-SECRET-KEY-` line. `nix run .#rekey` rotates the current host's key:

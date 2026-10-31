@@ -84,7 +84,8 @@ export def reencrypt [root: path, name: string, value: string, finish: closure] 
       let config = $checkout | path join .sops.yaml
       set-recipient $config $name $value
       for file in (secret-files $checkout) {
-        with-env $sops_env { ^sops --config $config updatekeys --yes $file }
+        # The host's SOPS_AGE_KEY_CMD fails before its key file exists.
+        with-env $sops_env { hide-env --ignore-errors SOPS_AGE_KEY_CMD; ^sops --config $config updatekeys --yes $file }
       }
     }
     do $finish

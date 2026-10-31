@@ -2,7 +2,7 @@ keys:
   - &admin age14ja0nn7flqljd3xv9qvkgzfd4pshck2su8trnh3ztl97rwtcm92qaurads
   - &desktop ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlczrZU/ZG/rKQomLJYjLM4hDDMwYvge2Rl2OLQWojG
   - &dell ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJf/EE7y7ua7CVtBHXJqSN+jl5xN+c2hKyjI3oVFG9LT
-  - &plex-server age1zxaucdgk9gf9kntp63h9wsnkduadygetdq3lgyj05whdq6k3248qecvdfw
+  - &plex-server age15lauq8cgwyc7uhe5ult2eejw0defe2u3ke5upw2nv8xzdafxty9snzv5fp
   - &macbook age1w5wyppwmfvwwh4xn2hpkwn8flwh69aarhyt4xsnp6hm3d5y69sfs8n6glg
 creation_rules:
   - age:

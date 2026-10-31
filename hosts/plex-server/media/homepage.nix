@@ -179,7 +179,7 @@ in {
               href = "https://${localMedia.bazarr.domain}";
               widget = {
                 type = "bazarr";
-                url = "http://localhost:${toString config.services.bazarr.listenPort}";
+                url = "http://localhost:${toString config.services.bazarr.settings.general.port}";
                 key = "{{HOMEPAGE_FILE_BAZARR_API_KEY}}";
               };
             };

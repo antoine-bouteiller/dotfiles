@@ -34,7 +34,7 @@ in {
   };
 
   local.media.bazarr = {
-    port = config.services.bazarr.listenPort;
+    port = config.services.bazarr.settings.general.port;
     auth = true;
   };
 

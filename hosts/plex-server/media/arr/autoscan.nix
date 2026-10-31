@@ -13,7 +13,7 @@ in {
       tmdbApiUrl = "https://api.themoviedb.org/3";
       sonarrApiUrl = "http://localhost:${toString config.services.sonarr.settings.server.port}";
       radarrApiUrl = "http://localhost:${toString config.services.radarr.settings.server.port}";
-      bazarrApiUrl = "http://localhost:${toString config.services.bazarr.listenPort}";
+      bazarrApiUrl = "http://localhost:${toString config.services.bazarr.settings.general.port}";
       bazarrFrenchProfile = "French (forced)";
       transcodePath = "${constants.paths.mediaDir}/transcode";
       postgres = {

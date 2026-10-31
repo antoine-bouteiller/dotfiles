@@ -35,6 +35,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules (`applications/<app>/`, `shell/`).
 - `pkgs/<name>/` — custom derivations with `passthru.updateScript` → `update.nu`; `pkgs/update-utils.nu` exports `root_dir`, `github_headers`, and `to_sri` for updater scripts.
 - `apps/<system>/` — Nushell app scripts. `flake.nix` `mkApp` pins Nushell with `--no-config-file`; `apps/aarch64-darwin/update` is a symlink to `../x86_64-linux/update`, selecting its platform from the invoked path. `apps/private-config.nu` owns checkout validation and local Git snapshot references.
+- `apps/age-keys.nu` owns sops recipients: `.sops.yaml` anchors one key per `hosts/<name>` plus the Bitwarden `admin` key under a single rule; `bootstrap` and `rekey` update anchors and re-encrypt. NixOS hosts decrypt with `/var/lib/sops-nix/key.txt`, never SSH host keys.
 - `lib/nix-settings.json` owns shared Nix features, caches, and signing keys; `hosts/base.nix` imports it and `apps/config.nu` renders it for bootstrap.
 - `dev/` — dev-shell flake (treefmt + git hooks).
 

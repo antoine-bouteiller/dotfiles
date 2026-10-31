@@ -1,6 +1,13 @@
+keys:
+  - &admin age14ja0nn7flqljd3xv9qvkgzfd4pshck2su8trnh3ztl97rwtcm92qaurads
+  - &desktop ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlczrZU/ZG/rKQomLJYjLM4hDDMwYvge2Rl2OLQWojG
+  - &dell ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJf/EE7y7ua7CVtBHXJqSN+jl5xN+c2hKyjI3oVFG9LT
+  - &plex-server age1zxaucdgk9gf9kntp63h9wsnkduadygetdq3lgyj05whdq6k3248qecvdfw
+  - &macbook age1w5wyppwmfvwwh4xn2hpkwn8flwh69aarhyt4xsnp6hm3d5y69sfs8n6glg
 creation_rules:
   - age:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlczrZU/ZG/rKQomLJYjLM4hDDMwYvge2Rl2OLQWojG # desktop
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJf/EE7y7ua7CVtBHXJqSN+jl5xN+c2hKyjI3oVFG9LT # antoine-dell
-      - age1zxaucdgk9gf9kntp63h9wsnkduadygetdq3lgyj05whdq6k3248qecvdfw # plex server
-      - age1w5wyppwmfvwwh4xn2hpkwn8flwh69aarhyt4xsnp6hm3d5y69sfs8n6glg # Mac Work
+      - *admin
+      - *desktop
+      - *dell
+      - *plex-server
+      - *macbook

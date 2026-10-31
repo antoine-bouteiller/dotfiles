@@ -5,6 +5,7 @@
 #   nix run .#bootstrap -- plex-server
 
 use ../config.nu *
+use ../age-keys.nu *
 
 def fail [message: string] {
   print -e $message
@@ -31,6 +32,26 @@ def check-mount [target: string, device: string] {
   }
 }
 
+# The ISO cannot push, so re-encrypted secrets go to the installed flakePath checkout,
+# copied from the current checkout or cloned when running from the read-only /etc/dotfiles.
+def prepare-checkout [checkout: string] {
+  let source = (^git rev-parse --show-toplevel | complete)
+  let source = if $source.exit_code == 0 { $source.stdout | str trim } else { null }
+  if $source == $checkout {
+    return
+  }
+  let exists = (try { sudo test -e $checkout; true } catch { false })
+  if $exists {
+    fail $"($checkout) already exists: run bootstrap from it."
+  }
+  sudo install -d -o (^id -u | str trim) ($checkout | path dirname)
+  if $source == null {
+    ^git clone ($env.DOTFILES_REPO? | default 'https://github.com/antoine-bouteiller/dotfiles.git') $checkout
+  } else {
+    ^cp -a $"($source)/." $checkout
+  }
+}
+
 def main [...args: string] {
   if ($args | length) != 1 {
     fail 'usage: nix run .#bootstrap -- <flake-hostname>'
@@ -54,6 +75,9 @@ def main [...args: string] {
   let efi_mount = (^nix eval --raw $"($config).boot.loader.efi.efiSysMountPoint" | str trim)
   let efi_device = (^nix eval --raw $"($config).fileSystems.\"($efi_mount)\".device" | str trim)
   let secure_boot = (^nix eval --json $"($config).secureBoot.enable" | str trim)
+  let host_args = (^nix eval --json $".#nixosConfigurations.($host)._module.specialArgs.host" | from json)
+  let flake_path = (^nix eval --raw $"($config).flakePath" | str trim)
+  let key_file = $"/mnt(^nix eval --raw $"($config).sops.age.keyFile" | str trim)"
 
   # ponytail: current hosts use ext4 root and FAT EFI; add subvolume validation before supporting Btrfs.
   check-mount /mnt $root_device
@@ -85,8 +109,27 @@ def main [...args: string] {
     }
   }
 
+  # A reinstall keeps its age key; secrets are re-encrypted only when .sops.yaml lacks it.
+  let key_exists = (try { sudo test -s $key_file; true } catch { false })
+  let current = if $key_exists { recipient-from-file $key_file } else { null }
+  let flake = if $current != null and (recipient .sops.yaml $host_args.name) == $current {
+    print $"Keeping ($key_file)."
+    '.'
+  } else {
+    let checkout = $"/mnt($flake_path)"
+    prepare-checkout $checkout
+    if $current == null {
+      print $"Creating ($key_file)..."
+      let key = generate-key
+      reencrypt $checkout $host_args.name $key.recipient {|| install-key $key_file $key.identity }
+    } else {
+      reencrypt $checkout $host_args.name $current {||}
+    }
+    $checkout
+  }
+
   print 'Installing without formatting mounted filesystems...'
-  sudo nixos-install --root /mnt --flake $".#($host)" --no-root-password
+  sudo nixos-install --root /mnt --flake $"($flake)#($host)" --no-root-password
 
   # Fresh accounts would otherwise be locked. Do not reset reinstall credentials.
   if $fresh_install {
@@ -105,5 +148,9 @@ def main [...args: string] {
     }
   }
 
+  if $flake != '.' {
+    sudo nixos-enter --root /mnt -c $"chown -R ($host_args.user): ($flake_path)"
+    print $"After restarting, commit and push .sops.yaml and secrets/ from ($flake_path): the remote does not list this host's key yet."
+  }
   print 'Install complete. Restart; see README.md for post-install steps.'
 }

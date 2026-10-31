@@ -47,10 +47,24 @@ Hosts:
 | `nix build .#checks.<system>.<host>`         | dry build a host (CI builds all)                                            |
 | `nix run ./dev`                              | treefmt (alejandra, deadnix, statix, oxfmt, Renovate validator)             |
 | `nix run .#apply-remote -- <user>@<vm-host>` | deploy tracked local sources to the standalone VM without a remote checkout |
+| `nix run .#rekey`                            | rotate the current host's sops age key and re-encrypt secrets               |
 
 `apply-remote` targets the standalone Home Manager `vm`, not the nix-darwin Linux-builder VM.
 
 Flakes ignore untracked files: `git add` new `.nix` files before applying.
+
+## Secrets
+
+`.sops.yaml` anchors one age recipient per `hosts/<name>` plus `admin`, and a single rule
+encrypts every file in `secrets/` to all of them. `.private/.sops.yaml` lists only `admin`
+and `macbook`. NixOS hosts decrypt with `/var/lib/sops-nix/key.txt`, independent of their
+SSH host key. The Mac uses `~/.config/sops/age/keys.txt` and forwards it to `vm`.
+
+The admin identity lives only in the Bitwarden secure note `sops-admin-age-key`: its
+notes hold the `AGE-SECRET-KEY-` line. `nix run .#rekey` rotates the current host's key:
+it fetches the admin key with `bw`, updates the host's anchor in every checkout listing
+it, runs `sops updatekeys` on the tracked secrets, then installs the new key. Commit both
+checkouts and apply. Setting `SOPS_AGE_KEY` or `SOPS_AGE_KEY_FILE` skips Bitwarden.
 
 ## Private configuration
 
@@ -165,8 +179,13 @@ Bootstrap validates the NixOS configuration and checks that mounted root/EFI UUI
 match it and neither mount is a subdirectory bind mount. Existing Secure Boot keys
 and login passwords are retained; keys are created only for fresh Secure Boot
 installs, and incomplete or missing reinstall keys require restoration. This still
-writes a NixOS generation and bootloader: back up first. Keep existing SSH host keys
-and sops keys, especially on `plex-server`, whose secrets use its SSH host key.
+writes a NixOS generation and bootloader: back up first.
+
+Bootstrap keeps an existing `/mnt/var/lib/sops-nix/key.txt`. Without one, it generates
+the host's age key and re-encrypts the secrets for it; see [Secrets](#secrets). The ISO
+cannot push, so re-encryption happens in a checkout at the host's `flakePath` under `/mnt`,
+copied from the current checkout or cloned from `DOTFILES_REPO`, and the system is
+installed from it. After restarting, commit and push `.sops.yaml` and `secrets/` from there.
 
 ### Partitioning a new disk (`antoine-dell`, `desktop`)
 

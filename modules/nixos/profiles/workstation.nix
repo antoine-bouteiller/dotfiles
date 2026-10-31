@@ -15,9 +15,8 @@ in
     config = _: {
       local.nixos.desktop.enable = lib.mkDefault true;
 
-      # The SSH host key is a recipient of secrets/agent.yaml; users have no age key here.
+      # Decrypted by the system's host key; users have no age key here.
       sops = {
-        age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
         secrets.pi-agent = {
           sopsFile = inputs.self + "/secrets/agent.yaml";
           key = "";

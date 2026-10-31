@@ -16,8 +16,7 @@
     pkgs.sops
   ];
 
-  # Carry the flake so a reinstall needs no clone. The sops age keys live
-  # outside the repo and are still restored by hand.
+  # Carry the flake so a reinstall that keeps its sops age key needs no clone.
   environment.etc.dotfiles.source = self;
 
   users.users.root.openssh.authorizedKeys.keys = globals.sshKeys;

@@ -1,0 +1,23 @@
+#!/usr/bin/env nu
+# Rotates this host's sops age key: generates a new one, re-encrypts the secrets of
+# every checkout listing the host with the Bitwarden admin key, then installs it.
+# Apply afterwards; generations from before the rotation can no longer decrypt.
+#
+#   nix run .#rekey
+
+use ../private-config.nu
+use ../age-keys.nu *
+
+def main [] {
+  let config = private-config
+  let hostname = ^hostname -s | str trim
+  let kind = if $nu.os-info.name == 'macos' { 'darwinConfigurations' } else { 'nixosConfigurations' }
+  let target = ^nix eval --json $"($config.public_ref)#($kind).\"($hostname)\"" ...$config.nix_args --apply 'c: {
+    name = c._module.specialArgs.host.name;
+    keyFile = c.config.sops.age.keyFile or c.config.home-manager.users.${c._module.specialArgs.host.user}.sops.age.keyFile;
+  }' | from json
+
+  let key = generate-key
+  reencrypt $config.root $target.name $key.recipient {|| install-key $target.keyFile $key.identity }
+  print $"Installed ($target.keyFile). Run `nix run .#apply` to use it."
+}

@@ -65,7 +65,8 @@
     allSystems = linuxSystems ++ darwinSystems;
     forAllSystems = f: nixpkgs.lib.genAttrs allSystems f;
 
-    mkApp = scriptName: system: let
+    mkApp = scriptName: system: mkAppWith scriptName system [];
+    mkAppWith = scriptName: system: runtimeInputs: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
       type = "app";
@@ -73,12 +74,15 @@
         #!${pkgs.nushell}/bin/nu --no-config-file
         def main --wrapped [...args: string] {
           print "Running ${scriptName} for ${system}"
+          ${nixpkgs.lib.optionalString (runtimeInputs != []) "$env.PATH = ($env.PATH | prepend ${builtins.toJSON (map (p: "${p}/bin") runtimeInputs)})"}
           exec ${pkgs.nushell}/bin/nu --no-config-file ${self}/apps/${system}/${scriptName} ...$args
         }
       '')}/bin/${scriptName}";
     };
+    keyTools = system: with nixpkgs.legacyPackages.${system}; [age sops bitwarden-cli];
     mkApps = system:
       {
+        "rekey" = mkAppWith "rekey" system (keyTools system);
         "apply" = mkApp "apply" system;
         "clean" = mkApp "clean" system;
         "update" = mkApp "update" system;
@@ -88,7 +92,7 @@
         "apply-remote" = mkApp "apply-remote" system;
       }
       // nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) {
-        "bootstrap" = mkApp "bootstrap" system;
+        "bootstrap" = mkAppWith "bootstrap" system (keyTools system);
         "noctalia-diff" = mkApp "noctalia-diff" system;
         "pin" = mkApp "pin" system;
         "secure-boot" = mkApp "secure-boot" system;

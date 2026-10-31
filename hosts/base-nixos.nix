@@ -51,6 +51,15 @@ in {
   programs.zsh.enable = true;
   programs.nix-ld.enable = true;
 
+  # Written by bootstrap or `nix run .#rekey`; recipients must stay independent of SSH host keys.
+  sops = {
+    age = {
+      keyFile = "/var/lib/sops-nix/key.txt";
+      sshKeyPaths = [];
+    };
+    gnupg.sshKeyPaths = [];
+  };
+
   i18n.defaultLocale = "en_GB.UTF-8";
   console = {
     keyMap = "fr";

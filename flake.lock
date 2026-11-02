@@ -517,11 +517,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1793349988,
-        "narHash": "sha256-ZAHmy+/VJRvZB9LEM82Fqf8Qibfaabgol59fsM2VUbw=",
+        "lastModified": 1793637891,
+        "narHash": "sha256-J9wSlRFL67KYvMXoCiodOr2aSBDDFreJ7Yc+84RzR2w=",
         "owner": "antoine-bouteiller",
         "repo": "spec-viewer",
-        "rev": "2879aa48d1a23732ea5e28200cdf0055ff8c6a92",
+        "rev": "dec0864aab049ca4905537f4b546e2f8e50277fc",
         "type": "github"
       },
       "original": {

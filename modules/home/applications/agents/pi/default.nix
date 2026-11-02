@@ -158,6 +158,7 @@ in
                   then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
                   else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
                 );
+              sessionTitleModel = "azure/gpt-5.4-nano";
               subagents = {
                 allowedModels =
                   [

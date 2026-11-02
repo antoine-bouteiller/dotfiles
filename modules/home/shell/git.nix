@@ -231,6 +231,20 @@ in {
           git worktree prune -v
       }
 
+      # Delete local branches whose upstream is gone, removing their worktree first.
+      # A dirty worktree makes `git worktree remove` fail, which keeps both it and its branch.
+      gclean() {
+          local branch target_dir
+          git fetch -p || return 1
+          for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == "[gone]" { sub("refs/heads/", "", $1); print $1 }'); do
+              target_dir="$(_wt_resolve "$branch")"
+              if [ -n "$target_dir" ]; then
+                  git worktree remove "$target_dir" || continue
+              fi
+              git branch -D "$branch"
+          done
+      }
+
       _wt_names() {
           local -a names
           names=("''${(@f)$(_wt_list | awk -F'\t' 'NF { print $1 }')}")
@@ -290,7 +304,6 @@ in {
       glg = "git log --stat";
       glog = "git log --oneline --decorate --graph";
       gsh = "git show";
-      gclean = "git fetch -p && for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == \"[gone]\" {sub(\"refs/heads/\", \"\", $1); print $1}'); do git branch -D $branch; done";
     };
   };
 }

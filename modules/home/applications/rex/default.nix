@@ -106,6 +106,14 @@ in
       };
       services.rex.enable = cfg.server.enable;
 
+      programs.zsh.initContent = ''
+        # Rename the current Rex tab to the current folder name.
+        rtab() {
+            [ -n "$REX_BLOCK" ] || { echo "Not inside Rex." >&2; return 1; }
+            rex window rename "''${PWD:t}"
+        }
+      '';
+
       home.packages = lib.mkIf cfg.client.enable [appPackage];
 
       # Sparkle would replace the Nix-managed app with a version the store CLI doesn't match.

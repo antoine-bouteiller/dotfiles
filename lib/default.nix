@@ -33,6 +33,8 @@ in {
       modules =
         [
           home-manager.darwinModules.home-manager
+          sops-nix.darwinModules.sops
+          inputs.privateConfig.darwinModules.default
           # Declared here rather than in modules/common, because it is set here and
           # the iso host imports no common modules at all.
           (self + "/modules/common/host-dir.nix")

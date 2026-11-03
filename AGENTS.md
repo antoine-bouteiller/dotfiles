@@ -35,7 +35,7 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - `modules/common/` — shared system wiring; `modules/nixos/` — NixOS modules; `modules/home/` — Home Manager modules (`applications/<app>/`, `shell/`).
 - `pkgs/<name>/` — custom derivations with `passthru.updateScript` → `update.nu`; `pkgs/update-utils.nu` exports `root_dir`, `github_headers`, and `to_sri` for updater scripts.
 - `apps/<system>/` — Nushell app scripts. `flake.nix` `mkApp` pins Nushell with `--no-config-file`; `apps/aarch64-darwin/update` is a symlink to `../x86_64-linux/update`, selecting its platform from the invoked path. `apps/private-config.nu` owns checkout validation and local Git snapshot references.
-- `apps/age-keys.nu` owns sops recipients: `.sops.yaml` anchors one key per `hosts/<name>` plus the Bitwarden `admin` key under a single rule; `bootstrap` and `rekey` update anchors and re-encrypt. NixOS hosts decrypt with `/var/lib/sops-nix/key.txt`, never SSH host keys.
+- `apps/age-keys.nu` owns sops recipients: `.sops.yaml` anchors one key per `hosts/<name>` plus the Bitwarden `admin` key under a single rule; `bootstrap` and `rekey` update anchors and re-encrypt. NixOS and nix-darwin hosts decrypt with `/var/lib/sops-nix/key.txt`, never SSH host keys; `vm` uses the Mac's key, forwarded by `apply-remote`.
 - `lib/nix-settings.json` owns shared Nix features, caches, and signing keys; `hosts/base.nix` imports it and `apps/config.nu` renders it for bootstrap.
 - `dev/` — dev-shell flake (treefmt + git hooks).
 
@@ -45,10 +45,10 @@ Secrets via sops-nix. Entry point: `flake.nix`.
 - Agent modules and assets live in `modules/home/applications/agents/{claude-code,pi,skills}`. Agent context, settings, hooks, and external skills come from the Nix store; first-party skills live in the `antoine-bouteiller/skills` repo, loaded as a Pi package and a Claude Code plugin.
 - `local.home-manager.sourcePath` is the runtime path for Pi secrets, Zed files, and zsh; integrated homes default to `flakePath`, while `vm` uses `${inputs.self}` for checkout-free remote deployment.
 - `privateConfig` is a flake input whose `nixpkgs` follows the root. The tracked `private-config/`
-  fixture exports empty `homeModules.default` and `hosts`; `.private/` is an independent ignored
+  fixture exports empty `darwinModules.default`, `homeModules.default`, and `hosts`; `.private/` is an independent ignored
   Git repository with its own `flake.nix` and `flake.lock`, selected by local apply scripts. It
   may set `hosts.vm.user`; its `homeModules.default` is the single shared private Home Manager
-  hook. Declare private inputs (company repos) in `.private/flake.nix` with
+  hook, and `darwinModules.default` the nix-darwin hook. Declare private inputs (company repos) in `.private/flake.nix` with
   `inputs.nixpkgs.follows = "nixpkgs"`; public modules must never reference them, since CI
   evaluates the fixture. Private modules own work identity and host-specific work shell settings.
   `.private/` must be a directory rather than a symlink. No legacy environment variables are

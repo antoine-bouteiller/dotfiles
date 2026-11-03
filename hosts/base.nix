@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   imports = [../modules/common];
   nixpkgs.config = {
     allowUnfree = true;
@@ -24,6 +28,17 @@
   };
 
   time.timeZone = "Europe/Paris";
+
+  # Written by bootstrap or `nix run .#rekey`; recipients must stay independent of SSH host keys.
+  sops = {
+    age = {
+      keyFile = "/var/lib/sops-nix/key.txt";
+      sshKeyPaths = [];
+    };
+    gnupg.sshKeyPaths = [];
+  };
+  # The key is root-only; the user's `sops` reads it through sudo.
+  environment.variables.SOPS_AGE_KEY_CMD = "sudo cat ${config.sops.age.keyFile}";
 
   environment.systemPackages = with pkgs; [
     bat

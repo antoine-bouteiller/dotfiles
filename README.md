@@ -57,9 +57,10 @@ Flakes ignore untracked files: `git add` new `.nix` files before applying.
 
 `.sops.yaml` anchors one age recipient per `hosts/<name>` plus `admin`, and a single rule
 encrypts every file in `secrets/` to all of them. `.private/.sops.yaml` lists only `admin`
-and `macbook`. NixOS hosts decrypt with `/var/lib/sops-nix/key.txt`, independent of their
-SSH host key. That key is root-only: `SOPS_AGE_KEY_CMD` makes `sops edit` read it through
-`sudo`, and takes effect at the next login. The Mac uses `~/.config/sops/age/keys.txt` and forwards it to `vm`.
+and `macbook`. NixOS and nix-darwin hosts decrypt with `/var/lib/sops-nix/key.txt`,
+independent of their SSH host key. That key is root-only: `SOPS_AGE_KEY_CMD` makes `sops edit`
+read it through `sudo`, and takes effect at the next login. `vm` has no recipient of its own:
+`apply-remote` reads the Mac's key through `sudo` and forwards it for the activation only.
 
 The admin identity lives only in the Bitwarden secure note `sops-admin-age-key`: its
 notes hold the `AGE-SECRET-KEY-` line. `nix run .#rekey` rotates the current host's key:
@@ -72,8 +73,9 @@ checkouts and apply. Setting `SOPS_AGE_KEY` or `SOPS_AGE_KEY_FILE` skips Bitward
 The public flake works without private data. Its `privateConfig` flake input defaults to
 the tracked `private-config/` fixture, whose VM username falls back to `ci-user`. An
 independent, ignored Git checkout at `.private/` may replace it; it must be a directory,
-not a symlink. The private flake can output `hosts.vm.user` and `homeModules.default`, a
-Home Manager module shared by the configured hosts. Private flake inputs, such as company
+not a symlink. The private flake can output `hosts.vm.user`, `homeModules.default`, a
+Home Manager module shared by the configured hosts, and `darwinModules.default`, a
+nix-darwin module for the Mac. Private flake inputs, such as company
 repositories, are locked in `.private/flake.lock`; the public lock only records the fixture. No legacy
 environment variables are required. Keep identities, work-only shell settings, and
 encrypted SOPS data in that checkout, not in this repository.

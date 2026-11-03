@@ -105,10 +105,13 @@ sudo systemctl restart nix-daemon'#
     # and activation receives the SOPS key.
     do $close_master
     let activate = $remote_nu ++ [activate $expected_user $deployment.drvPath $"($deployment.nh.output)/bin/nh" $"($roots)/home" $deployment.sopsKeyFile] | each {|arg| shell-quote $arg } | str join ' '
+    # The vm has no recipient of its own; it decrypts with this Mac's root-only key.
     let age_key = if ($env.SOPS_AGE_KEY? | is-not-empty) {
       $env.SOPS_AGE_KEY
+    } else if ($env.SOPS_AGE_KEY_FILE? | is-not-empty) {
+      open --raw $env.SOPS_AGE_KEY_FILE
     } else {
-      open --raw ($env.SOPS_AGE_KEY_FILE? | default ($env.HOME | path join .config/sops/age/keys.txt))
+      ^sudo cat /var/lib/sops-nix/key.txt
     }
     with-env {SOPS_AGE_KEY: $age_key} {
       ^ssh ...$mux -A -o SendEnv=SOPS_AGE_KEY -t -- $target (remote-command $expected_user $"exec ($activate)")

@@ -1,4 +1,7 @@
 {
+  config,
+  host,
+  inputs,
   lib,
   pkgs,
   ...
@@ -15,6 +18,16 @@ in {
   ];
 
   environment.systemPackages = [pkgs.nh pkgs.localsend];
+
+  sops.secrets.pi-agent = {
+    sopsFile = inputs.self + "/secrets/agent.yaml";
+    key = "";
+    format = "yaml";
+    owner = host.user;
+  };
+  home-manager.sharedModules = [
+    {local.home-manager.agents.pi.agentSecretFile = config.sops.secrets.pi-agent.path;}
+  ];
 
   # nix-darwin has no programs.nh module, so run nh's cleanup as a launchd daemon
   # serviceConfig.ProgramArguments skips nix-darwin's /bin/sh wrapper.

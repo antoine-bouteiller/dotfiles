@@ -31,6 +31,11 @@
   };
   systemd.user.services.sops-nix.Unit.ConditionPathExists = config.sops.age.keyFile;
 
+  # The VM has no swap. An OOM kill of one command must not stop Rex and every session with it.
+  systemd.user.services.rex.Service.OOMPolicy = "continue";
+  # Agent commands outrank pi and Rex as OOM victims. Unprivileged processes can only raise it.
+  programs.pi-coding-agent.settings.shellCommandPrefix = "echo 1000 > /proc/self/oom_score_adj";
+
   home = {
     username = host.user;
     homeDirectory = "/home/${host.user}";

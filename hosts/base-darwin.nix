@@ -103,6 +103,13 @@ in {
       autoUpdate = true;
     };
 
+    taps = [
+      {
+        name = "abue-ammar/tinycast";
+        trusted = true;
+      }
+    ];
+
     brews = [
       "coreutils"
       "mole"
@@ -115,7 +122,9 @@ in {
       "dbx"
 
       # Productivity Tools
-      "sol"
+      # Stable sends a plain OAuth state that raycast.com/redirect cannot decode, so
+      # extension sign-ins (Linear) fail there.
+      "abue-ammar/tinycast/tinycast@beta"
       "caffeine"
 
       # Browsers

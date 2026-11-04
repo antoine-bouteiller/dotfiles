@@ -11,7 +11,7 @@
 
   src = fetchurl {
     url = "https://github.com/ChrisDKN/Amethyst-Mod-Manager/releases/download/v${version}/AmethystModManager-${version}-x86_64.AppImage";
-    hash = "sha256-BJUzk3njZP75VSXNGh8UhyvZmpMJ13ML1XvC80af22I=";
+    hash = "sha256-LzNf45FCBgBJ+cPtzNcqKaZcXXNKGa9r2N96n7+Zv+c=";
   };
 
   # Upstream uses DwarFS, which appimageTools.extract does not support.

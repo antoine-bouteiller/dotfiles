@@ -82,7 +82,7 @@ mkModule args "local.nixos.desktop" {
 
     # The greeter enables greetd and points it at its own wlroots compositor; the
     # session list comes from the wayland-sessions entry niri ships.
-    programs.noctalia-greeter = {
+    services.displayManager.noctalia-greeter = {
       enable = true;
       passwordless-sync-users = [host.user];
       settings = {

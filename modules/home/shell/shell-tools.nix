@@ -59,6 +59,21 @@ in
         mise = {
           enable = true;
           enableZshIntegration = false;
+          globalConfig = {
+            tools = {
+              bun = "latest";
+              node = "lts";
+              python = "3.13";
+              uv = "latest";
+              "npm:vite-plus" = "latest";
+            };
+            settings = {
+              node.corepack = true;
+              node.compile = false;
+              python.compile = false;
+              tool_update.global_auto = true;
+            };
+          };
         };
 
         zsh.envExtra = ''

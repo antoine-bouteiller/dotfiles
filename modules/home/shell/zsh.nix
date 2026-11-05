@@ -44,6 +44,10 @@ in {
         please = "sudo";
         zshrc = "\${EDITOR:-nvim} $HOME/.zshrc";
         zdot = "cd ${config.local.home-manager.sourcePath}";
+        nr = "nix run .";
+        nra = "nix run .#apply";
+        nrc = "nix run .#clean";
+        nrar = "nix run .#apply-remote --";
       }
       # Needs polkit, which only a graphical session has.
       // lib.optionalAttrs config.local.home-manager.desktop.enable {sudo = "pkexec";};

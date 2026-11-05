@@ -9,10 +9,14 @@
 } @ args: let
   agents = config.local.home-manager.agents;
   customPkgs = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
-  claudeProvider =
+  quickModel =
     if agents.claude-code.enable
-    then "anthropic"
-    else "azure";
+    then "anthropic/claude-sonnet-5-5"
+    else "azure/gpt-6-luna";
+  agentModels =
+    ["azure/gpt-6.1-sol"]
+    ++ lib.optional agents.claude-code.enable "anthropic/claude-opus-5-5"
+    ++ [quickModel];
 
   agentSecretFile =
     if agents.pi.agentSecretFile != null
@@ -149,36 +153,18 @@ in
                 if agents.claude-code.enable
                 then "claude-opus-5-5"
                 else "gpt-6.1-sol";
-              enabledModels =
-                [
-                  "azure/gpt-6.1-sol"
-                ]
-                ++ (
-                  if agents.claude-code.enable
-                  then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
-                  else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
-                );
+              enabledModels = agentModels;
               sessionTitleModel = "azure/gpt-5.4-nano";
               subagents = {
-                allowedModels =
-                  [
-                    "azure/gpt-6.1-sol"
-                  ]
-                  ++ (
-                    if agents.claude-code.enable
-                    then ["anthropic/claude-opus-5-5" "anthropic/claude-sonnet-5-5"]
-                    else ["azure/claude-opus-5-5" "azure/claude-sonnet-5-5"]
-                  );
-                modelNotes = let
-                  claude =
-                    if agents.claude-code.enable
-                    then "anthropic"
-                    else "azure";
-                in {
-                  "azure/gpt-6.1-sol" = "default for implementation, debugging, design/architecture, scouting, and research; required for all reviews of Claude-produced work (including Sonnet)";
-                  "${claude}/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
-                  "${claude}/claude-sonnet-5-5" = "quick, well-scoped implementation tasks; lightweight review of GPT-produced work";
-                };
+                allowedModels = agentModels;
+                modelNotes =
+                  {
+                    "azure/gpt-6.1-sol" = "complex implementation, difficult debugging, architecture, and deep reviews; required for deep reviews of Claude-produced work; prefer ${quickModel} for routine scouting, research, bounded edits, and lightweight reviews";
+                    ${quickModel} = "default for routine scouting, research, context gathering, bounded implementation, and lightweight reviews of GPT-produced work; use low thinking for straightforward tasks; escalate to azure/gpt-6.1-sol for unresolved ambiguity or cross-cutting reasoning";
+                  }
+                  // lib.optionalAttrs agents.claude-code.enable {
+                    "anthropic/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
+                  };
               };
               packages = [
                 "npm:@ff-labs/pi-fff"
@@ -235,7 +221,7 @@ in
               # Captured so pi's reply cannot land on the spinner line; `always` stops it on Ctrl-C.
               {
                 out=$(${lib.getExe piWrapped} -p --no-session --no-mcp --offline --tools bash,read --thinking low \
-                  --model ${claudeProvider}/claude-sonnet-5-5 \
+                  --model azure/gpt-6-luna \
                   "/skill:conventional-commit Commit the staged changes. Splitting is delegated: split into several commits when the skill's rules call for it, without asking.")
                 ret=$?
               } always {

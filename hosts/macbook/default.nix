@@ -90,7 +90,6 @@ in {
           "/Applications/Slack.app/"
           "${config.users.users.${user}.home}/Applications/Home Manager Apps/Rex Beta.app/"
           "/Applications/Helium.app/"
-          "/Applications/Zed.app/"
           "/Applications/Telegram.app/"
         ];
       };

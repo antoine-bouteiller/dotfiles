@@ -81,7 +81,7 @@ in {
 
       dock = {
         autohide = true;
-        show-recents = true;
+        show-recents = false;
         launchanim = true;
         orientation = "bottom";
         tilesize = 56;

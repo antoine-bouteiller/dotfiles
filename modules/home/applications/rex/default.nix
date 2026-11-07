@@ -120,6 +120,8 @@ in
       targets.darwin.defaults."com.superlogical.rex" = lib.mkIf cfg.client.enable {
         SUEnableAutomaticChecks = false;
         "Workspace.darkThemeID" = themeId;
+        # A plain two-finger swipe scrolls sideways; Option-swipe toggles the sidebar.
+        "Workspace.sidebarSwipe" = "optionSwipe";
       };
 
       # Rex reads custom themes as JSON in a data value, which targets.darwin.defaults cannot

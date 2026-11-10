@@ -32,7 +32,7 @@
       url = "github:antoine-bouteiller/spec-viewer/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    meridian.url = "github:rynfar/meridian/meridian-v1.88.0";
+    meridian.url = "github:rynfar/meridian/meridian-v1.89.0";
     # Linux CLI and server; the lock records the immutable release URL behind this channel.
     rex = {
       url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";

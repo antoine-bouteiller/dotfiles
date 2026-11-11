@@ -1,21 +1,21 @@
 {
-  "version": "1.5.1",
+  "version": "1.6.0",
   "platforms": {
     "x86_64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.5.1.tgz",
-      "hash": "sha512-Ef2S15Di00TJFu/h19WDF/ja9u2jmnvheMtHhMQnjOxAWHm9uJahNZ7++ehU7C3J0XUF2XGsXBGQNCd9MFpPDw=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.6.0.tgz",
+      "hash": "sha512-+KUK9FP/Hw2dyMVbbyRNHTlun925/vRoyknep31LoPBK7XZnXw6EP4tvZ1thvuQ7yhrtlBGjvRhZ7A7Ho1FQfA=="
     },
     "aarch64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.5.1.tgz",
-      "hash": "sha512-xxRQqNptOGAEoAbKn2Rtgu31pQjiG3yk/NgWdRmuDOdG1uziYLzls3j9eGMMswh5bw/YO2iLJs6B4SZPpRlfFQ=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.6.0.tgz",
+      "hash": "sha512-dEDJzcsn1zvjQv65r70KzLlQ/jv8eZYxi1m2tCsUBRa1RRJBL83HhVSCsoDSYG8+4QzTCPEYehzQOmAohRG4sw=="
     },
     "x86_64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.5.1.tgz",
-      "hash": "sha512-Qpz+KMFLVCaqv7ztpUGAmVtzLHA2WqiB1KXga4OItsJm06Lkz1mumMLWHpMJ3mdpotmNbXsN6J8asRZDpLp8GQ=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.6.0.tgz",
+      "hash": "sha512-MaLWkl7fxZUrQ+lLD3r4B+uhorclUzlEZnPbCC41ODRINmGtenMrrryoufHpOI4fclSQRu6lerQprTDnRt0XDg=="
     },
     "aarch64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.5.1.tgz",
-      "hash": "sha512-FZ+3Btd89pVp0ubOROMNSFe8uJkBINxeInPBrSipJr5T7tSpDPubgTPUtzXxrbHAOswzWf8WMMvBNUWCh3yRmA=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.6.0.tgz",
+      "hash": "sha512-WgLqIfxkBvEVMIA4Zl1cDFHU95NqXDjF8iXyWxmH5d84X00QbocC+L1gggWSmTn4SG20GNvuux0/a3pS+IwzKw=="
     }
   }
 }

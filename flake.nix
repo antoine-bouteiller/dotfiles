@@ -35,7 +35,7 @@
     meridian.url = "github:rynfar/meridian/meridian-v1.92.0";
     # Linux CLI and server; the lock records the immutable release URL behind this channel.
     rex = {
-      url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
+      url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";

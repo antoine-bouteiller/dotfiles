@@ -106,6 +106,12 @@ in
       };
       services.rex.enable = cfg.server.enable;
 
+      # Otherwise a client connecting while the service restarts starts its own server outside
+      # systemd, which then keeps the service from binding the socket. ssh commands run
+      # non-interactive bash, which reads ~/.bashrc but not the session variables.
+      home.sessionVariables.REX_AUTOSTART = lib.mkIf cfg.server.enable "false";
+      programs.bash.bashrcExtra = lib.mkIf cfg.server.enable "export REX_AUTOSTART=false";
+
       programs.zsh.initContent = ''
         # Rename the current Rex tab to the current folder name.
         rtab() {

@@ -26,13 +26,31 @@ local function cwd_of(process)
   return process and process.foreground and process.foreground.cwd
 end
 
--- Opens a program over the focused tab; the layer closes when the program exits.
+local function floating_layer(window, label)
+  for _, layer in ipairs(window and window.layers or {}) do
+    if layer.kind ~= "tiled" then
+      for _, block in ipairs(layer.blocks or {}) do
+        if block.label == label then
+          return layer
+        end
+      end
+    end
+  end
+end
+
+-- Opens a program over the focused tab, or restores and focuses the tab's
+-- existing one; the layer closes when the program exits.
 local function float(name, title, label, command)
   rex.action({
     name = name,
     title = title,
     run = function(ctx)
       local window, _, process = focused(ctx)
+      local existing = floating_layer(window, label)
+      if existing then
+        check(rex.session.set_layer_state({ layer_id = existing.layer_id, state = "normal", focus = true }))
+        return
+      end
       check(rex.session.new_layer({
         window_id = window and window.window_id,
         bounds = { 0.05, 0.05, 0.9, 0.9 },

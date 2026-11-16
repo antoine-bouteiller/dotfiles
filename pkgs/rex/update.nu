@@ -6,7 +6,12 @@ use ../update-utils.nu [root_dir]
 const appcast = "https://blob.superlogical.com/public/rex-app/preview/appcast.xml"
 
 def main [] {
-  let sources_path = root_dir $env.FILE_PWD $env.PWD | path join "sources.json"
+  let package_dir = root_dir $env.FILE_PWD $env.PWD
+  let sources_path = $package_dir | path join "sources.json"
+
+  # The rex input's preview channel ships the Linux CLI from the same builds as the app.
+  ^nix flake update rex --flake ($package_dir | path dirname | path dirname)
+
   let current_version = open $sources_path | get version
 
   # from xml drops the sparkle: prefix, so sparkle:version is matched as version.

@@ -1,21 +1,21 @@
 {
-  "version": "1.52.1",
+  "version": "1.52.2",
   "platforms": {
     "x86_64-linux": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.1/ai-usagebar-linux-x86_64.tar.gz",
-      "hash": "sha256-lCOhPqxWw5Y/hp2lzC2NiBtxFWNEFPd0ck21SYsOJZs="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.2/ai-usagebar-linux-x86_64.tar.gz",
+      "hash": "sha256-mBGDTKKCiUK926buTtuf24T2gWwUPysEo38cQM7HFI8="
     },
     "aarch64-linux": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.1/ai-usagebar-linux-aarch64.tar.gz",
-      "hash": "sha256-ZwSkmCUKeiV+H8lND78iUPtFuvwbGdFs3cp/ricE0pU="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.2/ai-usagebar-linux-aarch64.tar.gz",
+      "hash": "sha256-YGCvrpI37Oi6UMl1Aw0zd489jjuC/WYif0lV58UZL+E="
     },
     "x86_64-darwin": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.1/ai-usagebar-macos-x86_64.tar.gz",
-      "hash": "sha256-1crVO78eI0r4V8/GKiHhSIJyk4ETi3tX+pUBUf5GlHI="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.2/ai-usagebar-macos-x86_64.tar.gz",
+      "hash": "sha256-KckW/6q3QHwfFi9anyDkyX79ad5bvw/A1Kjh3J0FLzo="
     },
     "aarch64-darwin": {
-      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.1/ai-usagebar-macos-aarch64.tar.gz",
-      "hash": "sha256-ma//iXRxa7Hd95PbsTK/0HXMQdR4NmjHj6ZvNv/NNFE="
+      "url": "https://github.com/akitaonrails/ai-usagebar/releases/download/v1.52.2/ai-usagebar-macos-aarch64.tar.gz",
+      "hash": "sha256-/6cNDkp75N2+aEyE6s7R2Bb90XyCv/8eUxdri9VmPWI="
     }
   }
 }

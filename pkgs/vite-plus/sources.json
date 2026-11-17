@@ -1,21 +1,21 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "platforms": {
     "x86_64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.6.0.tgz",
-      "hash": "sha512-+KUK9FP/Hw2dyMVbbyRNHTlun925/vRoyknep31LoPBK7XZnXw6EP4tvZ1thvuQ7yhrtlBGjvRhZ7A7Ho1FQfA=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.7.0.tgz",
+      "hash": "sha512-pqo+nLXHERoA9uPv+0X8c+Tgpx2Nb9q1MY8XshFy0vgA3ziB7h94Abd3oI2SMQOU4eSQ2ZThclqXF/69HSdeaA=="
     },
     "aarch64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.6.0.tgz",
-      "hash": "sha512-dEDJzcsn1zvjQv65r70KzLlQ/jv8eZYxi1m2tCsUBRa1RRJBL83HhVSCsoDSYG8+4QzTCPEYehzQOmAohRG4sw=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.7.0.tgz",
+      "hash": "sha512-gmDsQ+ZfZPvRG/oFWEunmN/x6e/gS0By0y5+AwQGdOfSaIq79IuMvDG27Dj4gZSvZuQE4XWl3PVGUYDerXS6GQ=="
     },
     "x86_64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.6.0.tgz",
-      "hash": "sha512-MaLWkl7fxZUrQ+lLD3r4B+uhorclUzlEZnPbCC41ODRINmGtenMrrryoufHpOI4fclSQRu6lerQprTDnRt0XDg=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.7.0.tgz",
+      "hash": "sha512-kH/96CeALiU/kUVm36rpgecbp6fJYQfAE4UiQgdKtAlmgQU6kkBxrjMalzH1vv8X2NXljxkwZ/c/leZasoklNQ=="
     },
     "aarch64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.6.0.tgz",
-      "hash": "sha512-WgLqIfxkBvEVMIA4Zl1cDFHU95NqXDjF8iXyWxmH5d84X00QbocC+L1gggWSmTn4SG20GNvuux0/a3pS+IwzKw=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.7.0.tgz",
+      "hash": "sha512-B/C6DBb7KVYTaO0fHoLXGyEBKRj5yRWr/qm52FoL7vfyrnayQazWQYxOzgLz4pCesxbxd7YebEN05nu9BKcvGA=="
     }
   }
 }

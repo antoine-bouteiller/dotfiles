@@ -59,6 +59,7 @@ def 'main activate' [expected_user: string, activation_drv: string, nh: string, 
   if ($env.SOPS_AGE_KEY? | is-empty) {
     error make {msg: 'Activation needs SOPS_AGE_KEY for sops-nix'}
   }
+  step 'Building home configuration'
   let result = ^/nix/var/nix/profiles/default/bin/nix build --out-link $root --json $"($activation_drv)^out" | from json
   # sops-nix runs only while this file exists, so the key never outlives activation.
   ^install -D -m 600 /dev/null $sops_key_file
@@ -70,6 +71,7 @@ def 'main activate' [expected_user: string, activation_drv: string, nh: string, 
     error make {msg: $err.msg}
   }
   rm --force $sops_key_file
+  step 'Cleaning old generations'
   ^$nh clean user --keep $generations_to_keep --keep-one --no-gcroots
 }
 

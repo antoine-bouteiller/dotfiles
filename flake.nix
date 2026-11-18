@@ -90,6 +90,7 @@
       }
       // nixpkgs.lib.optionalAttrs (builtins.elem system darwinSystems) {
         "apply-remote" = mkApp "apply-remote" system;
+        "apply-all" = mkApp "apply-all" system;
       }
       // nixpkgs.lib.optionalAttrs (builtins.elem system linuxSystems) {
         "bootstrap" = mkAppWith "bootstrap" system (keyTools system);

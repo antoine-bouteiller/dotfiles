@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 use ../private-config.nu
-use ../config.nu nix-config
+use ../config.nu [nix-config step]
 
 # SSH always parses a shell command, even when the payload is a Nushell script.
 def shell-quote [value: string]: nothing -> string {
@@ -32,9 +32,11 @@ def main [target: string] {
   }
   $env.NIX_CONFIG = [($env.NIX_CONFIG? | default '') (nix-config)] | str join "\n"
   let config = private-config
+  step 'Archiving flake source'
   let archive = ^nix flake archive --json $config.public_ref ...$config.nix_args | from json
   let public_source = $archive.path
   let private_source = $archive.inputs.privateConfig.path
+  step 'Evaluating home configuration'
   let deployment = ^nix eval --json $"($public_source)#homeConfigurations.vm" --no-write-lock-file --override-input privateConfig $"path:($private_source)" --apply 'home: {
     username = home.config.home.username;
     sopsKeyFile = home.config.sops.age.keyFile;
@@ -77,12 +79,14 @@ sudo systemctl restart nix-daemon'#
   let mux = [-o ControlMaster=auto -o $"ControlPath=($control_dir)/%C" -o ControlPersist=60 -o LogLevel=ERROR]
   $env.NIX_SSHOPTS = [($env.NIX_SSHOPTS? | default '') ...$mux] | str join ' ' | str trim
   let close_master = {|| ^ssh ...$mux -O exit -- $target | complete | ignore }
+  step 'Bootstrapping Nix'
   ^ssh ...$mux -A -t -- $target (remote-command $expected_user $install)
 
   let cleanup = $"sudo rm -rf -- (shell-quote $roots)"
   try {
     # Direct dangling roots survive GC. Holding its lock during each import makes
     # them valid before a collector can scan roots, without a transfer-to-root gap.
+    step 'Copying derivations'
     let paths = $sources ++ $derivations | each {|path| shell-quote $path } | str join ' '
     let create_roots = [
       $"sudo install -d -m 700 -o (shell-quote $expected_user) (shell-quote $roots)"
@@ -96,6 +100,7 @@ sudo systemctl restart nix-daemon'#
     # Plain .drv store paths are copied as-is, not built or substituted.
     ^nix copy --to $destination ...$sources ...$derivations
 
+    step 'Preparing Nix daemon'
     let build_tools = [nix build --out-link $"($roots)/tools" $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out" $"($deployment.nix.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
     let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]
     let prepare = $remote_nu ++ [prepare $expected_user $deployment.nix.output] | each {|arg| shell-quote $arg } | str join ' '

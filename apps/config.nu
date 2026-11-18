@@ -8,3 +8,8 @@ export def nix-config []: nothing -> string {
   | each {|setting| $"extra-($setting.key) = ($setting.value | str join ' ')" }
   | str join "\n"
 }
+
+# Mirrors nh's step headers; apply-all parses the latest one as each host's status.
+export def step [message: string] {
+  print $"(ansi green_bold)>(ansi reset) (ansi attr_bold)($message)(ansi reset)"
+}

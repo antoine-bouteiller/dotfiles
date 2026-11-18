@@ -1,0 +1,101 @@
+#!/usr/bin/env nu
+# Applies remote VM homes and this Mac in parallel: logs scroll above a live status block.
+use ../private-config.nu
+
+const frames = [⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏]
+
+def start-job [label: string, command: list<string>]: nothing -> int {
+  job spawn {
+    let code = try {
+      # Job externals get their own process group, which terminal Ctrl-C never reaches; report it for cleanup.
+      null | ^sh -c 'echo $$; exec "$@"' sh ...$command o+e>| lines | enumerate | each {|it|
+        if $it.index == 0 { {label: $label, pgid: $it.item} } else { {label: $label, line: $it.item} } | job send 0
+      } | ignore
+      0
+    } catch {|err| $err.exit_code? | default 1 }
+    {label: $label, code: $code} | job send 0
+  }
+}
+
+def clock [elapsed: duration]: nothing -> string {
+  let seconds = $elapsed // 1sec
+  $"($seconds // 60):($seconds mod 60 | fill --alignment right --character 0 --width 2)"
+}
+
+def main [...targets: string] {
+  # Jobs cannot prompt: apply-remote reads this key, and nh's activation reuses the sudo credential.
+  $env.SOPS_AGE_KEY = ^sudo cat /var/lib/sops-nix/key.txt
+  let keepalive = job spawn { loop { try { ^sudo -n -v }; sleep 1min } }
+  let config = private-config
+  let host = ^hostname -s | str trim
+  let rows = $targets | each {|target|
+    let label = $target | str replace --regex '^.*@' '' | split row '.' | first
+    {label: $label, command: [$nu.current-exe --no-config-file ($env.FILE_PWD | path join apply-remote) $target]}
+  } | append {label: $host, command: [nh darwin switch --no-nom --show-activation-logs $config.public_ref -H $host -- ...$config.nix_args]}
+  let width = $rows.label | str length | math max
+  let start = date now
+  $rows | each {|row| start-job $row.label $row.command } | ignore
+
+  mut pgids = []
+  mut steps = {}
+  mut ends = {}
+  mut codes = {}
+  mut drawn = false
+  while ($codes | columns | length) < ($rows | length) {
+    # Nushell can raise the Ctrl-C interrupt anywhere in this body.
+    let interrupted = try {
+      mut messages = []
+      mut timeout = 80ms
+      # Drain bursts before redrawing; the cap keeps the spinner moving under heavy output.
+      while ($messages | length) < 200 {
+        let message = try { job recv --timeout $timeout } catch {|err| if ($err.msg =~ 'interrupt') { error make $err } }
+        if $message == null { break }
+        $messages = $messages | append $message
+        $timeout = 0sec
+      }
+      let now = date now
+      if $drawn { print --no-newline $"\e[($rows | length)A\e[J" }
+      for message in $messages {
+        if 'pgid' in $message {
+          $pgids = $pgids | append $message.pgid
+          continue
+        }
+        if 'code' in $message {
+          $codes = $codes | upsert $message.label $message.code
+          $ends = $ends | upsert $message.label $now
+          continue
+        }
+        let plain = $message.line | ansi strip
+        if ($plain | str starts-with '> ') {
+          $steps = $steps | upsert $message.label ($plain | str substring 2..)
+        }
+        print $"(ansi dark_gray)($message.label | fill --width $width) │(ansi reset) ($message.line)"
+      }
+      let frame = $frames | get ((($now - $start) // 80ms) mod ($frames | length))
+      let room = [((term size).columns - $width - 10) 10] | math max
+      for row in $rows {
+        let label = $row.label | fill --width $width
+        let elapsed = clock (($ends | get --optional $row.label | default $now) - $start)
+        match ($codes | get --optional $row.label) {
+          null => {
+            let step = $steps | get --optional $row.label | default 'Starting' | str substring --grapheme-clusters 0..<$room
+            print $"(ansi cyan)($frame)(ansi reset) ($label)  ($step) (ansi dark_gray)($elapsed)(ansi reset)"
+          }
+          0 => { print $"(ansi green)✔(ansi reset) ($label)  done in ($elapsed)" }
+          _ => { print $"(ansi red)✘(ansi reset) ($label)  failed after ($elapsed)" }
+        }
+      }
+      $drawn = true
+      false
+    } catch {|err| if ($err.msg =~ 'interrupt') { true } else { error make $err } }
+    if $interrupted {
+      for pgid in $pgids { try { ^kill -INT $"-($pgid)" } }
+      exit 130
+    }
+  }
+  job kill $keepalive
+
+  # Collect only after every apply finishes: apply-remote copies unrooted store paths.
+  source clean
+  if ($codes | values | any {|code| $code != 0 }) { exit 1 }
+}

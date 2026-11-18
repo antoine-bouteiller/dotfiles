@@ -28,19 +28,22 @@ def main [...targets: string] {
   let keepalive = job spawn { loop { try { ^sudo -n -v }; sleep 1min } }
   let config = private-config
   let host = ^hostname -s | str trim
-  let rows = $targets | each {|target|
+  let remotes = $targets | each {|target|
     let label = $target | str replace --regex '^.*@' '' | split row '.' | first
     {label: $label, command: [$nu.current-exe --no-config-file ($env.FILE_PWD | path join apply-remote) $target]}
-  } | append {label: $host, command: [nh darwin switch --no-nom --show-activation-logs $config.public_ref -H $host -- ...$config.nix_args]}
-  let width = $rows.label | str length | math max
+  }
+  let gc = {label: gc, command: [$nu.current-exe --no-config-file ($env.FILE_PWD | path join clean)]}
+  mut rows = $remotes | append {label: $host, command: [nh darwin switch --no-nom --show-activation-logs $config.public_ref -H $host -- ...$config.nix_args]}
+  let width = $rows.label | append $gc.label | str length | math max
   let start = date now
   $rows | each {|row| start-job $row.label $row.command } | ignore
 
   mut pgids = []
   mut steps = {}
+  mut copied = []
   mut ends = {}
   mut codes = {}
-  mut drawn = false
+  mut drawn = 0
   while ($codes | columns | length) < ($rows | length) {
     # Nushell can raise the Ctrl-C interrupt anywhere in this body.
     let interrupted = try {
@@ -54,7 +57,7 @@ def main [...targets: string] {
         $timeout = 0sec
       }
       let now = date now
-      if $drawn { print --no-newline $"\e[($rows | length)A\e[J" }
+      if $drawn > 0 { print --no-newline $"\e[($drawn)A\e[J" }
       for message in $messages {
         if 'pgid' in $message {
           $pgids = $pgids | append $message.pgid
@@ -67,25 +70,37 @@ def main [...targets: string] {
         }
         let plain = $message.line | ansi strip
         if ($plain | str starts-with '> ') {
-          $steps = $steps | upsert $message.label ($plain | str substring 2..)
+          let step = $plain | str substring 2..
+          $steps = $steps | upsert $message.label $step
+          if $step == 'Preparing Nix daemon' { $copied = $copied | append $message.label }
         }
         print $"(ansi dark_gray)($message.label | fill --width $width) │(ansi reset) ($message.line)"
       }
+      # apply-remote copies unrooted local store paths until it reaches 'Preparing Nix daemon'.
+      let settled = $codes | columns | append $copied
+      if $gc.label not-in $rows.label and $host in $settled and ($remotes.label | all {|label| $label in $settled }) {
+        start-job $gc.label $gc.command
+        $rows = $rows | append ($gc | insert start $now)
+      }
       let frame = $frames | get ((($now - $start) // 80ms) mod ($frames | length))
-      let room = [((term size).columns - $width - 10) 10] | math max
-      for row in $rows {
+      let room = [((term size).columns - $width - 13) 10] | math max
+      print $"(ansi dark_gray)┏━━━(ansi reset) Hosts"
+      for it in ($rows | enumerate) {
+        let row = $it.item
+        let gutter = if $it.index == ($rows | length) - 1 { '┗━' } else { '┃ ' }
         let label = $row.label | fill --width $width
-        let elapsed = clock (($ends | get --optional $row.label | default $now) - $start)
-        match ($codes | get --optional $row.label) {
+        let elapsed = clock (($ends | get --optional $row.label | default $now) - ($row.start? | default $start))
+        let status = match ($codes | get --optional $row.label) {
           null => {
             let step = $steps | get --optional $row.label | default 'Starting' | str substring --grapheme-clusters 0..<$room
-            print $"(ansi cyan)($frame)(ansi reset) ($label)  ($step) (ansi dark_gray)($elapsed)(ansi reset)"
+            $"(ansi cyan)($frame)(ansi reset) ($label)  ($step) (ansi dark_gray)($elapsed)(ansi reset)"
           }
-          0 => { print $"(ansi green)✔(ansi reset) ($label)  done in ($elapsed)" }
-          _ => { print $"(ansi red)✘(ansi reset) ($label)  failed after ($elapsed)" }
+          0 => $"(ansi green)✔(ansi reset) ($label)  done in ($elapsed)"
+          _ => $"(ansi red)✘(ansi reset) ($label)  failed after ($elapsed)"
         }
+        print $"(ansi dark_gray)($gutter)(ansi reset) ($status)"
       }
-      $drawn = true
+      $drawn = ($rows | length) + 1
       false
     } catch {|err| if ($err.msg =~ 'interrupt') { true } else { error make $err } }
     if $interrupted {
@@ -94,8 +109,5 @@ def main [...targets: string] {
     }
   }
   job kill $keepalive
-
-  # Collect only after every apply finishes: apply-remote copies unrooted store paths.
-  source clean
   if ($codes | values | any {|code| $code != 0 }) { exit 1 }
 }

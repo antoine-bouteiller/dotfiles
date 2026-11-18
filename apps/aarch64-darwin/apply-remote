@@ -100,6 +100,7 @@ sudo systemctl restart nix-daemon'#
     # Plain .drv store paths are copied as-is, not built or substituted.
     ^nix copy --to $destination ...$sources ...$derivations
 
+    # apply-all starts the local GC once every remote reaches this step; keep the text in sync.
     step 'Preparing Nix daemon'
     let build_tools = [nix build --out-link $"($roots)/tools" $"($deployment.nushell.drvPath)^out" $"($deployment.nh.drvPath)^out" $"($deployment.nix.drvPath)^out"] | each {|arg| shell-quote $arg } | str join ' '
     let remote_nu = [$"($deployment.nushell.output)/bin/nu" --no-config-file $"($public_source)/apps/remote.nu"]

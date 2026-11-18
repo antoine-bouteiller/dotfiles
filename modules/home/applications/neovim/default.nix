@@ -76,6 +76,7 @@
       "nvim/lua/plugins/fff.lua".source = ./lazyvim/lua/plugins/fff.lua;
       "nvim/lua/plugins/lsp.lua".source = ./lazyvim/lua/plugins/lsp.lua;
       "nvim/lua/plugins/markdown.lua".source = ./lazyvim/lua/plugins/markdown.lua;
+      "nvim/lua/plugins/neo-tree.lua".source = ./lazyvim/lua/plugins/neo-tree.lua;
       "nvim/lua/plugins/nix.lua".source = ./lazyvim/lua/plugins/nix.lua;
       "nvim/lua/plugins/snacks-animated-scrolling-off.lua".source = ./lazyvim/lua/plugins/snacks-animated-scrolling-off.lua;
       "nvim/plugin/after/transparency.lua".source = ./lazyvim/plugin/after/transparency.lua;

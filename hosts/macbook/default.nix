@@ -88,7 +88,7 @@ in {
 
         persistent-apps = [
           "/Applications/Slack.app/"
-          "${config.users.users.${user}.home}/Applications/Home Manager Apps/Rex Beta.app/"
+          "${config.users.users.${user}.home}/Applications/Home Manager Apps/Rex.app/"
           "/Applications/Helium.app/"
           "/Applications/Telegram.app/"
         ];

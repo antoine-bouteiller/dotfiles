@@ -19,8 +19,8 @@ in
       runHook preInstall
 
       mkdir -p $out/Applications $out/bin
-      cp -R "Rex Beta.app" $out/Applications/
-      ln -s "$out/Applications/Rex Beta.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex" $out/bin/rex
+      cp -R "Rex.app" $out/Applications/
+      ln -s "$out/Applications/Rex.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex" $out/bin/rex
 
       runHook postInstall
     '';

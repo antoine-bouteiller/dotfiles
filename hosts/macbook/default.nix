@@ -57,6 +57,8 @@ in {
     casks = [
       "tailscale-app"
       "firefox"
+      # sdkmanager; the SDK itself lives in ANDROID_HOME (home.nix)
+      "android-commandlinetools"
     ];
   };
 

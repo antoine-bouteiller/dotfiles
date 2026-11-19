@@ -18,9 +18,12 @@ in {
 
   home.sessionPath = [
     "${homeDirectory}/.npm-packages/bin"
+    "${homeDirectory}/Library/Android/sdk/platform-tools"
   ];
   home.sessionVariables = {
     NODE_PATH = "${homeDirectory}/.npm-packages/lib/node_modules";
+    # Android Studio's default SDK root; the brew cask's sdkmanager would otherwise use its own prefix.
+    ANDROID_HOME = "${homeDirectory}/Library/Android/sdk";
   };
 
   home.file.".npmrc".text = ''

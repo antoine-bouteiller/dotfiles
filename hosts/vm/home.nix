@@ -46,7 +46,6 @@
       bat
       yamllint
       agent-browser
-      inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.lightpanda
       sonarqube-cli
       glab
       alsa-lib # libasound.so.2
@@ -55,7 +54,7 @@
     sessionVariables = {
       # mise-managed JDKs read this; low enough that several concurrent JVMs fit in RAM.
       JAVA_TOOL_OPTIONS = "-XX:MaxRAMPercentage=25";
-      AGENT_BROWSER_ENGINE = "lightpanda";
+      AGENT_BROWSER_EXECUTABLE_PATH = lib.getExe inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.helium;
     };
   };
 

@@ -115,7 +115,6 @@
           caddy-cloudflare = pkgs.callPackage ./pkgs/caddy-cloudflare {};
           fff-mcp = pkgs.callPackage ./pkgs/fff-mcp {};
           pi = pkgs.callPackage ./pkgs/pi {};
-          lightpanda = pkgs.callPackage ./pkgs/lightpanda {};
           ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
           rex = pkgs.callPackage ./pkgs/rex {};
         }

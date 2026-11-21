@@ -112,12 +112,15 @@ in
       home.sessionVariables.REX_AUTOSTART = lib.mkIf cfg.server.enable "false";
       programs.bash.bashrcExtra = lib.mkIf cfg.server.enable "export REX_AUTOSTART=false";
 
+      # Names each tab after the directory of its first pane.
       programs.zsh.initContent = ''
-        # Rename the current Rex tab to the current folder name.
-        rtab() {
-            [ -n "$REX_BLOCK" ] || { echo "Not inside Rex." >&2; return 1; }
-            rex window rename "''${PWD:t}"
-        }
+        if [[ -n $REX_BLOCK ]]; then
+          _rex_tab_name() {
+            rex do ${./tab-name.lua} block="$REX_BLOCK" name="''${PWD:t}" --autostart=false &>/dev/null &!
+          }
+          chpwd_functions+=(_rex_tab_name)
+          _rex_tab_name
+        fi
       '';
 
       home.packages = lib.mkIf cfg.client.enable [appPackage];

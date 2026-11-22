@@ -152,14 +152,14 @@ in
               defaultModel =
                 if agents.claude-code.enable
                 then "claude-opus-5-5"
-                else "gpt-6.1-sol";
+                else "gpt-6.2-sol";
               enabledModels = agentModels;
               sessionTitleModel = "azure/gpt-5.4-nano";
               subagents = {
                 allowedModels = agentModels;
                 modelNotes =
                   {
-                    "azure/gpt-6.1-sol" = "complex implementation, difficult debugging, architecture, and deep reviews; required for deep reviews of Claude-produced work; prefer ${quickModel} for routine scouting, research, bounded edits, and lightweight reviews";
+                    "azure/gpt-6.2-sol" = "complex implementation, difficult debugging, architecture, and deep reviews; required for deep reviews of Claude-produced work; prefer ${quickModel} for routine scouting, research, bounded edits, and lightweight reviews";
                     ${quickModel} = "default for routine scouting, research, context gathering, bounded implementation, and lightweight reviews of GPT-produced work; use low thinking for straightforward tasks; escalate to azure/gpt-6.1-sol for unresolved ambiguity or cross-cutting reasoning";
                   }
                   // lib.optionalAttrs agents.claude-code.enable {

@@ -20,10 +20,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    noctalia-greeter = {
-      url = "github:noctalia-dev/noctalia-greeter";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # Preserve upstream nixpkgs pins so the Noctalia cache's store paths match.
+    noctalia-greeter.url = "github:noctalia-dev/noctalia-greeter/cachix";
+    luciole.url = "github:noctalia-dev/luciole/cachix";
+    umbriel.url = "github:noctalia-dev/umbriel/cachix";
     autoscan = {
       url = "github:antoine-bouteiller/autoscan";
       inputs.nixpkgs.follows = "nixpkgs";

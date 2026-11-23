@@ -3,7 +3,7 @@
   apps = {
     terminal = "foot";
     browser = "helium";
-    explorer = "thunar";
+    explorer = "luciole";
     picker = "wl-color-picker";
   };
   mod = "Mod";

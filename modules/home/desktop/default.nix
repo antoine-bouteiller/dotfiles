@@ -6,11 +6,12 @@
   ...
 } @ args:
 mkModule args "local.home-manager.desktop" {
-  description = "Niri desktop session: gtk/qt theming and the noctalia shell";
+  description = "Desktop sessions with GTK/Qt theming and the Noctalia shell";
   imports = [
     ./gtk.nix
     ./qt.nix
     ./noctalia.nix
+    ./luciole.nix
   ];
   options.extraNiriBinds = lib.mkOption {
     type = lib.types.lines;

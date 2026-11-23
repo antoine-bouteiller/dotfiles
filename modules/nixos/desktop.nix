@@ -7,8 +7,11 @@
   ...
 } @ args:
 mkModule args "local.nixos.desktop" {
-  description = "Niri Desktop";
-  imports = [inputs.noctalia-greeter.nixosModules.default];
+  description = "Niri and Umbriel desktop sessions";
+  imports = [
+    inputs.noctalia-greeter.nixosModules.default
+    inputs.umbriel.nixosModules.default
+  ];
 
   config = _: let
     inherit (import ../../lib/palette.nix {inherit lib;}) colors;
@@ -41,8 +44,10 @@ mkModule args "local.nixos.desktop" {
     });
   in {
     programs.niri.enable = true;
+    programs.umbriel.enable = true;
     programs.localsend.enable = true;
     services.udisks2.enable = true;
+    services.gvfs.enable = true;
 
     networking.networkmanager.dns = "systemd-resolved";
     services.resolved = {
@@ -80,15 +85,15 @@ mkModule args "local.nixos.desktop" {
       consoleLogLevel = 0;
     };
 
-    # The greeter enables greetd and points it at its own wlroots compositor; the
-    # session list comes from the wayland-sessions entry niri ships.
+    # The greeter discovers both compositors through their registered session packages.
     services.displayManager.noctalia-greeter = {
       enable = true;
       passwordless-sync-users = [host.user];
       settings = {
-        font_family = "Inter";
+        session.default = "niri";
         # Noctalia auto-syncs its appearance to sync.toml through the constrained helper.
         appearance = {
+          font_family = "Inter";
           scheme = "Synced";
           hide_logo = true;
         };
@@ -139,7 +144,6 @@ mkModule args "local.nixos.desktop" {
 
     # noctalia's gtk template applies itself through gsettings.
     programs.dconf.enable = true;
-    programs.xfconf.enable = true;
 
     # Secret Service provider (org.freedesktop.secrets): without it chromium falls back to
     # its plaintext store and NetworkManager keeps wifi PSKs system-wide. The module wires
@@ -157,7 +161,16 @@ mkModule args "local.nixos.desktop" {
 
     # The niri module already pulls in the gnome portal; GTK is what its own portal
     # config lists as the fallback for Access and Notification.
-    xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    xdg.portal = {
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+        inputs.luciole.packages.${pkgs.stdenv.hostPlatform.system}.default
+      ];
+      config = {
+        niri."org.freedesktop.impl.portal.FileChooser" = ["luciole"];
+        umbriel."org.freedesktop.impl.portal.FileChooser" = ["luciole"];
+      };
+    };
 
     fonts = {
       packages = with pkgs; [

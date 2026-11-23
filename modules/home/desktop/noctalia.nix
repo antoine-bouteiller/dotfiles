@@ -129,9 +129,29 @@ in {
           mode = "dark";
           source = "custom";
           custom_palette = "Dotfiles";
-          templates.builtin_ids = ["gtk3" "gtk4" "qt" "foot"];
+          templates = {
+            builtin_ids = ["gtk3" "gtk4" "qt" "foot"];
+            user.luciole = {
+              input_path = "${config.programs.luciole.package}/share/luciole/templates/colors.toml";
+              output_path = "${config.xdg.configHome}/luciole/colors.toml";
+            };
+          };
         };
       };
+    };
+
+    # Separate GUI overrides prevent the Niri-only display plugin from leaking into Umbriel.
+    xdg.configFile = {
+      "umbriel/noctalia/config.toml".source = (pkgs.formats.toml {}).generate "noctalia-umbriel.toml" (
+        lib.recursiveUpdate config.programs.noctalia.settings {
+          plugins.enabled = lib.remove "raycursive/niri-displays" config.programs.noctalia.settings.plugins.enabled;
+          bar.default.start = lib.remove "niri-display" config.programs.noctalia.settings.bar.default.start;
+        }
+        // {
+          widget = lib.removeAttrs config.programs.noctalia.settings.widget ["niri-display"];
+        }
+      );
+      "umbriel/noctalia/palettes/Dotfiles.json".source = config.xdg.configFile."noctalia/palettes/Dotfiles.json".source;
     };
 
     # Mask redundant launcher entries without removing the underlying tools.
@@ -139,7 +159,6 @@ in {
       lib.genAttrs [
         "applications/qt5ct.desktop"
         "applications/qt6ct.desktop"
-        "applications/thunar-settings.desktop"
         "applications/footclient.desktop"
         "applications/foot-server.desktop"
         "applications/dev.noctalia.Noctalia.desktop"

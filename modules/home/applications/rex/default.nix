@@ -112,11 +112,18 @@ in
       home.sessionVariables.REX_AUTOSTART = lib.mkIf cfg.server.enable "false";
       programs.bash.bashrcExtra = lib.mkIf cfg.server.enable "export REX_AUTOSTART=false";
 
-      # Names each tab after the directory of its first pane.
+      # Names each tab after the directory of its first pane, or its branch in a linked Git worktree.
       programs.zsh.initContent = ''
         if [[ -n $REX_BLOCK ]]; then
           _rex_tab_name() {
-            rex do ${./tab-name.lua} block="$REX_BLOCK" name="''${PWD:t}" --autostart=false &>/dev/null &!
+            {
+              local name=''${PWD:t} branch
+              local -a dirs=(''${(f)"$(git rev-parse --path-format=absolute --git-dir --git-common-dir)"})
+              if [[ ''${dirs[1]} != ''${dirs[2]} ]] && branch=$(git branch --show-current) && [[ -n $branch ]]; then
+                name=$branch
+              fi
+              rex do ${./tab-name.lua} block="$REX_BLOCK" name="$name" --autostart=false
+            } &>/dev/null &!
           }
           chpwd_functions+=(_rex_tab_name)
           _rex_tab_name

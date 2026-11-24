@@ -1,21 +1,21 @@
 {
-  "version": "1.7.0",
+  "version": "1.8.0",
   "platforms": {
     "x86_64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.7.0.tgz",
-      "hash": "sha512-pqo+nLXHERoA9uPv+0X8c+Tgpx2Nb9q1MY8XshFy0vgA3ziB7h94Abd3oI2SMQOU4eSQ2ZThclqXF/69HSdeaA=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-x64-gnu/-/vite-plus-cli-linux-x64-gnu-1.8.0.tgz",
+      "hash": "sha512-T89ofVadihjsxrko3LM1IS5xpTUB5ACrZj3fYSTca6tVVbU+1Bu4Vu1b3Zu+wh8R7VLAfp/e20FhNvW4Pj4SOQ=="
     },
     "aarch64-linux": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.7.0.tgz",
-      "hash": "sha512-gmDsQ+ZfZPvRG/oFWEunmN/x6e/gS0By0y5+AwQGdOfSaIq79IuMvDG27Dj4gZSvZuQE4XWl3PVGUYDerXS6GQ=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-linux-arm64-gnu/-/vite-plus-cli-linux-arm64-gnu-1.8.0.tgz",
+      "hash": "sha512-apX55SHQR2RHt2tOB4Ieh8XTkGS6MFNQCOjynbVVbYQ4SjMyE2Gy5zHRceW50bJTIrZyULJNT2YFNNr/JfoSLg=="
     },
     "x86_64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.7.0.tgz",
-      "hash": "sha512-kH/96CeALiU/kUVm36rpgecbp6fJYQfAE4UiQgdKtAlmgQU6kkBxrjMalzH1vv8X2NXljxkwZ/c/leZasoklNQ=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-x64/-/vite-plus-cli-darwin-x64-1.8.0.tgz",
+      "hash": "sha512-uMsOZP6dYdLkXyROWVv8RS/6er0BQPOR+z7aH5+TiRVVVHFcuuaF7eIunp1W5TbNLcOXw0mZ9rvIp3wzx7bZPQ=="
     },
     "aarch64-darwin": {
-      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.7.0.tgz",
-      "hash": "sha512-B/C6DBb7KVYTaO0fHoLXGyEBKRj5yRWr/qm52FoL7vfyrnayQazWQYxOzgLz4pCesxbxd7YebEN05nu9BKcvGA=="
+      "url": "https://registry.npmjs.org/@voidzero-dev/vite-plus-cli-darwin-arm64/-/vite-plus-cli-darwin-arm64-1.8.0.tgz",
+      "hash": "sha512-mFEnVnHpDEhEfNJpHbWhSXC7elfiGxx2CRiylZExdjiib60OurDLuXoWQWmoqkK2PopxAgrPO0CQMUokjhqRIA=="
     }
   }
 }

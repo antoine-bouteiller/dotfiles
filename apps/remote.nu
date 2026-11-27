@@ -72,6 +72,9 @@ def 'main activate' [expected_user: string, activation_drv: string, nh: string, 
   }
   rm --force $sops_key_file
   step 'Cleaning old generations'
+  # Interrupted deploys leak their roots; the age limit spares concurrent deploys.
+  ^sudo find /nix/var/nix/gcroots -mindepth 1 -maxdepth 1 -name 'dotfiles-*' -mmin +60 -not -path ($root | path dirname) -exec rm -rf -- '{}' +
+  ^sudo /nix/var/nix/profiles/default/bin/nix-env --profile /nix/var/nix/profiles/default --delete-generations $"+($generations_to_keep)"
   ^$nh clean user --keep $generations_to_keep --keep-one --no-gcroots
 }
 

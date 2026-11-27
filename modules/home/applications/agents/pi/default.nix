@@ -220,7 +220,8 @@ in
               fi
               # Captured so pi's reply cannot land on the spinner line; `always` stops it on Ctrl-C.
               {
-                out=$(${lib.getExe piWrapped} -p --no-session --no-mcp --offline --tools bash,read --thinking low \
+                # PATH lookup: a store path baked into a long-lived shell dangles after GC.
+                out=$(command pi -p --no-session --no-mcp --offline --tools bash,read --thinking low \
                   --model azure/gpt-6-luna \
                   "/skill:conventional-commit Commit the staged changes. Splitting is delegated: split into several commits when the skill's rules call for it, without asking.")
                 ret=$?

@@ -14,7 +14,7 @@
     then "anthropic/claude-sonnet-5-5"
     else "azure/gpt-6-luna";
   agentModels =
-    ["azure/gpt-6.1-sol"]
+    ["azure/gpt-6.2-sol"]
     ++ lib.optional agents.claude-code.enable "anthropic/claude-opus-5-5"
     ++ [quickModel];
 
@@ -160,7 +160,7 @@ in
                 modelNotes =
                   {
                     "azure/gpt-6.2-sol" = "complex implementation, difficult debugging, architecture, and deep reviews; required for deep reviews of Claude-produced work; prefer ${quickModel} for routine scouting, research, bounded edits, and lightweight reviews";
-                    ${quickModel} = "default for routine scouting, research, context gathering, bounded implementation, and lightweight reviews of GPT-produced work; use low thinking for straightforward tasks; escalate to azure/gpt-6.1-sol for unresolved ambiguity or cross-cutting reasoning";
+                    ${quickModel} = "default for routine scouting, research, context gathering, bounded implementation, and lightweight reviews of GPT-produced work; use low thinking for straightforward tasks; escalate to azure/gpt-6.2-sol for unresolved ambiguity or cross-cutting reasoning";
                   }
                   // lib.optionalAttrs agents.claude-code.enable {
                     "anthropic/claude-opus-5-5" = "deep review of GPT-produced work; independent second opinions on difficult design/architecture or debugging";
@@ -184,7 +184,7 @@ in
               doubleEscapeAction = "none";
             };
             models = {
-              providers.azure.modelOverrides."gpt-6.1-sol".contextWindow = 1050000;
+              providers.azure.modelOverrides."gpt-6.2-sol".contextWindow = 1050000;
               providers.anthropic = lib.mkIf agents.claude-code.enable {
                 baseUrl = "http://127.0.0.1:3456";
                 apiKey = "x";

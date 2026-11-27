@@ -121,7 +121,12 @@ in {
       "caffeine"
 
       # Browsers
-      "helium-browser"
+      # Brew swaps the bundle under the running browser, which breaks it until relaunch.
+      # Helium's own updater keeps the old version loaded and relaunches cleanly.
+      {
+        name = "helium-browser";
+        greedy = false;
+      }
 
       # Utility Tools
       "unnaturalscrollwheels"

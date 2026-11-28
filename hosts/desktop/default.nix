@@ -9,7 +9,7 @@
   outputs = import ./outputs.nix;
 in {
   imports =
-    [../base-nixos.nix ./openrgb]
+    [../base-nixos.nix ./bluetooth-monitor.nix ./openrgb]
     ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix;
 
   assertions = [

@@ -83,7 +83,7 @@
     mkApps = system:
       {
         "rekey" = mkAppWith "rekey" system (keyTools system);
-        "apply" = mkApp "apply" system;
+        "apply" = mkAppWith "apply" system [self.packages.${system}.sudo-dialog];
         "clean" = mkApp "clean" system;
         "update" = mkApp "update" system;
         "update-input" = mkApp "update-input" system;
@@ -117,6 +117,7 @@
           pi = pkgs.callPackage ./pkgs/pi {};
           ai-usagebar = pkgs.callPackage ./pkgs/ai-usagebar {};
           rex = pkgs.callPackage ./pkgs/rex {};
+          sudo-dialog = pkgs.callPackage ./pkgs/sudo-dialog.nix {};
         }
         // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
           helium = pkgs.callPackage ./pkgs/helium.nix {};

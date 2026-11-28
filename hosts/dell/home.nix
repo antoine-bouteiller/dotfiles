@@ -1,5 +1,6 @@
 _: {
   home.stateVersion = "26.05";
+  local.home-manager.agents.claude-code.enable = true;
 
   programs.umbriel.settings.output."eDP-1".scale = 2.0;
 

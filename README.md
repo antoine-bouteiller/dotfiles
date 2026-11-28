@@ -49,6 +49,10 @@ Hosts:
 | `nix run .#apply-remote -- <user>@<vm-host>` | deploy tracked local sources to the standalone VM without a remote checkout |
 | `nix run .#rekey`                            | rotate the current host's sops age key and re-encrypt secrets               |
 
+In a local NixOS Wayland or macOS desktop session, `.#apply` and `sudo` found on Claude Code's
+`PATH` show a dialog when sudo needs a password. SSH and regular shell commands keep their
+usual behavior. The dialog does not change sudo's credential cache or Claude Code's permissions.
+
 `apply-remote` targets the standalone Home Manager `vm`, not the nix-darwin Linux-builder VM.
 
 Flakes ignore untracked files: `git add` new `.nix` files before applying.

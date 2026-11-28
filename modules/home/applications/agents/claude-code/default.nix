@@ -18,7 +18,9 @@ in
       lib.mkIf agents.enable {
         programs.claude-code = {
           enable = true;
-          package = customPkgs.claude-code;
+          package = customPkgs.claude-code.override {
+            additionalPaths = lib.optionals (pkgs.stdenv.hostPlatform.isDarwin || config.local.home-manager.desktop.enable) ["${customPkgs.sudo-dialog}/bin"];
+          };
           enableMcpIntegration = true;
           context = ./CLAUDE.md;
           settings = {

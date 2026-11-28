@@ -184,6 +184,7 @@ in {
         position x=1920 y=0
     }
   '';
+  local.home-manager.agents.claude-code.enable = true;
   local.home-manager.desktop.extraNiriBinds = ''
     Super+Shift+T repeat=false hotkey-overlay-title="Toggle TV" { spawn "${toggleTv}/bin/toggle-tv"; }
   '';
